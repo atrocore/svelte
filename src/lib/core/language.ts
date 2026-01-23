@@ -77,7 +77,7 @@ export const Language = {
 
         if (translation === null){
             return '';
-        }else if (typeof translation === 'object') {
+        } else if (typeof translation === 'object') {
             // @ts-ignore: Suppress error for dynamic indexing
             return translation[value];
         }
