@@ -60,6 +60,9 @@
                 LayoutComponent = RelationShipsLayout;
                 break;
             case 'summary':
+                params.disabledParameters = ['layoutDetailDisabled']
+                LayoutComponent = GridLayout;
+                break;
             case 'detail':
                 LayoutComponent = GridLayout;
                 break;
