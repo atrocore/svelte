@@ -20,6 +20,14 @@
     function handleAction(e: MouseEvent, action: ItemAction): void {
         e.preventDefault();
         e.stopPropagation();
+
+        // Close the dropdown
+        const target = e.target as HTMLElement;
+        const dropdown = target.closest('.dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('open');
+        }
+
         dispatch('action', {
             action: action.name,
             itemId,

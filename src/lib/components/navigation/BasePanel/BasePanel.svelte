@@ -23,11 +23,20 @@
 
     function handleClickOutside(event: MouseEvent): void {
         const target = event.target as Node;
+
+        // Check if any modal is open
         const modalContainer = document.querySelector('.modal-container');
+        const modal = document.querySelector('.modal');
+        const modalBackdrop = document.querySelector('.modal-backdrop');
+
+        // Don't close if target is no longer in DOM (was part of modal that closed)
+        if (!document.body.contains(target)) {
+            return;
+        }
 
         if (panel && !panel.contains(target) &&
             icon && !icon.contains(target) &&
-            isOpen && !modalContainer) {
+            isOpen && !modalContainer && !modal && !modalBackdrop) {
             close();
         }
     }
