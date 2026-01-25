@@ -3,10 +3,10 @@
     import {onMount, createEventDispatcher, tick} from 'svelte';
     import type Button from './interfaces/Button'
     import type Params from './interfaces/Params'
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import {LayoutManager} from "../../../utils/LayoutManager";
     import { Language } from "$lib/core/language"
-    import {UserData} from "../../../utils/UserData";
+    import {UserData} from "$lib/core/user-data";
 
     const dispatch = createEventDispatcher();
     export let params: Params;

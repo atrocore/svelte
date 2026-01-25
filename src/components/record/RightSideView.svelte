@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Storage} from "../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
     import {onDestroy, onMount} from "svelte";
     import { Language } from "$lib/core/language"
     import Item from './interfaces/Item'

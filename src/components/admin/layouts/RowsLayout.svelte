@@ -6,10 +6,10 @@
     import LayoutItem from "./interfaces/LayoutItem"
     import { Language } from "$lib/core/language"
     import Sortable from 'sortablejs'
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import Group from "./interfaces/Group";
     import { Metadata } from '$lib/core/metadata';
-    import {UserData} from "../../../utils/UserData";
+    import {UserData} from "$lib/core/user-data";
 
     let layoutElement: HTMLElement
 

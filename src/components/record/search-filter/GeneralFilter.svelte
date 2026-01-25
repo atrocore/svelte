@@ -3,11 +3,11 @@
     import {get} from 'svelte/store'
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
-    import {Notifier} from '../../../utils/Notifier'
+    import {Notifier} from '$lib/core/notifier'
     import {getGeneralFilterStore} from './stores/GeneralFilter'
     import { Acl } from "$lib/core/acl";
     import FilterGroup from "./FilterGroup.svelte";
-    import {Storage} from "../../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
 
     export let searchManager: any;
 

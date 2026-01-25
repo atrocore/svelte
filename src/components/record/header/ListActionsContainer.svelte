@@ -3,7 +3,7 @@
     import Preloader from "../../icons/loading/Preloader.svelte";
     import FilterSearch from "../search/FilterSearch.svelte";
     import SearchBar from "../search/SearchBar.svelte";
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import Counter from "./interfaces/Counter";
     import MassAction from "./interfaces/MassAction";
 

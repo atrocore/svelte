@@ -1,9 +1,9 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import { Metadata } from '$lib/core/metadata';
-    import {Storage} from "../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
     import Dropdown from "../../utils/Dropdown";
 
 

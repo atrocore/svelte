@@ -7,7 +7,7 @@
     import { Metadata } from '$lib/core/metadata';
     import {LayoutManager} from "../../../utils/LayoutManager";
     import Group from "./interfaces/Group";
-    import {UserData} from "../../../utils/UserData";
+    import {UserData} from "$lib/core/user-data";
 
     export let params: Params;
 

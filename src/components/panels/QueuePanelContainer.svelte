@@ -6,8 +6,8 @@
     import {onMount, onDestroy} from 'svelte';
 
     import { Language } from "$lib/core/language"
-    import {UserData} from '../../utils/UserData';
-    import {Notifier} from '../../utils/Notifier';
+    import {UserData} from '$lib/core/user-data';
+    import {Notifier} from '$lib/core/notifier';
 
     let qmPaused = false;
     window.addEventListener('publicDataFetched', (event: any): void => {

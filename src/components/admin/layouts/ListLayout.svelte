@@ -7,8 +7,8 @@
     import { Metadata } from '$lib/core/metadata';
     import {LayoutManager} from "../../../utils/LayoutManager";
     import Group from "./interfaces/Group";
-    import {Utils} from "../../../utils/Utils.js";
-    import {UserData} from "../../../utils/UserData";
+    import {Utils} from "$lib/core/utils";
+    import {UserData} from "$lib/core/user-data";
 
     export let params: Params;
 

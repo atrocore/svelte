@@ -1,28 +1,37 @@
-import RequestParams from "./interfaces/RequestParams";
+/*
+ * AtroCore Software
+ *
+ * This source file is available under GNU General Public License version 3 (GPLv3).
+ * Full copyright and license information is available in LICENSE.txt, located in the root directory.
+ *
+ * @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+ * @license    GPLv3 (https://www.gnu.org/licenses/)
+ */
 
-import {UserData} from "./UserData";
-import {Storage} from "./Storage";
-import { Metadata } from '$lib/core/metadata';
+import type RequestParams from '$lib/core/types/request-params';
+import {UserData} from '$lib/core/user-data';
+import {Storage} from '$lib/core/storage';
+import {Metadata} from '$lib/core/metadata';
 
 export const Utils = {
     upperCaseFirst(value: string): string {
-        if (!value.length) return ''
-        return value[0].toUpperCase() + value.slice(1)
+        if (!value.length) return '';
+        return value[0].toUpperCase() + value.slice(1);
     },
 
     patchRequest(url: string, data: any) {
-        return this.request('PATCH', url, data)
+        return this.request('PATCH', url, data);
     },
 
     postRequest(url: string, data: any) {
-        return this.request('POST', url, data)
+        return this.request('POST', url, data);
     },
 
     getRequest(url: string, data: Record<string, any>) {
-        const query = new URLSearchParams(data).toString()
-        const finalUrl = query ? `${url}?${query}` : url
+        const query = new URLSearchParams(data).toString();
+        const finalUrl = query ? `${url}?${query}` : url;
 
-        return this.request('GET', finalUrl, null)
+        return this.request('GET', finalUrl, null);
     },
 
     request(method: string, url: string, data: any) {
@@ -37,20 +46,20 @@ export const Utils = {
         };
 
         if (userData?.user) {
-            params['headers']['Authorization-Token'] = btoa(userData.user.userName + ':' + userData.token)
+            params['headers']['Authorization-Token'] = btoa(userData.user.userName + ':' + userData.token);
         }
         if (Storage.get('user', 'locale')) {
-            params['headers']['Locale-Id'] = Storage.get('user', 'locale')
+            params['headers']['Locale-Id'] = Storage.get('user', 'locale');
         }
 
         if (data) {
             if (typeof data === 'object') {
-                data = JSON.stringify(data)
+                data = JSON.stringify(data);
             }
-            params.body = data
+            params.body = data;
         }
 
-        return fetch(this.joinURL('/api/v1', url), params)
+        return fetch(this.joinURL('/api/v1', url), params);
     },
 
     joinURL(baseURL: string, path: string) {
@@ -59,6 +68,7 @@ export const Utils = {
 
         return `${normalizedBase}/${normalizedPath}`;
     },
+
     getBorder(col: string) {
         let amt = -10;
         let num = parseInt(col.slice(1), 16);

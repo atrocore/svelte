@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
 
     export let scope: string;
     export let searchManager: any;

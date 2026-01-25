@@ -2,7 +2,7 @@
     import SpinnerIcon from "../../icons/loading/SpinnerIcon.svelte";
     import { Language } from "$lib/core/language"
     import {onMount} from "svelte";
-    import {Utils} from "../../../utils/Utils";
+    import {Utils} from "$lib/core/utils";
 
     export let onApply: () => void;
     export let onCancel: () => void;

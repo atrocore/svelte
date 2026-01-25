@@ -1,7 +1,7 @@
 <script>
     import * as monaco from 'monaco-editor';
-    import {Notifier} from "../../utils/Notifier";
-    import {Utils} from "../../utils/Utils";
+    import {Notifier} from "$lib/core/notifier";
+    import {Utils} from "$lib/core/utils";
 
     const jsonTwigLanguageConfig = {
         defaultToken: '',

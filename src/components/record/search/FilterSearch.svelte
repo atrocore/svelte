@@ -2,7 +2,7 @@
     import {onMount} from "svelte";
     import {get} from "svelte/store";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import SavedSearch from "../search-filter/SavedSearch.svelte"
     import GeneralFilter from "../search-filter/GeneralFilter.svelte";
     import {getGeneralFilterStore} from "../search-filter/stores/GeneralFilter"

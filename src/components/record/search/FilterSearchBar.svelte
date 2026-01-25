@@ -2,7 +2,7 @@
     import FilterSearch from "./FilterSearch.svelte";
     import SearchBar from "./SearchBar.svelte";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
 
     export let showFilter: boolean = false;
     export let showSearchPanel: boolean = false;

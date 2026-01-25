@@ -1,15 +1,15 @@
 <script lang="ts">
     import {onMount, tick, afterUpdate} from 'svelte';
-    import {Storage} from "../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
     import {LayoutManager} from "../../utils/LayoutManager";
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
     import { Config } from '$lib/core/config';
-    import {Notifier} from "../../utils/Notifier";
-    import {UserData} from "../../utils/UserData";
+    import {Notifier} from "$lib/core/notifier";
+    import {UserData} from "$lib/core/user-data";
     import Preloader from "../icons/loading/Preloader.svelte";
     import BaseSidebar from "./BaseSidebar.svelte";
-    import {Utils} from "../../utils/Utils";
+    import {Utils} from "$lib/core/utils";
 
     export let scope: string;
     export let model: any = null;

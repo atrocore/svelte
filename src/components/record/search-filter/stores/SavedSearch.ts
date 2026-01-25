@@ -1,7 +1,7 @@
 import {writable, get} from 'svelte/store';
 import SavedSearch from '../interfaces/SavedSearch'
 import Collection from '../../../../utils/interfaces/Collection'
-import {UserData} from "../../../../utils/UserData";
+import {UserData} from "$lib/core/user-data";
 
 
 let stores = new Map();

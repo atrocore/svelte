@@ -1,12 +1,12 @@
 <script lang="ts">
     import {onMount, tick} from "svelte";
     import { Metadata } from '$lib/core/metadata';
-    import {Storage} from "../../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
     import Rule from "./interfaces/Rule";
     import { Acl } from "$lib/core/acl";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
-    import {UserData} from "../../../utils/UserData";
+    import {Notifier} from "$lib/core/notifier";
+    import {UserData} from "$lib/core/user-data";
     import SavedSearch from "./SavedSearch.svelte";
     import GeneralFilter from "./GeneralFilter.svelte";
     import {getSavedSearchStore} from "./stores/SavedSearch";

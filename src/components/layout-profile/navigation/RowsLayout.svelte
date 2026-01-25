@@ -7,7 +7,7 @@
     import type KeyValue from "./interfaces/KeyValue";
     import type Item from "./interfaces/Item";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
 
     let layoutElement: HTMLElement
 

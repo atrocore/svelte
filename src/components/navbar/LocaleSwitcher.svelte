@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Config } from '$lib/core/config';
-    import {Utils} from "../../utils/Utils";
-    import {UserData} from "../../utils/UserData";
+    import {Utils} from "$lib/core/utils";
+    import {UserData} from "$lib/core/user-data";
     import {LayoutManager} from "../../utils/LayoutManager";
     import { Language } from "$lib/core/language"
-    import {Storage} from "../../utils/Storage";
+    import {Storage} from "$lib/core/storage";
 
     export let checkConfirmLeaveOut: Function;
     let mainLanguageCode = ''

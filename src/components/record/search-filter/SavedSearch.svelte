@@ -1,14 +1,14 @@
 <script lang="ts">
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import {Notifier} from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
     import Preloader from "../../icons/loading/Preloader.svelte";
     import {getSavedSearchStore} from "./stores/SavedSearch";
     import SavedSearch from "./interfaces/SavedSearch"
     import {get} from "svelte/store"
     import FilterGroup from "./FilterGroup.svelte";
-    import {UserData} from "../../../utils/UserData";
+    import {UserData} from "$lib/core/user-data";
 
     export let scope: string;
     export let savedSearchList: Array<SavedSearch> = [];
