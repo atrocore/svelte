@@ -12,7 +12,7 @@
     import {Config} from '$lib/core/config';
     import {Utils} from '$lib/core/utils';
     import {Notifier} from '$lib/core/notifier';
-    import BasePanel from '$lib/components/navigation/BasePanel/BasePanel.svelte';
+    import BadgePanel from '$lib/components/navigation/BadgePanel/BadgePanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
     import ExtendedList from '$lib/components/list/ExtendedList/ExtendedList.svelte';
     import ExtendedListItem from '$lib/components/list/ExtendedListItem/ExtendedListItem.svelte';
@@ -245,7 +245,7 @@
     }
 </script>
 
-<BasePanel
+<BadgePanel
         {isOpen}
         {close}
         {icon}
@@ -345,7 +345,7 @@
                 on:execute={showMore}
         />
     </div>
-</BasePanel>
+</BadgePanel>
 
 <style>
     .action-buttons {

@@ -9,7 +9,7 @@
  -->
 
 <script lang="ts">
-    import BaseBadge from '$lib/components/navigation/BaseBadge/BaseBadge.svelte';
+    import Badge from '$lib/components/navigation/Badge/Badge.svelte';
     import CurrentSelectionPanel from '$lib/components/navigation/CurrentSelectionPanel/CurrentSelectionPanel.svelte';
     import {Language} from '$lib/core/language';
 
@@ -18,7 +18,7 @@
     export let panelWidth: string = '500px';
     export let userModel: any;
 
-    let badgeComponent: BaseBadge;
+    let badgeComponent: Badge;
     let panelComponent: CurrentSelectionPanel;
 
     export function handleSelectionChange(): void {
@@ -28,7 +28,7 @@
     }
 </script>
 
-<BaseBadge
+<Badge
     bind:this={badgeComponent}
     title={Language.translate('currentSelection')}
     iconClass="ph ph-basket"
@@ -45,4 +45,4 @@
             width={panelWidth}
         />
     </svelte:fragment>
-</BaseBadge>
+</Badge>
