@@ -385,9 +385,6 @@
 
     .no-data-container {
         padding: 10px 20px;
-        /*padding: 20px;*/
-        /*text-align: center;*/
-        /*color: #999;*/
     }
 
     .show-more {
