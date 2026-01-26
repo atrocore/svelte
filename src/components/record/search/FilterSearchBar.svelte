@@ -2,7 +2,7 @@
     import FilterSearch from "./FilterSearch.svelte";
     import SearchBar from "./SearchBar.svelte";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "../../../utils/Notifier";
+    import { Notifier } from "$lib/core/notifier";
 
     export let showFilter: boolean = false;
     export let showSearchPanel: boolean = false;
@@ -13,6 +13,7 @@
     let refreshDisabled: boolean = false;
     let search: any;
     let filter: any;
+
     export function reset() {
         filter.unsetAll();
         search.reset();
@@ -35,11 +36,12 @@
         <SearchBar bind:this={search} searchManager={searchManager} scope={scope}/>
     {/if}
     {#if showFilter}
-       <div class="filter-search">
-           <FilterSearch bind:this={filter} searchManager={searchManager} scope={scope} uniqueKey={uniqueKey}/>
-       </div>
+        <div class="filter-search">
+            <FilterSearch bind:this={filter} searchManager={searchManager} scope={scope} uniqueKey={uniqueKey}/>
+        </div>
     {/if}
-    <button class="refresh" disabled={refreshDisabled} title={Language.translate('Refresh')} on:click={onRefreshClick}><i class="ph ph-arrows-clockwise"></i></button>
+    <button class="refresh" disabled={refreshDisabled} title={Language.translate('Refresh')} on:click={onRefreshClick}>
+        <i class="ph ph-arrows-clockwise"></i></button>
 </div>
 
 <style>

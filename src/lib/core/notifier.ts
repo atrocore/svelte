@@ -1,22 +1,31 @@
-import {writable} from 'svelte/store';
-import { Language } from "$lib/core/language"
+/*
+ * AtroCore Software
+ *
+ * This source file is available under GNU General Public License version 3 (GPLv3).
+ * Full copyright and license information is available in LICENSE.txt, located in the root directory.
+ *
+ * @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+ * @license    GPLv3 (https://www.gnu.org/licenses/)
+ */
 
-interface NotifierInterface {
-    notify(message: string | boolean, type: string | null, timeout: number): void
+import { writable } from 'svelte/store';
+import { Language } from '$lib/core/language';
 
-    confirm(message: string, o: any, callback: any, context: any): void
-}
+type NotifierAdapter = {
+    notify(message: string | boolean, type: string | null, timeout: number): void;
+    confirm(message: string, o: any, callback: any, context: any): void;
+};
 
-const data = writable<NotifierInterface>();
+const data = writable<NotifierAdapter>();
 
 export const Notifier = {
 
-    setNotifier(notifier: NotifierInterface): void {
+    setNotifier(notifier: NotifierAdapter): void {
         data.set(notifier);
     },
 
     notify(message: string | boolean, type: string | null = null, timeout: number = 2000): void {
-        data.subscribe((current: NotifierInterface) => {
+        data.subscribe((current: NotifierAdapter) => {
             if (current) {
                 current.notify(message, type, 2000);
             }
@@ -24,7 +33,7 @@ export const Notifier = {
     },
 
     confirm(o: any = null, callback: any = null, context: any): void {
-        data.subscribe((current: NotifierInterface) => {
+        data.subscribe((current: NotifierAdapter) => {
             if (current) {
                 let confirmStyle = null;
                 let message = null;

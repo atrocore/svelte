@@ -5,10 +5,10 @@
     import LayoutItem from "./interfaces/LayoutItem"
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
-    import {LayoutManager} from "../../../utils/LayoutManager";
+    import { LayoutManager } from "../../../utils/LayoutManager";
     import Group from "./interfaces/Group";
-    import {Utils} from "../../../utils/Utils.js";
-    import {UserData} from "../../../utils/UserData";
+    import { Utils } from "$lib/core/utils";
+    import { UserData } from "$lib/core/user-data";
 
     export let params: Params;
 
@@ -82,7 +82,7 @@
             if (!Metadata.get(['scopes', params.scope, 'bookmarkDisabled'])) {
                 fields.push('_bookmark')
             }
-            if (['Hierarchy', 'Base'].includes(Metadata.get(['scopes', params.scope, 'type'])) ) {
+            if (['Hierarchy', 'Base'].includes(Metadata.get(['scopes', params.scope, 'type']))) {
                 fields.push('_self')
             }
             if (UserData.get()?.user?.isAdmin) {
@@ -231,7 +231,7 @@
             disabledParameters.push(`layout${Utils.upperCaseFirst(params.reelType)}Disabled`)
         }
 
-        if(params.reelType === 'selection') {
+        if (params.reelType === 'selection') {
             disabledParameters = ['disabled', 'layoutDetailDisabled'];
         }
 

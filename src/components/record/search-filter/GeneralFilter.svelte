@@ -1,13 +1,13 @@
 <script lang="ts">
-    import {onMount} from 'svelte'
-    import {get} from 'svelte/store'
+    import { onMount } from 'svelte'
+    import { get } from 'svelte/store'
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
-    import {Notifier} from '../../../utils/Notifier'
-    import {getGeneralFilterStore} from './stores/GeneralFilter'
+    import { Notifier } from '$lib/core/notifier'
+    import { getGeneralFilterStore } from './stores/GeneralFilter'
     import { Acl } from "$lib/core/acl";
     import FilterGroup from "./FilterGroup.svelte";
-    import {Storage} from "../../../utils/Storage";
+    import { Storage } from "$lib/core/storage";
 
     export let searchManager: any;
 
@@ -90,7 +90,7 @@
             }
         });
 
-        if(Array.isArray(searchManager.additionalBoolFilterList)) {
+        if (Array.isArray(searchManager.additionalBoolFilterList)) {
             boolFilterList = boolFilterList.concat(searchManager.additionalBoolFilterList)
         }
 

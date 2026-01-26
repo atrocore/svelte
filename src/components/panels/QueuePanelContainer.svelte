@@ -3,11 +3,11 @@
     export let close: any;
     export let icon: any;
 
-    import {onMount, onDestroy} from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
 
     import { Language } from "$lib/core/language"
-    import {UserData} from '../../utils/UserData';
-    import {Notifier} from '../../utils/Notifier';
+    import { UserData } from '$lib/core/user-data';
+    import { Notifier } from '$lib/core/notifier';
 
     let qmPaused = false;
     window.addEventListener('publicDataFetched', (event: any): void => {
@@ -71,14 +71,18 @@
             </div>
             <div class="panel-body">
                 <div class="btn-container">
-                    <button title="{Language.translate('View List')}" on:click={e => {window.location.href = '#Job'; close();}}
-                       class="primary outline"><i class="ph ph-list"></i><span>{Language.translate('View List')}</span></button>
+                    <button title="{Language.translate('View List')}"
+                            on:click={e => {window.location.href = '#Job'; close();}}
+                            class="primary outline"><i
+                            class="ph ph-list"></i><span>{Language.translate('View List')}</span></button>
                     {#if qmPaused}
                         <button title="{Language.translate('Start')}" class="primary outline"
-                           on:click={event=>{event.preventDefault();startStopQm(false);}}><i class="ph ph-play"></i><span>{Language.translate('Start')}</span></button>
+                                on:click={event=>{event.preventDefault();startStopQm(false);}}><i
+                                class="ph ph-play"></i><span>{Language.translate('Start')}</span></button>
                     {:else}
                         <button title="{Language.translate('Pause')}" class="primary outline"
-                           on:click={event=>{event.preventDefault();startStopQm(true);}}><i class="ph ph-pause"></i><span>{Language.translate('Pause')}</span></button>
+                                on:click={event=>{event.preventDefault();startStopQm(true);}}><i
+                                class="ph ph-pause"></i><span>{Language.translate('Pause')}</span></button>
                     {/if}
                 </div>
                 <div class="list-container">{Language.translate('Loading...')}</div>

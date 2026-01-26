@@ -5,9 +5,8 @@
     import LayoutItem from "./interfaces/LayoutItem"
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
-    import {LayoutManager} from "../../../utils/LayoutManager";
+    import { LayoutManager } from "../../../utils/LayoutManager";
     import Group from "./interfaces/Group";
-    import {UserData} from "../../../utils/UserData";
 
     export let params: Params;
 

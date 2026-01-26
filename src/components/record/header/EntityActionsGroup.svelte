@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import { Metadata } from '$lib/core/metadata';
     import { Language } from "$lib/core/language"
 
@@ -90,16 +90,19 @@
 
 <div class="buttons-container">
     <div class="action-group-container">
-        <ActionGroup {actions} {dropdownActions} className="entity-actions" hasMoreButton={true} dropdownPosition="right"/>
+        <ActionGroup {actions} {dropdownActions} className="entity-actions" hasMoreButton={true}
+                     dropdownPosition="right"/>
     </div>
     <div class="right-group">
         <div class="entity-buttons">
-            <TourButton {scope} mode="list" />
+            <TourButton {scope} mode="list"/>
             {#if stagingEntityId}
-                <a role="button" title={Language.translate('openStagingEntity')} href="#{stagingEntityId}"><i class="ph ph-signpost"></i></a>
+                <a role="button" title={Language.translate('openStagingEntity')} href="#{stagingEntityId}"><i
+                        class="ph ph-signpost"></i></a>
             {/if}
             {#if primaryEntityId}
-                <a role="button" title={Language.translate('openPrimaryEntity')} href="#{primaryEntityId}"><i class="ph ph-crown"></i></a>
+                <a role="button" title={Language.translate('openPrimaryEntity')} href="#{primaryEntityId}"><i
+                        class="ph ph-crown"></i></a>
             {/if}
             {#if hasFavoriteButton}
                 <FavoriteEntityButton

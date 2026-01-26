@@ -8,14 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import {
-    computePosition,
-    autoUpdate,
-    offset,
-    flip,
-    shift,
-    size
-} from '@floating-ui/dom';
+import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
 
 import DropdownParams from "./interfaces/DropdownParams";
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {Storage} from "../../utils/Storage";
-    import {onDestroy, onMount} from "svelte";
+    import { Storage } from "$lib/core/storage";
+    import { onDestroy, onMount } from "svelte";
     import { Language } from "$lib/core/language"
     import Item from './interfaces/Item'
     import BaseSidebar from "./BaseSidebar.svelte";
@@ -220,7 +220,9 @@
         </div>
 
         <div class="sidebar-header">
-            <h5>{#if activeItem?.iconClass}<i class={activeItem?.iconClass} style="margin-inline-end: 10px; font-size: 20px;"></i>{/if}{activeItem?.label ?? ''}</h5>
+            <h5>
+                {#if activeItem?.iconClass}<i class={activeItem?.iconClass}
+                                              style="margin-inline-end: 10px; font-size: 20px;"></i>{/if}{activeItem?.label ?? ''}</h5>
             <div class="layout-editor-container" class:hidden={activeItem?.name !== 'insights'}></div>
         </div>
 

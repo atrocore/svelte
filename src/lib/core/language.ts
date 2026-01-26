@@ -1,4 +1,4 @@
-import {writable, get} from 'svelte/store';
+import { get, writable } from 'svelte/store';
 
 const data = writable({});
 
@@ -50,7 +50,7 @@ export const Language = {
                 }
             }
 
-            if(scope === 'Global') {
+            if (scope === 'Global') {
                 return;
             }
 
@@ -75,7 +75,7 @@ export const Language = {
     translateOption(value: string, field: string, scope: null | string = null): string {
         let translation = Language.translate(field, 'options', scope);
 
-        if (translation === null){
+        if (translation === null) {
             return '';
         } else if (typeof translation === 'object') {
             // @ts-ignore: Suppress error for dynamic indexing

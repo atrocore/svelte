@@ -1,7 +1,10 @@
 <script>
     import * as monaco from 'monaco-editor';
-    import {Notifier} from "../../utils/Notifier";
-    import {Utils} from "../../utils/Utils";
+    import { Notifier } from "$lib/core/notifier";
+    import { onMount } from 'svelte';
+    import Text from './Text.svelte';
+    import { Metadata } from '$lib/core/metadata';
+    import { Language } from "$lib/core/language"
 
     const jsonTwigLanguageConfig = {
         defaultToken: '',
@@ -58,11 +61,6 @@
         }
     };
 
-
-    import {onMount} from 'svelte';
-    import Text from './Text.svelte';
-    import { Metadata } from '$lib/core/metadata';
-    import { Language } from "$lib/core/language"
 
     export let mode = 'detail';
     export let name = '';
@@ -577,7 +575,10 @@
                             models.forEach(model => {
                                 fields.push(model.get('code'))
                             });
-                            scriptFieldView.ajaxPostRequest(`App/action/prepareScriptFields`, {entityName: entityName, fields: fields}).success(res => {
+                            scriptFieldView.ajaxPostRequest(`App/action/prepareScriptFields`, {
+                                entityName: entityName,
+                                fields: fields
+                            }).success(res => {
                                 editor.executeEdits("add-entity-fields", [
                                     {
                                         range: editor.getSelection(),
@@ -621,7 +622,10 @@
                                     attributesIds.push(model.get('id'))
                                 });
 
-                                scriptFieldView.ajaxPostRequest(`App/action/prepareScriptAttributes`, {entityName: entityName, attributesIds: attributesIds}).success(res => {
+                                scriptFieldView.ajaxPostRequest(`App/action/prepareScriptAttributes`, {
+                                    entityName: entityName,
+                                    attributesIds: attributesIds
+                                }).success(res => {
                                     editor.executeEdits("add-entity-attributes", [
                                         {
                                             range: editor.getSelection(),

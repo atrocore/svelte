@@ -1,7 +1,7 @@
-import {writable, get} from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import SavedSearch from '../interfaces/SavedSearch'
 import Collection from '../../../../utils/interfaces/Collection'
-import {UserData} from "../../../../utils/UserData";
+import { UserData } from "$lib/core/user-data";
 
 
 let stores = new Map();
@@ -30,7 +30,11 @@ function createStore(): any {
             attribute: 'entityType',
             value: scope
         }];
-        const response = await fetch('/api/v1/SavedSearch?'+ window.$.param({collectionOnly:true, maxSize:20, where}), {
+        const response = await fetch('/api/v1/SavedSearch?' + window.$.param({
+            collectionOnly: true,
+            maxSize: 20,
+            where
+        }), {
             'method': 'GET',
             'headers': {
                 'Content-Type': 'application/json',
@@ -66,7 +70,7 @@ function createStore(): any {
         if (response.ok) {
             const data = await response.json();
             savedSearchItems.update((list) => {
-                if(id !== null) {
+                if (id !== null) {
                     return list.map(item => item.id === id ? data : item);
                 }
                 return [data, ...list];
@@ -117,11 +121,11 @@ function createStore(): any {
     }
 }
 
-export function getSavedSearchStore(scope: string, uniqueKey: string | null, initial: Record<string, any> | null = null)  {
+export function getSavedSearchStore(scope: string, uniqueKey: string | null, initial: Record<string, any> | null = null) {
     let store;
     const key = scope + '_' + (uniqueKey ?? 'default');
     store = stores.get(key);
-    if(!store) {
+    if (!store) {
         store = createStore();
         store.key = key;
         stores.set(key, store);

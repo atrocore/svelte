@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onDestroy, onMount} from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     import Params from "./interfaces/Params"
     import AnchorNavItem from "./interfaces/AnchorNavItem";

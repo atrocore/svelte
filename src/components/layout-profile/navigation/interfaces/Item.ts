@@ -3,5 +3,6 @@ export default interface Item {
     label: string,
     canEdit?: boolean,
     canRemove?: boolean,
+
     [key: string]: any;
 }

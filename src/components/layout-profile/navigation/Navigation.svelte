@@ -32,7 +32,7 @@
                     groupEnd: false
                 }, (newItem) => {
                     let sortOrder = 10;
-                    if(enabledItems.length) {
+                    if (enabledItems.length) {
                         sortOrder = enabledItems[enabledItems.length - 1].sortOrder + 10;
                     }
 
@@ -50,7 +50,7 @@
 
                     enabledItems.push(item);
 
-                    if(item.name !== '')  {
+                    if (item.name !== '') {
                         enabledItems.push({
                             id: getGroupId(),
                             isGroup: true,
@@ -135,11 +135,11 @@
                     }
                 }
 
-                if(i < navigation.length - 1 && navigation[i + 1].name === '') {
+                if (i < navigation.length - 1 && navigation[i + 1].name === '') {
                     continue;
                 }
 
-                if (item.name !=='' && (i === navigation.length - 1 || (typeof navigation[i + i] === 'string') || item.items.length === 0)) {
+                if (item.name !== '' && (i === navigation.length - 1 || (typeof navigation[i + i] === 'string') || item.items.length === 0)) {
                     enabledItems.push({
                         id: getGroupId(),
                         canEdit: true,
@@ -162,7 +162,7 @@
                 return;
             }
 
-            if(enabledItems.find(v => v.name === key)) {
+            if (enabledItems.find(v => v.name === key)) {
                 return;
             }
 

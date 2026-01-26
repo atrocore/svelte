@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { Metadata } from '$lib/core/metadata';
 
     interface ViewTypeButton {
@@ -68,7 +68,8 @@
 {#if viewTypes.length > 1}
     <div class="button-group view-mode-switch">
         {#each viewTypes as view}
-            <button class="primary action" class:outline={view.name !== mode} data-name={view.name} data-action="List" on:click={changeView}>
+            <button class="primary action" class:outline={view.name !== mode} data-name={view.name} data-action="List"
+                    on:click={changeView}>
                 {@html view.icon}
             </button>
         {/each}

@@ -3,7 +3,7 @@
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import Preloader from "../../../icons/loading/Preloader.svelte";
     import ActionDropdownItem from "./ActionDropdownItem.svelte";
-    import {Language} from "$lib/core/language";
+    import { Language } from "$lib/core/language";
     import ActionParams from "../interfaces/ActionParams";
     import ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
     import DropdownActionParams from "$lib/components/buttons/DropdownActionButton/types/dropdown-action-params";
@@ -33,7 +33,7 @@
         {#if 'dropdownItems' in action && action.dropdownItems?.length}
             <DropdownActionButton params={action} on:execute={executeAction}/>
         {:else}
-            <ActionButton params={action} on:execute={executeAction} />
+            <ActionButton params={action} on:execute={executeAction}/>
         {/if}
     {/each}
 

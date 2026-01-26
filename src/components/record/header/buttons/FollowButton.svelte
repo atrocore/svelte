@@ -1,7 +1,7 @@
 <script lang="ts">
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
-    import {UserData} from "../../../../utils/UserData";
+    import { UserData } from "$lib/core/user-data";
     import { Language } from "$lib/core/language";
 
     export let entity: string;

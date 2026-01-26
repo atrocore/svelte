@@ -1,76 +1,76 @@
 <script lang="ts">
-import BaseHeader from "../record/header/BaseHeader.svelte";
-import BreadcrumbsItem from "../record/header/interfaces/BreadcrumbsItem";
-import { Language } from "$lib/core/language"
-import TreePanel from "../record/TreePanel.svelte";
-import { Metadata } from '$lib/core/metadata';
-import Collapser from "../base/Collapser.svelte";
+    import BaseHeader from "../record/header/BaseHeader.svelte";
+    import BreadcrumbsItem from "../record/header/interfaces/BreadcrumbsItem";
+    import { Language } from "$lib/core/language"
+    import TreePanel from "../record/TreePanel.svelte";
+    import { Metadata } from '$lib/core/metadata';
+    import Collapser from "../base/Collapser.svelte";
 
-interface AdminCardGroup {
-    id: string;
-    title: string;
-    items: AdminCard[];
-}
-
-interface AdminCard {
-    icon: string;
-    title: string;
-    description: string;
-    url: string;
-    alert?: string;
-    tooltip?: string;
-    docsUrl?: string;
-}
-
-export let cacheDate: string | null = null;
-
-const breadcrumbs: BreadcrumbsItem[] = [
-    {
-        label: Language.translate('Administration')
+    interface AdminCardGroup {
+        id: string;
+        title: string;
+        items: AdminCard[];
     }
-];
 
-const groups: AdminCardGroup[] = [];
+    interface AdminCard {
+        icon: string;
+        title: string;
+        description: string;
+        url: string;
+        alert?: string;
+        tooltip?: string;
+        docsUrl?: string;
+    }
 
-for (let [id, data] of Object.entries(Metadata.get(['app', 'adminPanel']) || {})) {
-    const group = {
-        id,
-        title: Language.translate(data.label, 'labels', 'Admin')
-    } as AdminCardGroup;
+    export let cacheDate: string | null = null;
 
-    group.items = data.itemList.map((item: Record<string, any>) => {
-        let alert = null;
-        let tooltip = null;
-
-        if (item.url === '#Admin/rebuildDb' && (localStorage.getItem('pd_isNeedToRebuildDatabase') || false) === 'true') {
-            alert = Language.translate('rebuildDbWarning', 'labels', 'Admin');
-        } else if (item.url === '#Composer/list' && (localStorage.getItem('pd_isNeedToUpdate') || false) === 'true') {
-            alert = Language.translate('updatesAvailable', 'labels', 'Admin');
-        } else if (item.url === '#Admin/clearCache' && cacheDate) {
-            tooltip = Language.translate('clearCacheTooltip', 'labels', 'Admin') + ' ' + cacheDate;
+    const breadcrumbs: BreadcrumbsItem[] = [
+        {
+            label: Language.translate('Administration')
         }
+    ];
 
-        return {
-            url: item.url,
-            icon: item.icon || 'ph ph-gear',
-            title: Language.translate(item.label, 'labels', 'Admin'),
-            description: Language.translate(item.description, 'descriptions', 'Admin'),
-            docsUrl: item.docsUrl,
-            alert: alert,
-            tooltip: tooltip
-        }
-    });
+    const groups: AdminCardGroup[] = [];
 
-    groups.push(group);
-}
+    for (let [id, data] of Object.entries(Metadata.get(['app', 'adminPanel']) || {})) {
+        const group = {
+            id,
+            title: Language.translate(data.label, 'labels', 'Admin')
+        } as AdminCardGroup;
+
+        group.items = data.itemList.map((item: Record<string, any>) => {
+            let alert = null;
+            let tooltip = null;
+
+            if (item.url === '#Admin/rebuildDb' && (localStorage.getItem('pd_isNeedToRebuildDatabase') || false) === 'true') {
+                alert = Language.translate('rebuildDbWarning', 'labels', 'Admin');
+            } else if (item.url === '#Composer/list' && (localStorage.getItem('pd_isNeedToUpdate') || false) === 'true') {
+                alert = Language.translate('updatesAvailable', 'labels', 'Admin');
+            } else if (item.url === '#Admin/clearCache' && cacheDate) {
+                tooltip = Language.translate('clearCacheTooltip', 'labels', 'Admin') + ' ' + cacheDate;
+            }
+
+            return {
+                url: item.url,
+                icon: item.icon || 'ph ph-gear',
+                title: Language.translate(item.label, 'labels', 'Admin'),
+                description: Language.translate(item.description, 'descriptions', 'Admin'),
+                docsUrl: item.docsUrl,
+                alert: alert,
+                tooltip: tooltip
+            }
+        });
+
+        groups.push(group);
+    }
 
 </script>
 
-<TreePanel isAdminPage={true} scope="Administration" mode="detail" />
+<TreePanel isAdminPage={true} scope="Administration" mode="detail"/>
 <main>
     <div class="admin-page">
         <div class="page-header">
-            <BaseHeader {breadcrumbs} scope="App" id="Administration" />
+            <BaseHeader {breadcrumbs} scope="App" id="Administration"/>
         </div>
 
         <div class="admin-content">
@@ -87,7 +87,8 @@ for (let [id, data] of Object.entries(Metadata.get(['app', 'adminPanel']) || {})
                                 {#if item.alert || item.docsUrl}
                                     <div class="bottom">
                                         {#if item.docsUrl}
-                                            <a href={item.docsUrl} target="_blank" class="help-link">{Language.translate('Help Center')}</a>
+                                            <a href={item.docsUrl} target="_blank"
+                                               class="help-link">{Language.translate('Help Center')}</a>
                                         {/if}
 
                                         {#if item.alert}
@@ -127,7 +128,7 @@ for (let [id, data] of Object.entries(Metadata.get(['app', 'adminPanel']) || {})
         padding-left: 20px;
         padding-right: 20px;
     }
-    
+
     .admin-content :global(details summary:hover) {
         background-color: #f7f7f7;
     }

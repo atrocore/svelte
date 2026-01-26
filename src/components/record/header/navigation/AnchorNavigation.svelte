@@ -1,13 +1,14 @@
 <script lang="ts">
     import AnchorNavItem from "../interfaces/AnchorNavItem";
-    import {onDestroy, onMount, tick} from "svelte";
+    import { onDestroy, onMount, tick } from "svelte";
 
     export let items: AnchorNavItem[];
     export let scrollCallback = (panelName: string, event: Event): void => {
     };
     export let hasLayoutEditor: boolean = false;
 
-    export let afterOnMount: Function = () => {}
+    export let afterOnMount: Function = () => {
+    }
 
     let container: HTMLDivElement;
     let navPills: HTMLUListElement;
@@ -227,7 +228,8 @@
         >
             <ul class="nav-pills" bind:this={navPills}>
                 {#each items as item}
-                    <li class="item"><a href="javascript:" data-name={item.name} on:click={onClick}>{item.title ?? item.name}</a></li>
+                    <li class="item"><a href="javascript:" data-name={item.name}
+                                        on:click={onClick}>{item.title ?? item.name}</a></li>
                 {/each}
             </ul>
         </div>

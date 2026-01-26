@@ -1,15 +1,15 @@
 <script lang="ts">
-    import {createEventDispatcher, tick} from 'svelte';
+    import { createEventDispatcher, tick } from 'svelte';
     import Sortable from 'sortablejs';
     import Params from "./interfaces/Params"
-    import {Notifier} from "../../../utils/Notifier";
+    import { Notifier } from "$lib/core/notifier";
     import BaseLayout from "./BaseLayout.svelte";
     import { Language } from "$lib/core/language"
-    import {LayoutManager} from "../../../utils/LayoutManager";
+    import { LayoutManager } from "../../../utils/LayoutManager";
     import { Metadata } from '$lib/core/metadata';
     import Group from "./interfaces/Group";
-    import {Utils} from "../../../utils/Utils.js";
-    import {UserData} from "../../../utils/UserData";
+    import { Utils } from "$lib/core/utils";
+    import { UserData } from "$lib/core/user-data";
 
     export let params: Params;
     export let columnCount: number = 2;
@@ -270,7 +270,7 @@
             panel.rows = panel.rows.map(row => {
                 let rowRemovedLayoutDisabled = false
                 row = row.map(cell => {
-                    if(!cell) {
+                    if (!cell) {
                         return cell;
                     }
                     cell.layoutRemoveDisabled = !!Metadata.get(['entityDefs', params.scope, 'fields', cell.name, 'layoutRemoveDisabled']);
@@ -607,7 +607,9 @@
     <div id="layout" class="row">
         <div class="col-md-8">
             <div class="well">
-                <header><h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5> <a href="#" on:click|preventDefault={addPanel}>{Language.translate('Add Panel', 'labels', 'Admin')}</a></header>
+                <header><h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5> <a href="#"
+                                                                                                      on:click|preventDefault={addPanel}>{Language.translate('Add Panel', 'labels', 'Admin')}</a>
+                </header>
                 <div class="rows-wrapper">
                     <ul class="panels">
                         {#each panels as panel (panel.number)}
@@ -626,7 +628,8 @@
                                             </a>
                                         {/if}
                                         {#if !panel.layoutRemoveDisabled}
-                                            <a href="#" style="float: right;" data-action="removePanel" class="remove-panel"
+                                            <a href="#" style="float: right;" data-action="removePanel"
+                                               class="remove-panel"
                                                data-number={panel.number}
                                                on:click|preventDefault={() => removePanel(panel.number)}>
                                                 <i class="ph ph-x"></i>
@@ -658,13 +661,15 @@
                                                             <span class="left">{cell.label}</span>
                                                             <span class="right">
                                                                 {#if !cell.layoutRemoveDisabled}
-                                                                    <a href="#" data-action="removeField" class="remove-field"
+                                                                    <a href="#" data-action="removeField"
+                                                                       class="remove-field"
                                                                        on:click|preventDefault={() => removeField(panel.number, row.number, cellIndex)}>
                                                                         <i class="ph ph-x"></i>
                                                                     </a>
                                                                 {/if}
                                                                 {#if isAdmin() && !cell.attributeId}
-                                                                    <a href="#" data-action="change-label" class="change-label"
+                                                                    <a href="#" data-action="change-label"
+                                                                       class="change-label"
                                                                        on:click|preventDefault={() => openLabelDialog(cell.name, row.number, cellIndex)}>
                                                                         <i class="ph ph-globe-simple"></i>
                                                                     </a>

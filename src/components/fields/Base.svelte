@@ -1,5 +1,5 @@
 <script>
-    import { onMount, createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
 
     const dispatch = createEventDispatcher();
 
@@ -45,11 +45,11 @@
     }
 
     function handleFocus() {
-        dispatch('focus', { name });
+        dispatch('focus', {name});
     }
 
     export function fetch() {
-        return { [name]: value };
+        return {[name]: value};
     }
 
     export function validate() {
