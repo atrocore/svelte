@@ -5,16 +5,16 @@ import 'tippy.js/dist/border.css';
 
 import tippy from 'tippy.js';
 
-import {Language} from '$lib/core/language';
-import {UserData} from '$lib/core/user-data';
-import {Notifier} from '$lib/core/notifier';
-import {LayoutManager} from "./utils/LayoutManager";
+import { Language } from '$lib/core/language';
+import { UserData } from '$lib/core/user-data';
+import { Notifier } from '$lib/core/notifier';
+import { LayoutManager } from "./utils/LayoutManager";
 import { Metadata } from '$lib/core/metadata';
-import {ModelFactory} from "./utils/ModelFactory";
+import { ModelFactory } from "./utils/ModelFactory";
 import { Config } from '$lib/core/config';
-import {Storage} from "$lib/core/storage";
+import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
-import {CollectionFactory} from "./utils/CollectionFactory";
+import { CollectionFactory } from "./utils/CollectionFactory";
 import Dropdown from "./utils/Dropdown"
 
 import JobManagerIcon from './components/icons/JobManagerIcon.svelte';
@@ -35,7 +35,7 @@ import DetailHeader from "./components/record/header/DetailHeader.svelte";
 import Gallery from "./components/record/Gallery.svelte";
 import FilterSearchBar from "./components/record/search/FilterSearchBar.svelte";
 import LocaleSwitcher from "./components/navbar/LocaleSwitcher.svelte";
-import CurrentSelectionBadge from "./lib/components/navigation/CurrentSelectionBadge/CurrentSelectionBadge.svelte";
+import CurrentSelectionButton from "./lib/components/navbar-buttons/CurrentSelectionButton/CurrentSelectionButton.svelte";
 import ContentFilter from "./components/record/ContentFilter.svelte";
 import AnchorNavigation from "./components/record/header/navigation/AnchorNavigation.svelte";
 import DashboardHeader from "./components/record/header/DashboardHeader.svelte";
@@ -91,7 +91,7 @@ export {
     FilterSearchBar,
     Gallery,
     LocaleSwitcher,
-    CurrentSelectionBadge,
+    CurrentSelectionButton,
     ContentFilter,
     AnchorNavigation,
     RebuildDatabaseModal,

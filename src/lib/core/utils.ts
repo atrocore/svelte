@@ -9,9 +9,9 @@
  */
 
 import type RequestParams from '$lib/core/types/request-params';
-import {UserData} from '$lib/core/user-data';
-import {Storage} from '$lib/core/storage';
-import {Metadata} from '$lib/core/metadata';
+import { UserData } from '$lib/core/user-data';
+import { Storage } from '$lib/core/storage';
+import { Metadata } from '$lib/core/metadata';
 
 export const Utils = {
     upperCaseFirst(value: string): string {

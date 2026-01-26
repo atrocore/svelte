@@ -8,7 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import {writable} from 'svelte/store';
+import { writable } from 'svelte/store';
 
 type StorageAdapter = {
     get(type: string, name: string): any;

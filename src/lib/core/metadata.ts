@@ -1,4 +1,4 @@
-import {writable} from 'svelte/store';
+import { writable } from 'svelte/store';
 
 interface MetadataInterface {
     get(path: string[]): any

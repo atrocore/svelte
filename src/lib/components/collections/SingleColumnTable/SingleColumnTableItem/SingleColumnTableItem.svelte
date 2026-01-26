@@ -8,9 +8,9 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
 <script lang="ts">
-    import {createEventDispatcher} from 'svelte';
-    import ItemActions from '$lib/components/list/ItemActions/ItemActions.svelte';
-    import type ItemAction from '$lib/components/list/ItemActions/types/item-action';
+    import { createEventDispatcher } from 'svelte';
+    import ItemActions from '$lib/components/collections/ItemActions/ItemActions.svelte';
+    import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
 
     export let itemId: string = '';
     export let actions: ItemAction[] = [];

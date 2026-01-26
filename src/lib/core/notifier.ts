@@ -8,8 +8,8 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import {writable} from 'svelte/store';
-import {Language} from '$lib/core/language';
+import { writable } from 'svelte/store';
+import { Language } from '$lib/core/language';
 
 type NotifierAdapter = {
     notify(message: string | boolean, type: string | null, timeout: number): void;

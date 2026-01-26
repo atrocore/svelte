@@ -8,15 +8,15 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
 <script lang="ts">
-    import {Language} from '$lib/core/language';
-    import {Config} from '$lib/core/config';
-    import {Utils} from '$lib/core/utils';
-    import {Notifier} from '$lib/core/notifier';
-    import BadgePanel from '$lib/components/navigation/BadgePanel/BadgePanel.svelte';
+    import { Language } from '$lib/core/language';
+    import { Config } from '$lib/core/config';
+    import { Utils } from '$lib/core/utils';
+    import { Notifier } from '$lib/core/notifier';
+    import BaseNavbarButtonPanel from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
-    import ExtendedList from '$lib/components/list/ExtendedList/ExtendedList.svelte';
-    import ExtendedListItem from '$lib/components/list/ExtendedListItem/ExtendedListItem.svelte';
-    import type ItemAction from '$lib/components/list/ItemActions/types/item-action';
+    import SingleColumnTable from '$lib/components/collections/SingleColumnTable/SingleColumnTable.svelte';
+    import SingleColumnTableItem from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
+    import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
     import type SelectionGroup from './types/selection-group';
 
     export let isOpen = false;
@@ -245,7 +245,7 @@
     }
 </script>
 
-<BadgePanel
+<BaseNavbarButtonPanel
         {isOpen}
         {close}
         {icon}
@@ -310,17 +310,17 @@
                         <div class="action"></div>
                     </div>
                     <div class="list-container">
-                        <ExtendedList extendBorders={true} horizontalPadding={20}>
+                        <SingleColumnTable extendBorders={true} horizontalPadding={20}>
                             {#each group.collection as item}
-                                <ExtendedListItem
+                                <SingleColumnTableItem
                                     itemId={item.id}
                                     actions={getItemActions()}
                                     on:action={handleItemAction}
                                 >
                                     <a href="#{item.entityType}/view/{item.entityId}">{item.entityName}</a>
-                                </ExtendedListItem>
+                                </SingleColumnTableItem>
                             {/each}
-                        </ExtendedList>
+                        </SingleColumnTable>
                     </div>
                 </div>
             {/each}
@@ -345,7 +345,7 @@
                 on:execute={showMore}
         />
     </div>
-</BadgePanel>
+</BaseNavbarButtonPanel>
 
 <style>
     .action-buttons {

@@ -8,8 +8,8 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
 <script lang="ts">
-    import {createEventDispatcher} from 'svelte';
-    import {Language} from '$lib/core/language';
+    import { createEventDispatcher } from 'svelte';
+    import { Language } from '$lib/core/language';
     import type ItemAction from './types/item-action';
 
     export let actions: ItemAction[] = [];

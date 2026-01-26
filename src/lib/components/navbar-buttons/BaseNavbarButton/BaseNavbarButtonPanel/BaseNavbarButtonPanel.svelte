@@ -8,7 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
 <script lang="ts">
-    import {onMount, onDestroy} from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
 
     export let isOpen: boolean = false;
     export let close: () => void;
@@ -73,7 +73,6 @@
 <style>
     .base-panel-container {
         position: absolute;
-        top: 100%;
         right: 0;
         z-index: 1000;
     }

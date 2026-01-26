@@ -9,16 +9,16 @@
  -->
 
 <script lang="ts">
-    import Badge from '$lib/components/navigation/Badge/Badge.svelte';
-    import CurrentSelectionPanel from '$lib/components/navigation/CurrentSelectionPanel/CurrentSelectionPanel.svelte';
-    import {Language} from '$lib/core/language';
+    import BaseNavbarButton from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButton.svelte';
+    import CurrentSelectionPanel from './CurrentSelectionPanel/CurrentSelectionPanel.svelte';
+    import { Language } from '$lib/core/language';
 
     export let renderLinkField: (container: HTMLElement) => void = () => {};
     export let onSelectionChange: () => void = () => {};
     export let panelWidth: string = '500px';
     export let userModel: any;
 
-    let badgeComponent: Badge;
+    let badgeComponent: BaseNavbarButton;
     let panelComponent: CurrentSelectionPanel;
 
     export function handleSelectionChange(): void {
@@ -28,7 +28,7 @@
     }
 </script>
 
-<Badge
+<BaseNavbarButton
     bind:this={badgeComponent}
     title={Language.translate('currentSelection')}
     iconClass="ph ph-basket"
@@ -45,4 +45,4 @@
             width={panelWidth}
         />
     </svelte:fragment>
-</Badge>
+</BaseNavbarButton>
