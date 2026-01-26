@@ -1,14 +1,14 @@
 <script lang="ts">
-    import {createEventDispatcher, onDestroy, onMount} from "svelte";
+    import { onDestroy } from "svelte";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "$lib/core/notifier";
+    import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
     import Preloader from "../../icons/loading/Preloader.svelte";
-    import {getSavedSearchStore} from "./stores/SavedSearch";
+    import { getSavedSearchStore } from "./stores/SavedSearch";
     import SavedSearch from "./interfaces/SavedSearch"
-    import {get} from "svelte/store"
+    import { get } from "svelte/store"
     import FilterGroup from "./FilterGroup.svelte";
-    import {UserData} from "$lib/core/user-data";
+    import { UserData } from "$lib/core/user-data";
 
     export let scope: string;
     export let savedSearchList: Array<SavedSearch> = [];
@@ -67,7 +67,7 @@
         searchManager.fetchCollection();
     }
 
-    onDestroy (() => {
+    onDestroy(() => {
         savedSearchSubscribe();
         selectedSavedItemIdsSub();
         loadingSubscribe();
@@ -78,14 +78,15 @@
 <FilterGroup bind:opened={opened} className="checkboxes-filter" title={Language.translate('Saved Filters')}>
     {#if loading}
         <div style="margin-top: 5px;">
-            <Preloader heightPx={12} />
+            <Preloader heightPx={12}/>
         </div>
     {:else if savedSearchList.length > 0}
         <ul>
             {#each savedSearchList as item}
                 <li class="checkbox">
                     <label class:active={selectedSavedSearchIds.includes(item.id)}>
-                        <input type="checkbox" checked={selectedSavedSearchIds.includes(item.id)} on:change={(e) => handleSavedSearchChecked(e, item)} name="{item.id}">
+                        <input type="checkbox" checked={selectedSavedSearchIds.includes(item.id)}
+                               on:change={(e) => handleSavedSearchChecked(e, item)} name="{item.id}">
                         <span>{item.name}</span>
                         <sup class="status-icons">
                             {#if item.isPublic}
@@ -95,12 +96,14 @@
                             {/if}
                         </sup>
                     </label>
-                    {#if (Acl.check('SavedSearch', 'edit') ||  Acl.check('SavedSearch', 'delete')) && !hideRowAction}
+                    {#if (Acl.check('SavedSearch', 'edit') || Acl.check('SavedSearch', 'delete')) && !hideRowAction}
                         <div class="list-row-buttons btn-group">
                             {#if editingItem?.id === item.id}
-                                <span on:click={cancel} style="position:absolute; right: 20px; cursor: pointer"><i class="ph ph-pencil-simple-slash"></i></span>
+                                <span on:click={cancel} style="position:absolute; right: 20px; cursor: pointer"><i
+                                        class="ph ph-pencil-simple-slash"></i></span>
                             {/if}
-                            <a style="cursor: pointer; color: var(--action-icon-color)" href="javascript:" class="dropdown-toggle" data-toggle="dropdown">
+                            <a style="cursor: pointer; color: var(--action-icon-color)" href="javascript:"
+                               class="dropdown-toggle" data-toggle="dropdown">
                                 <i class="ph ph-dots-three-vertical"></i>
                             </a>
                             <ul class="dropdown-menu pull-right">

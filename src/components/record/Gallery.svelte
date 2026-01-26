@@ -1,9 +1,9 @@
 <script lang="ts">
-    import {onMount, onDestroy, tick} from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
     import Swiper from 'swiper';
-    import {FreeMode, Mousewheel, Navigation, Scrollbar, Thumbs, Zoom} from 'swiper/modules';
+    import { FreeMode, Mousewheel, Navigation, Scrollbar, Thumbs, Zoom } from 'swiper/modules';
 
-    import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';;
+    import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
     import ActionParams from "./header/interfaces/ActionParams";
     import Preloader from "../icons/loading/Preloader.svelte";
 
@@ -15,6 +15,8 @@
     import 'swiper/css/zoom';
     import 'swiper/css/free-mode';
     import 'swiper/css/scrollbar';
+
+    ;
 
     interface GalleryMedia {
         id: string;
@@ -28,7 +30,8 @@
     export let mediaList: GalleryMedia[] = [];
     export let currentMediaId: string | null = null;
     export let canLoadMore: boolean = false;
-    export let onLoadMore: () => void = () => {};
+    export let onLoadMore: () => void = () => {
+    };
 
     const downloadActionParams: ActionParams = {
         style: 'default',
@@ -73,7 +76,10 @@
     let swiperPrevBtn: HTMLDivElement;
 
     let prevMediaList: GalleryMedia[] = [];
-    window.addEventListener('gallery:load-more:success', (e: CustomEvent<{mediaList: GalleryMedia[], canLoadMore: boolean}>) => {
+    window.addEventListener('gallery:load-more:success', (e: CustomEvent<{
+        mediaList: GalleryMedia[],
+        canLoadMore: boolean
+    }>) => {
         isLoadingMore = false;
         prevMediaList = mediaList;
         mediaList = e.detail.mediaList;
@@ -179,7 +185,7 @@
 
             if (mainSwiper) {
                 mainSwiper.params.modules = mainSwiper.params.modules?.concat([Thumbs]);
-                mainSwiper.params.thumbs = { swiper: thumbsSwiper };
+                mainSwiper.params.thumbs = {swiper: thumbsSwiper};
             }
         }
 
@@ -216,10 +222,10 @@
     {/if}
     <div class="buttons-container">
         {#if currentMedia?.url}
-            <ActionButton params={downloadActionParams} on:execute={onDownloadMedia} />
+            <ActionButton params={downloadActionParams} on:execute={onDownloadMedia}/>
         {/if}
-        <ActionButton params={zoomActionParams} on:execute={onToggleZoom} />
-        <ActionButton params={transparentActionParams} on:execute={onToggleAlpha} />
+        <ActionButton params={zoomActionParams} on:execute={onToggleZoom}/>
+        <ActionButton params={transparentActionParams} on:execute={onToggleAlpha}/>
     </div>
 </div>
 
@@ -230,14 +236,14 @@
                 <div class="swiper-wrapper">
                     {#each mediaList as media}
                         <div class="swiper-slide thumb">
-                            <img src={media.smallThumbnail} alt={media.name} />
+                            <img src={media.smallThumbnail} alt={media.name}/>
                         </div>
                     {/each}
 
                     {#if canLoadMore}
                         <div class="swiper-slide thumb load-more-thumb" class:no-border={isLoadingMore}>
                             {#if isLoadingMore}
-                                <Preloader />
+                                <Preloader/>
                             {:else}
                                 <span on:click|stopPropagation={handleLoadMoreClick}>Load more</span>
                             {/if}
@@ -256,7 +262,7 @@
                     <div class="swiper-slide">
                         <div class="swiper-zoom-container">
                             <img src={media.isImage ? media.url : media.largeThumbnail} alt={media.name}
-                                 loading="lazy" class:transparent-bg={showTransparentBackground} />
+                                 loading="lazy" class:transparent-bg={showTransparentBackground}/>
                             <div class="swiper-lazy-preloader"></div>
                         </div>
                     </div>
@@ -410,9 +416,9 @@
 
     .swiper-zoom-container img.transparent-bg {
         background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
-            linear-gradient(-45deg, #ccc 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, #ccc 75%),
-            linear-gradient(-45deg, transparent 75%, #ccc 75%);
+        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ccc 75%),
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
         background-size: 20px 20px;
         background-position: 0 0, 0 10px, 10px -10px, -10px 0;
     }

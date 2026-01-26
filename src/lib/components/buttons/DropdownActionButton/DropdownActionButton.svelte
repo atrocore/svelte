@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {createEventDispatcher} from "svelte";
+    import { createEventDispatcher } from "svelte";
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import { Language } from "$lib/core/language"
     import DropdownActionParams from "./types/dropdown-action-params";
@@ -24,7 +24,7 @@
 
 {#if !params.hidden}
     <div class="btn-group">
-        <ActionButton {params} {className} on:execute />
+        <ActionButton {params} {className} on:execute/>
 
         <button class={toggleClasses} data-toggle="dropdown">
             <i class="ph ph-caret-down"></i>

@@ -12,13 +12,13 @@
 </script>
 
 {#if !disableNavigationHistory}
-    <NavigationHistory {scope} {id} tabId={sessionStorage.tabId} />
+    <NavigationHistory {scope} {id} tabId={sessionStorage.tabId}/>
 {/if}
 
 <div class="header-wrapper">
     {#if breadcrumbs.length > 0}
         <nav class="header-breadcrumbs">
-            <Breadcrumbs items={breadcrumbs} {currentIsHeading} />
+            <Breadcrumbs items={breadcrumbs} {currentIsHeading}/>
         </nav>
     {/if}
 

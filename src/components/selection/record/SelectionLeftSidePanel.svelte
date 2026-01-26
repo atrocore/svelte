@@ -1,9 +1,7 @@
 <script lang="ts">
 
-    import {onMount} from "svelte";
-    import {Storage} from "$lib/core/storage";
-    import BaseSidebar from "../../record/BaseSidebar.svelte";
-    import {GroupedItems, Item} from "./interfaces/Item";
+    import { onMount } from "svelte";
+    import { GroupedItems, Item } from "./interfaces/Item";
     import { Language } from "$lib/core/language"
 
     export let scope: string;
@@ -37,7 +35,7 @@
     let isPinned: boolean = true;
     let data: GroupedItems = {};
 
-    export  function setSelectedIds(ids: string[]) {
+    export function setSelectedIds(ids: string[]) {
         selectedIds = ids;
     }
 
@@ -58,9 +56,9 @@
 
 
     function handledSelectAllButton(entityType: string): void {
-        if(hasSelectedByType[entityType]) {
+        if (hasSelectedByType[entityType]) {
             onUnSelectAll(entityType);
-        }else{
+        } else {
             onSelectAll(entityType);
         }
     }
@@ -79,15 +77,19 @@
             <div class="title">
                 <span class="title">{entityType}</span>
                 {#if selectionViewMode !== 'standard'}
-                    <button class="small filter-button" on:click={() => handledSelectAllButton(entityType)}>{ hasSelectedByType[entityType] ? Language.translate('hideAll') : Language.translate('selectAll')}</button>
+                    <button class="small filter-button"
+                            on:click={() => handledSelectAllButton(entityType)}>{ hasSelectedByType[entityType] ? Language.translate('hideAll') : Language.translate('selectAll')}</button>
                 {/if}
             </div>
 
             <ul>
                 {#each data[entityType] as record }
                     <li title="{record.name}">
-                        <a href="#{record.entityType}/view/{record.id}" target="_blank" on:click={(e) => { onItemClicked(e, record.id) }}
-                           class:active="{selectionViewMode !== 'standard' && selectedIds.includes(record.id)}"><i class="ph" class:ph-eye={selectedIds.includes(record.id)} class:ph-eye-slash={!selectedIds.includes(record.id)}></i>{record.name}</a>
+                        <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                           on:click={(e) => { onItemClicked(e, record.id) }}
+                           class:active="{selectionViewMode !== 'standard' && selectedIds.includes(record.id)}"><i
+                                class="ph" class:ph-eye={selectedIds.includes(record.id)}
+                                class:ph-eye-slash={!selectedIds.includes(record.id)}></i>{record.name}</a>
                     </li>
                 {/each}
             </ul>
@@ -100,6 +102,7 @@
         display: flex;
         justify-content: space-between;
     }
+
     .records {
         margin-top: 20px;
     }

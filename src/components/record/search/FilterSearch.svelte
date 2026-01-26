@@ -1,12 +1,12 @@
 <script lang="ts">
-    import {onMount} from "svelte";
-    import {get} from "svelte/store";
+    import { onMount } from "svelte";
+    import { get } from "svelte/store";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "$lib/core/notifier";
+    import { Notifier } from "$lib/core/notifier";
     import SavedSearch from "../search-filter/SavedSearch.svelte"
     import GeneralFilter from "../search-filter/GeneralFilter.svelte";
-    import {getGeneralFilterStore} from "../search-filter/stores/GeneralFilter"
-    import {getSavedSearchStore} from "../search-filter/stores/SavedSearch"
+    import { getGeneralFilterStore } from "../search-filter/stores/GeneralFilter"
+    import { getSavedSearchStore } from "../search-filter/stores/SavedSearch"
     import Rule from "../search-filter/interfaces/Rule";
     import { Metadata } from '$lib/core/metadata';
     import Dropdown from "../../../utils/Dropdown";
@@ -45,7 +45,7 @@
         closeDropdown();
     });
 
-    const advancedFilterCheckedSub =  generalFilterStore.advancedFilterChecked.subscribe((value) => {
+    const advancedFilterCheckedSub = generalFilterStore.advancedFilterChecked.subscribe((value) => {
         advancedFilterChecked = value;
         refreshShowUnsetAll();
         updateSelectedFilterNames();
@@ -66,16 +66,16 @@
         searchManager.fetchCollection();
     }
 
-    function  handleAdvancedFilterChecked(refresh = true) {
+    function handleAdvancedFilterChecked(refresh = true) {
         generalFilterStore.advancedFilterChecked.set(advancedFilterChecked);
         searchManager.update({queryBuilderApplied: advancedFilterChecked});
-        if(refresh) {
+        if (refresh) {
             updateCollection();
         }
     }
 
     export function unsetAll() {
-        if(!showUnsetAll) {
+        if (!showUnsetAll) {
             return;
         }
         searchManager.update({
@@ -102,30 +102,30 @@
             .filter(item => get(savedSearchStore.selectedSavedItemIds).includes(item.id))
             .map(item => item.name);
 
-        filterNames =  boolFilters.concat(selectedSavedSearchNames).join(', ').trim();
+        filterNames = boolFilters.concat(selectedSavedSearchNames).join(', ').trim();
     }
 
     function refreshAdvancedFilterDisabled() {
         let rules = searchManager.getQueryBuilder();
         let value = true;
 
-        if(typeof rules === 'object' && rules.condition) {
+        if (typeof rules === 'object' && rules.condition) {
             value = isRuleEmpty(rules);
         }
 
         generalFilterStore.advancedFilterDisabled.set(value);
 
-        if(value) {
+        if (value) {
             generalFilterStore.advancedFilterChecked.set(false);
         }
     }
 
     function isRuleEmpty(rule: Rule): boolean {
-        if(rule.operator) {
-            return  false;
+        if (rule.operator) {
+            return false;
         }
 
-        if(!rule.rules) {
+        if (!rule.rules) {
             return true;
         }
 
@@ -136,19 +136,19 @@
         window.dispatchEvent(new CustomEvent('right-side-view:toggle-filter', {detail: {uniqueKey}}));
     }
 
-    function cleanUpSavedRule( exists: Function): boolean{
+    function cleanUpSavedRule(exists: Function): boolean {
         // we clean up to remove deleted fields
         let hasChanged = false;
-        let  cleanUpRule = (rule: Rule) => {
-            if(rule.rules) {
+        let cleanUpRule = (rule: Rule) => {
+            if (rule.rules) {
                 for (const rulesKey in rule.rules) {
-                    if(rule.rules[rulesKey].id) {
-                        if(!exists(rule.rules[rulesKey].id)){
+                    if (rule.rules[rulesKey].id) {
+                        if (!exists(rule.rules[rulesKey].id)) {
                             hasChanged = true;
                             rule.rules = rule.rules.filter(v => v.id !== rule.rules[rulesKey].id);
                         }
                     }
-                    if(rule.rules[rulesKey] && rule.rules[rulesKey].rules) {
+                    if (rule.rules[rulesKey] && rule.rules[rulesKey].rules) {
                         cleanUpRule(rule.rules[rulesKey]);
                     }
                 }
@@ -157,7 +157,7 @@
 
         let rule = searchManager.getQueryBuilder();
         cleanUpRule(rule);
-        if(hasChanged) {
+        if (hasChanged) {
             searchManager.update({queryBuilder: rule})
         }
 
@@ -175,11 +175,11 @@
         refreshAdvancedFilterDisabled();
         cleanUpSavedRule((field: string) => {
             // we do not clean up attribute here
-            if(field.startsWith('attr_')) {
+            if (field.startsWith('attr_')) {
                 return true;
             }
-            let exits =  !!Metadata.get(['entityDefs', scope, 'fields', field]);
-            if(!exits && field ===  (field.slice(0, -2) + 'Id'))  {
+            let exits = !!Metadata.get(['entityDefs', scope, 'fields', field]);
+            if (!exits && field === (field.slice(0, -2) + 'Id')) {
                 return !!Metadata.get(['entityDefs', scope, 'fields', field.slice(0, -2)]);
             }
             return exits;
@@ -203,60 +203,63 @@
 
 <div class="search-row" style="padding-bottom: 0">
     <div class="form-group">
-            <div class="button-group input-group filter-group">
+        <div class="button-group input-group filter-group">
+            <button
+                    type="button"
+                    class="filter"
+                    title={Language.translate('Filter')}
+                    aria-expanded="false"
+                    on:click={openFilter}
+                    class:active={showUnsetAll}
+            >
+                {#if showUnsetAll}
+                    <i class="ph-fill ph-funnel"></i>
+                {:else}
+                    <i class="ph ph-funnel"></i>
+                {/if}
+            </button>
+
+            <div bind:this={dropdownDiv} class="dropdown" class:has-content={filterNames !== ""}>
+                <button
+                        bind:this={dropdownButton}
+                        class="actions-button filter-switcher"
+                        on:mousedown={event => event.preventDefault()}
+                >
+                    {#if filterNames !== ""}
+                        <span class="filter-names">{filterNames}</span>
+                    {/if}
+                    <i class="ph ph-caret-down chevron"></i>
+                </button>
+                <div class="dropdown-menu" bind:this={dropdownMenu}>
+                    <GeneralFilter scope={scope} searchManager={searchManager} opened={true} uniqueKey={uniqueKey}/>
+                    <SavedSearch scope={scope} searchManager={searchManager} hideRowAction={true} opened={true}
+                                 uniqueKey={uniqueKey}/>
+                    <ul class="advanced-checkbox">
+                        <li class="checkbox">
+                            <label>
+                                <input type="checkbox" disabled={advancedFilterDisabled}
+                                       bind:checked={advancedFilterChecked}
+                                       on:change={() => handleAdvancedFilterChecked()}>
+                                {Language.translate('Advanced Filter')}
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {#if filterNames !== "" || advancedFilterChecked}
                 <button
                         type="button"
-                        class="filter"
-                        title={Language.translate('Filter')}
+                        disabled={!showUnsetAll}
+                        class="reset"
+                        title={Language.translate('Reset Filter')}
                         aria-expanded="false"
-                        on:click={openFilter}
-                        class:active={showUnsetAll}
+                        on:click={unsetAll}
                 >
-                    {#if showUnsetAll}
-                        <i class="ph-fill ph-funnel"></i>
-                    {:else}
-                        <i class="ph ph-funnel"></i>
-                    {/if}
+                    <i class="ph ph-x"></i>
                 </button>
-
-                <div bind:this={dropdownDiv} class="dropdown" class:has-content={filterNames !== ""}>
-                    <button
-                            bind:this={dropdownButton}
-                            class="actions-button filter-switcher"
-                            on:mousedown={event => event.preventDefault()}
-                    >
-                        {#if filterNames !== ""}
-                            <span class="filter-names">{filterNames}</span>
-                        {/if}
-                        <i class="ph ph-caret-down chevron"></i>
-                    </button>
-                    <div class="dropdown-menu" bind:this={dropdownMenu}>
-                        <GeneralFilter scope={scope} searchManager={searchManager} opened={true} uniqueKey={uniqueKey}/>
-                        <SavedSearch scope={scope} searchManager={searchManager} hideRowAction={true} opened={true} uniqueKey={uniqueKey}/>
-                        <ul class="advanced-checkbox">
-                            <li class="checkbox">
-                                <label>
-                                    <input type="checkbox" disabled={advancedFilterDisabled} bind:checked={advancedFilterChecked} on:change={() => handleAdvancedFilterChecked()}>
-                                    {Language.translate('Advanced Filter')}
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {#if filterNames !== "" || advancedFilterChecked}
-                    <button
-                            type="button"
-                            disabled={!showUnsetAll}
-                            class="reset"
-                            title={Language.translate('Reset Filter')}
-                            aria-expanded="false"
-                            on:click={unsetAll}
-                    >
-                        <i class="ph ph-x"></i>
-                    </button>
-                {/if}
-            </div>
+            {/if}
+        </div>
     </div>
 </div>
 
@@ -286,7 +289,7 @@
         border-radius: 0;
     }
 
-    .has-content  .filter-switcher {
+    .has-content .filter-switcher {
         padding-right: 0;
         display: inline-flex;
         align-items: center;

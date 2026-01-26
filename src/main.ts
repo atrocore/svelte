@@ -35,11 +35,12 @@ import DetailHeader from "./components/record/header/DetailHeader.svelte";
 import Gallery from "./components/record/Gallery.svelte";
 import FilterSearchBar from "./components/record/search/FilterSearchBar.svelte";
 import LocaleSwitcher from "./components/navbar/LocaleSwitcher.svelte";
-import CurrentSelectionButton from "$lib/components/navbar-buttons/CurrentSelectionButton/CurrentSelectionButton.svelte";
+import CurrentSelectionButton
+    from "$lib/components/navbar-buttons/CurrentSelectionButton/CurrentSelectionButton.svelte";
 import ContentFilter from "./components/record/ContentFilter.svelte";
 import AnchorNavigation from "./components/record/header/navigation/AnchorNavigation.svelte";
 import DashboardHeader from "./components/record/header/DashboardHeader.svelte";
-import {default as Administration} from "./components/admin/Index.svelte";
+import { default as Administration } from "./components/admin/Index.svelte";
 import SelectionLeftSidePanel from "./components/selection/record/SelectionLeftSidePanel.svelte";
 
 declare global {

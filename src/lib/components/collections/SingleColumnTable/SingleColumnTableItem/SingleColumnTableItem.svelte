@@ -29,7 +29,7 @@
     </div>
     <slot name="actions">
         {#if actions.length > 0}
-            <ItemActions {actions} {itemId} on:action={handleAction} />
+            <ItemActions {actions} {itemId} on:action={handleAction}/>
         {/if}
     </slot>
 </li>

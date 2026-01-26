@@ -3,7 +3,7 @@
     import Counter from "./interfaces/Counter";
     import MassAction from "./interfaces/MassAction";
     import { Language } from "$lib/core/language"
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import Dropdown from "../../../utils/Dropdown";
 
     export let loading: boolean = false;
@@ -104,10 +104,14 @@
             <div class="name">{Language.translate('sort', 'labels')}:</div>
             <div class="button-group">
                 <button bind:this={sortButton}>{Language.translate(sortBy, 'fields', scope)}</button>
-                <button data-value={sortDirection} on:click={onClickSortDirection}>{#if sortDirection === 'asc'}<i class="ph ph-arrow-up"></i>{:else}<i class="ph ph-arrow-down"></i>{/if}</button>
+                <button data-value={sortDirection} on:click={onClickSortDirection}>
+                    {#if sortDirection === 'asc'}<i class="ph ph-arrow-up"></i>{:else}<i
+                            class="ph ph-arrow-down"></i>{/if}
+                </button>
                 <ul class="dropdown-menu" bind:this={sortDropdown}>
                     {#each sortByOptions.filter(f => f !== sortBy) as field}
-                        <li><a href="javascript:" data-value={field} on:click={onClickSortBy}>{Language.translate(field, 'fields', scope)}</a></li>
+                        <li><a href="javascript:" data-value={field}
+                               on:click={onClickSortBy}>{Language.translate(field, 'fields', scope)}</a></li>
                     {/each}
                 </ul>
             </div>

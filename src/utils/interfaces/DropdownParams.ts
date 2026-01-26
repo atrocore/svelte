@@ -18,10 +18,10 @@ export default interface DropdownParams {
     onDropdownShow?: (dropdown: HTMLElement) => void;
     onDropdownHide?: (dropdown: HTMLElement) => void;
     onDestroy?: (trigger: HTMLElement, dropdown: HTMLElement) => void;
-    flip?: boolean|Record<string, any>,
-    shift?: boolean|Record<string, any>,
-    offset?: boolean|Record<string, any>,
-    size?: boolean|Record<string, any>,
-    arrow?: boolean|Record<string, any>,
-    hide?: boolean|Record<string, any>
+    flip?: boolean | Record<string, any>,
+    shift?: boolean | Record<string, any>,
+    offset?: boolean | Record<string, any>,
+    size?: boolean | Record<string, any>,
+    arrow?: boolean | Record<string, any>,
+    hide?: boolean | Record<string, any>
 }

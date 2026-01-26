@@ -1,15 +1,15 @@
 <script lang="ts">
-    import {onDestroy, onMount, tick} from 'svelte';
+    import { onDestroy } from 'svelte';
     import BaseLayout from './BaseLayout.svelte';
     import Field from "./interfaces/Field"
     import Params from "./interfaces/Params"
     import LayoutItem from "./interfaces/LayoutItem"
     import { Language } from "$lib/core/language"
     import Sortable from 'sortablejs'
-    import {Notifier} from "$lib/core/notifier";
+    import { Notifier } from "$lib/core/notifier";
     import Group from "./interfaces/Group";
     import { Metadata } from '$lib/core/metadata';
-    import {UserData} from "$lib/core/user-data";
+    import { UserData } from "$lib/core/user-data";
 
     let layoutElement: HTMLElement
 

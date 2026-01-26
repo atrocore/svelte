@@ -37,6 +37,6 @@
 
 <div class="button-group">
     {#each paramsList as params}
-        <ActionButton {params} on:execute={execute} />
+        <ActionButton {params} on:execute={execute}/>
     {/each}
 </div>

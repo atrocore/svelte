@@ -13,7 +13,8 @@
     export let horizontalPadding: number = 20;
 </script>
 
-<ul class="base-list {className}" class:extend-borders={extendBorders} style="--horizontal-padding: {horizontalPadding}px">
+<ul class="base-list {className}" class:extend-borders={extendBorders}
+    style="--horizontal-padding: {horizontalPadding}px">
     <slot></slot>
 </ul>
 

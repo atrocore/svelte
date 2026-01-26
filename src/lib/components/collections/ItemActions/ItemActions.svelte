@@ -48,9 +48,9 @@
                 {#each visibleActions as action}
                     <li class:disabled={action.disabled}>
                         <a
-                            href="/"
-                            on:click={(e) => handleAction(e, action)}
-                            class:disabled={action.disabled}
+                                href="/"
+                                on:click={(e) => handleAction(e, action)}
+                                class:disabled={action.disabled}
                         >
                             {#if action.html}
                                 {@html action.html}

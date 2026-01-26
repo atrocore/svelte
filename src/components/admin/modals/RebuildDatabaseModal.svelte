@@ -1,8 +1,8 @@
 <script lang="ts">
     import SpinnerIcon from "../../icons/loading/SpinnerIcon.svelte";
     import { Language } from "$lib/core/language"
-    import {onMount} from "svelte";
-    import {Utils} from "$lib/core/utils";
+    import { onMount } from "svelte";
+    import { Utils } from "$lib/core/utils";
 
     export let onApply: () => void;
     export let onCancel: () => void;
@@ -25,8 +25,8 @@
                     })
                 }
             }).finally(() => {
-                loading = false;
-            });
+            loading = false;
+        });
     });
 </script>
 
@@ -40,7 +40,7 @@
         {#if !loading}
             <pre>{data || 'No database changes were detected'}</pre>
         {:else}
-            <SpinnerIcon size={50} thickness={5} />
+            <SpinnerIcon size={50} thickness={5}/>
         {/if}
     </div>
 </div>

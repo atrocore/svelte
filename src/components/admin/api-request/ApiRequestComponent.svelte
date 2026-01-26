@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
-    import {onMount} from "svelte";
-    import {ModelFactory} from "../../../utils/ModelFactory";
+    import { onMount } from "svelte";
+    import { ModelFactory } from "../../../utils/ModelFactory";
     import BaseHeader from "../../record/header/BaseHeader.svelte";
 
     export let afterOnMount = () => null;
@@ -35,7 +35,7 @@
 </script>
 
 <div class="page-header">
-    <BaseHeader breadcrumbs={breadcrumbs} scope="App" id="apiRequest" />
+    <BaseHeader breadcrumbs={breadcrumbs} scope="App" id="apiRequest"/>
 
     <button on:click={sendRequest(model)} style="margin: 10px 7px 0 5px" class="primary action" data-action="execute"
             type="button">{Language.translate('execute', 'labels', 'Admin')}</button>

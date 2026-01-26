@@ -1,10 +1,10 @@
 <script lang="ts">
     import RecordActionButtons from "./interfaces/RecordActionsButtons";
     import Permissions from "./interfaces/Permissions";
-    import {UserData} from "$lib/core/user-data";
+    import { UserData } from "$lib/core/user-data";
     import { Metadata } from '$lib/core/metadata';
 
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import Preloader from "../../icons/loading/Preloader.svelte";
     import DropdownActionButton from "$lib/components/buttons/DropdownActionButton/DropdownActionButton.svelte";
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
@@ -62,7 +62,7 @@
     }
 
     function onOverviewFiltersChanged(e: Event) {
-        const data =(e as CustomEvent).detail;
+        const data = (e as CustomEvent).detail;
 
         if (!data || !recordButtons) {
             return;
@@ -175,9 +175,11 @@
         {#if mode === 'detail'}
             {#each additionalActions as action}
                 {#if 'dropdownItems' in action && action.dropdownItems?.length }
-                    <DropdownActionButton params={action} on:execute={executeAction}  className="additional-button dynamic-action" />
+                    <DropdownActionButton params={action} on:execute={executeAction}
+                                          className="additional-button dynamic-action"/>
                 {:else}
-                    <ActionButton params={action} on:execute={executeAction}  className="additional-button dynamic-action"/>
+                    <ActionButton params={action} on:execute={executeAction}
+                                  className="additional-button dynamic-action"/>
                 {/if}
             {/each}
 
@@ -188,7 +190,9 @@
             {/if}
             {#if navigationIconScope}
                 <div class="icon-navigation">
-                    <button title="{Language.translate(navigationIconScope, 'scopeName', 'Global')}"  on:click={navigateToEntity}><i class="ph-{Metadata.get(['clientDefs', navigationIconScope, 'iconClass'])} ph"></i></button>
+                    <button title="{Language.translate(navigationIconScope, 'scopeName', 'Global')}"
+                            on:click={navigateToEntity}><i
+                            class="ph-{Metadata.get(['clientDefs', navigationIconScope, 'iconClass'])} ph"></i></button>
                 </div>
             {/if}
             {#if recordButtons?.headerButtons && headerButtons.find(item => item.name === 'filtering') }
@@ -200,7 +204,7 @@
                 {#if 'dropdownItems' in action && action.dropdownItems?.length}
                     <DropdownActionButton params={action} on:execute={executeAction} className="additional-button"/>
                 {:else}
-                    <ActionButton params={action} on:execute={executeAction} className="additional-button" />
+                    <ActionButton params={action} on:execute={executeAction} className="additional-button"/>
                 {/if}
             {/each}
         {/if}
@@ -230,7 +234,7 @@
                             {#if 'dropdownItems' in button && button.dropdownItems?.length}
                                 <DropdownActionButton params={button} on:execute={executeAction}/>
                             {:else}
-                                <ActionButton params={button} on:execute={executeAction} />
+                                <ActionButton params={button} on:execute={executeAction}/>
                             {/if}
                         {/if}
                     {/each}

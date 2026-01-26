@@ -3,7 +3,8 @@
     export let thickness: number = 4;
 </script>
 
-<div class="loading-icon spinner" style:width="{size}px" style:height="{size}px" style:border-width="{thickness}px"></div>
+<div class="loading-icon spinner" style:width="{size}px" style:height="{size}px"
+     style:border-width="{thickness}px"></div>
 
 <style>
     .loading-icon.spinner {

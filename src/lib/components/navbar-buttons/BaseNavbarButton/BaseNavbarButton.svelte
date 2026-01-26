@@ -36,11 +36,11 @@
 </script>
 
 <a
-    href="/"
-    class="notifications-button"
-    bind:this={iconElement}
-    on:click|preventDefault={handleClick}
-    {title}
+        href="/"
+        class="notifications-button"
+        bind:this={iconElement}
+        on:click|preventDefault={handleClick}
+        {title}
 >
     <i class={iconClass}></i>
     <slot name="badge-indicator"></slot>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
-    import {createEventDispatcher} from "svelte";
+    import { createEventDispatcher } from "svelte";
     import ActionParams from "../interfaces/ActionParams";
 
     const dispatch = createEventDispatcher();

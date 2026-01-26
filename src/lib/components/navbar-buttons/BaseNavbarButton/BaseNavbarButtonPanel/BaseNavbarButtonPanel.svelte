@@ -8,7 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
 
     export let isOpen: boolean = false;
     export let close: () => void;

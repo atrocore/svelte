@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onDestroy, onMount} from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs'
     import BaseLayout from './BaseLayout.svelte';
     import type Button from '../../admin/layouts/interfaces/Button';
@@ -7,7 +7,7 @@
     import type KeyValue from "./interfaces/KeyValue";
     import type Item from "./interfaces/Item";
     import { Language } from "$lib/core/language"
-    import {Notifier} from "$lib/core/notifier";
+    import { Notifier } from "$lib/core/notifier";
 
     let layoutElement: HTMLElement
 
@@ -20,7 +20,8 @@
 
     export let buttonList: Button[]
     export let loadData: Function;
-    export let refresh: Function = () => {};
+    export let refresh: Function = () => {
+    };
 
     export let editItem: Function;
 
@@ -114,7 +115,7 @@
         let data = [];
         let inGroup = false;
         let adjusted = false;
-        for (let i = 0; i < enabledItems.length; i++){
+        for (let i = 0; i < enabledItems.length; i++) {
             const item = enabledItems[i];
             if (item.isGroup) {
                 inGroup = !item.groupEnd;
@@ -136,22 +137,22 @@
         }
         let groupBegan = false;
         let filteredData = data.filter(item => {
-            if(typeof item === 'object') {
-                if(item.name !== '' && !item.items.length) {
+            if (typeof item === 'object') {
+                if (item.name !== '' && !item.items.length) {
                     return false;
                 }
 
-                if(item.name !== '' && item.items.length) {
+                if (item.name !== '' && item.items.length) {
                     groupBegan = true;
                     return true;
                 }
 
-                if(item.name === '' && groupBegan) {
+                if (item.name === '' && groupBegan) {
                     groupBegan = false
                     return true;
                 }
 
-                if(item.name === '' && !groupBegan) {
+                if (item.name === '' && !groupBegan) {
                     return false
                 }
             }
@@ -168,9 +169,9 @@
         for (let i = 0; i < data.length; i++) {
             let item = data[i];
             dataWithNormalizeGroupEnd.push(item);
-            if(typeof  item === 'object' && item.name !== '') {
-                if(i === data.length -1 || !(typeof  data[i +1] === 'object' && data[i +1].name === '')) {
-                    adjusted= true;
+            if (typeof item === 'object' && item.name !== '') {
+                if (i === data.length - 1 || !(typeof data[i + 1] === 'object' && data[i + 1].name === '')) {
+                    adjusted = true;
                     dataWithNormalizeGroupEnd.push({
                         id: getGroupId(),
                         name: '',
@@ -234,7 +235,8 @@
                 <div class="rows-wrapper">
                     <ul class="enabled connected">
                         {#each enabledItems.sort((a, b) => a.sortOrder - b.sortOrder) as item (item.name)}
-                            <li {...getDataAttributeProps(item)} class="{item.isGroup ? 'group': ''} {item.groupEnd ? 'end' : ''} { (fieldsInGroup[item.name] && !item.isGroup) ? 'in-group': ''}">
+                            <li {...getDataAttributeProps(item)}
+                                class="{item.isGroup ? 'group': ''} {item.groupEnd ? 'end' : ''} { (fieldsInGroup[item.name] && !item.isGroup) ? 'in-group': ''}">
                                 <div class="left">
                                     <label title="{item.label}">{item.label}</label>
                                 </div>
@@ -337,7 +339,7 @@
     }
 
     .group {
-        position:relative;
+        position: relative;
         color: black;
     }
 
@@ -349,6 +351,7 @@
         border-top: 1px solid #ccc;
         margin: 10px 5px;
     }
+
     .well {
         height: 100%;
         border: 1px solid #ededed;

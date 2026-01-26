@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
-    import {Notifier} from "$lib/core/notifier";
+    import { Notifier } from "$lib/core/notifier";
 
     export let scope: string;
     export let searchManager: any;
@@ -12,6 +12,7 @@
     function refreshHasSearchValue() {
         hasSearchValue = searchValue.trim().length > 0;
     }
+
     function search() {
         searchManager.update({
             textFilter: searchValue.trim()

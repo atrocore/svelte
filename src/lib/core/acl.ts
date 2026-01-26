@@ -2,12 +2,19 @@ import { writable } from 'svelte/store';
 
 interface AclInterface {
     getUser(): any,
+
     checkScope(data: any, action: any, precise: any, entityAccessData: any): boolean,
+
     checkModel(model: any, data: any, action: any, precise: any): boolean,
+
     checkModelDelete(model: any, data: any, precise: any): boolean,
-    checkIsOwner(model:any): boolean,
+
+    checkIsOwner(model: any): boolean,
+
     checkInTeam(model: any): boolean,
+
     check(subject: any, action: any, precise: any): boolean
+
     getScopeForbiddenFieldList(scope: string, action: string): any
 }
 
@@ -22,8 +29,8 @@ export const Acl = {
     getUser() {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.getUser();
+            if (current) {
+                res = current.getUser();
             }
         })();
         return res;
@@ -32,8 +39,8 @@ export const Acl = {
     checkScope(dataV: any, action: any, precise: any, entityAccessData: any) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.checkScope(dataV, action, precise, entityAccessData);
+            if (current) {
+                res = current.checkScope(dataV, action, precise, entityAccessData);
             }
         })();
         return res;
@@ -42,8 +49,8 @@ export const Acl = {
     checkModel(model: any, dataV: any, action: any, precise: any) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.checkModel(model, dataV, action, precise);
+            if (current) {
+                res = current.checkModel(model, dataV, action, precise);
             }
         })();
         return res;
@@ -52,8 +59,8 @@ export const Acl = {
     checkModelDelete(model: any, dataV: any, precise: any) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.checkModelDelete(model, dataV, precise);
+            if (current) {
+                res = current.checkModelDelete(model, dataV, precise);
             }
         })();
         return res;
@@ -62,8 +69,8 @@ export const Acl = {
     checkIsOwner(model: any) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.checkIsOwner(model);
+            if (current) {
+                res = current.checkIsOwner(model);
             }
         })();
         return res;
@@ -72,8 +79,8 @@ export const Acl = {
     checkInTeam(model: any) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.checkInTeam(model);
+            if (current) {
+                res = current.checkInTeam(model);
             }
         })();
         return res;
@@ -82,8 +89,8 @@ export const Acl = {
     check(subject: any, action: any, precise: any = null) {
         let res = null
         data.subscribe((current: AclInterface) => {
-            if(current) {
-                res =  current.check(subject, action, precise);
+            if (current) {
+                res = current.check(subject, action, precise);
             }
         })();
         return res;

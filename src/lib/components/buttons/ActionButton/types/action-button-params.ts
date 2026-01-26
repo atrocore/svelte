@@ -23,4 +23,4 @@ type ActionButtonParams = {
     dropdown?: boolean;
 };
 
-export  default  ActionButtonParams;
+export default ActionButtonParams;

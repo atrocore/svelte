@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onDestroy, onMount} from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     import BaseHeader from "./BaseHeader.svelte";
     import Params from "./interfaces/Params"
@@ -13,7 +13,8 @@
     export let callbacks: EntityCallbacks;
     export let viewMode: string = 'list';
     export let isFavoriteEntity: boolean = false;
-    export let onViewModeChange: Function = (e: CustomEvent): void => {}
+    export let onViewModeChange: Function = (e: CustomEvent): void => {
+    }
 
     function onViewChange(e: CustomEvent): void {
         viewMode = e.detail.name;
@@ -35,7 +36,7 @@
 
 <BaseHeader scope={params.scope}>
     <h3 class="header-title">{Language.translate(params.scope, 'scopeNamesPlural')}</h3>
-    <EntityActionsGroup {viewMode} scope={params.scope} {entityActions} {onViewChange} {callbacks} {isFavoriteEntity} />
+    <EntityActionsGroup {viewMode} scope={params.scope} {entityActions} {onViewChange} {callbacks} {isFavoriteEntity}/>
 </BaseHeader>
 
 <style>

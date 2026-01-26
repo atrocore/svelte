@@ -13,8 +13,10 @@
     import CurrentSelectionPanel from './CurrentSelectionPanel/CurrentSelectionPanel.svelte';
     import { Language } from '$lib/core/language';
 
-    export let renderLinkField: (container: HTMLElement) => void = () => {};
-    export let onSelectionChange: () => void = () => {};
+    export let renderLinkField: (container: HTMLElement) => void = () => {
+    };
+    export let onSelectionChange: () => void = () => {
+    };
     export let panelWidth: string = '500px';
     export let userModel: any;
 
@@ -29,20 +31,20 @@
 </script>
 
 <BaseNavbarButton
-    bind:this={badgeComponent}
-    title={Language.translate('currentSelection')}
-    iconClass="ph ph-basket"
+        bind:this={badgeComponent}
+        title={Language.translate('currentSelection')}
+        iconClass="ph ph-basket"
 >
     <svelte:fragment slot="panel" let:isOpen let:iconElement let:close>
         <CurrentSelectionPanel
-            bind:this={panelComponent}
-            icon={iconElement}
-            {isOpen}
-            {close}
-            {renderLinkField}
-            {onSelectionChange}
-            {userModel}
-            width={panelWidth}
+                bind:this={panelComponent}
+                icon={iconElement}
+                {isOpen}
+                {close}
+                {renderLinkField}
+                {onSelectionChange}
+                {userModel}
+                width={panelWidth}
         />
     </svelte:fragment>
 </BaseNavbarButton>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import SpinnerIcon from "../icons/loading/SpinnerIcon.svelte";
-    import {afterUpdate} from "svelte";
+    import { afterUpdate } from "svelte";
 
     export let applicationName: string = 'AtroCore';
     export let logoPath: string | null = null;
@@ -89,7 +89,7 @@
     <div class="panel-body">
         <div class="form-group"><h3>System is updating...</h3>
             <section class="progress-section">
-                <SpinnerIcon size={40} thickness={5} />
+                <SpinnerIcon size={40} thickness={5}/>
                 <h5>{lastLine}</h5>
             </section>
             <section class="logs-section">

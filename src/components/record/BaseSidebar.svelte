@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {fade} from 'svelte/transition';
-    import {createEventDispatcher, onDestroy, onMount} from "svelte";
+    import { fade } from 'svelte/transition';
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { Language } from "$lib/core/language"
 
     export let className: string = '';
@@ -45,13 +45,13 @@
 
     function togglePin(e: Event) {
         isPinned = !isPinned;
-        dispatch('sidebar-pin', { isPinned });
+        dispatch('sidebar-pin', {isPinned});
     }
 
     function setCollapsed(collapsed: boolean) {
         isCollapsed = collapsed;
 
-        dispatch('sidebar-collapse', { isCollapsed });
+        dispatch('sidebar-collapse', {isCollapsed});
     }
 
     function toggleCollapse() {
@@ -72,7 +72,7 @@
         if (!isDragging) return;
         isDragging = false;
 
-        dispatch('sidebar-resize', { width });
+        dispatch('sidebar-resize', {width});
 
         document.removeEventListener('mousemove', handleResize);
         document.body.style.userSelect = '';
@@ -87,7 +87,7 @@
         if (panelWidth >= minWidth && panelWidth <= maxWidth) {
             requestAnimationFrame(() => {
                 width = panelWidth;
-                dispatch('sidebar-resize', { width });
+                dispatch('sidebar-resize', {width});
             });
         }
     }
@@ -165,7 +165,8 @@
     </div>
     <div class="collapse-strip" on:click|self="{toggleCollapse}">
         {#if !isMobile}
-            <button class="pin-button" type="button" on:click={togglePin} title={Language.translate(isPinned ? 'sidebarUnpin' : 'sidebarPin')}>
+            <button class="pin-button" type="button" on:click={togglePin}
+                    title={Language.translate(isPinned ? 'sidebarUnpin' : 'sidebarPin')}>
                 {#if isPinned}
                     <i class="ph-fill ph-cards"></i>
                 {:else}
@@ -174,7 +175,8 @@
             </button>
         {/if}
         {#if isPinned && !isMobile}
-            <span class="collapse-text">&#10229; {Language.translate(isCollapsed ? 'sidebarExpand' : 'sidebarCollapse')} &#10230;</span>
+            <span class="collapse-text">&#10229; {Language.translate(isCollapsed ? 'sidebarExpand' : 'sidebarCollapse')}
+                &#10230;</span>
         {/if}
         <button class="collapse-button" type="button" on:click={toggleCollapse}>
             {#if position === 'left'}

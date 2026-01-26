@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Config } from '$lib/core/config';
-    import {Utils} from "$lib/core/utils";
-    import {UserData} from "$lib/core/user-data";
-    import {LayoutManager} from "../../utils/LayoutManager";
+    import { Utils } from "$lib/core/utils";
+    import { UserData } from "$lib/core/user-data";
+    import { LayoutManager } from "../../utils/LayoutManager";
     import { Language } from "$lib/core/language"
-    import {Storage} from "$lib/core/storage";
+    import { Storage } from "$lib/core/storage";
 
     export let checkConfirmLeaveOut: Function;
     let mainLanguageCode = ''
@@ -142,7 +142,7 @@
 <style>
     button, .locale-switcher {
         color: var(--toolbar-font-color);
-        background-color: var( --toolbar-background-color);
+        background-color: var(--toolbar-background-color);
         border-color: rgba(var(--nav-font-color-rgb, 0, 0, 0), 0.2);
         cursor: pointer;
     }

@@ -90,7 +90,7 @@
             }
         });
 
-        if(Array.isArray(searchManager.additionalBoolFilterList)) {
+        if (Array.isArray(searchManager.additionalBoolFilterList)) {
             boolFilterList = boolFilterList.concat(searchManager.additionalBoolFilterList)
         }
 

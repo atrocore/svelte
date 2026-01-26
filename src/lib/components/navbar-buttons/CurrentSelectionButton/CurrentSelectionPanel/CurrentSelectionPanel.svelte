@@ -12,10 +12,12 @@
     import { Config } from '$lib/core/config';
     import { Utils } from '$lib/core/utils';
     import { Notifier } from '$lib/core/notifier';
-    import BaseNavbarButtonPanel from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
+    import BaseNavbarButtonPanel
+        from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
     import SingleColumnTable from '$lib/components/collections/SingleColumnTable/SingleColumnTable.svelte';
-    import SingleColumnTableItem from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
+    import SingleColumnTableItem
+        from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
     import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
     import type SelectionGroup from './types/selection-group';
 
@@ -313,9 +315,9 @@
                         <SingleColumnTable extendBorders={true} horizontalPadding={20}>
                             {#each group.collection as item}
                                 <SingleColumnTableItem
-                                    itemId={item.id}
-                                    actions={getItemActions()}
-                                    on:action={handleItemAction}
+                                        itemId={item.id}
+                                        actions={getItemActions()}
+                                        on:action={handleItemAction}
                                 >
                                     <a href="#{item.entityType}/view/{item.entityId}">{item.entityName}</a>
                                 </SingleColumnTableItem>
