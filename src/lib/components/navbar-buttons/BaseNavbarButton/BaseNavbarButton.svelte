@@ -7,6 +7,7 @@
  * @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  -->
+
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
