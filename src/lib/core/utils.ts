@@ -8,7 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import type RequestParams from '$lib/core/types/request-params';
+import type RequestParams from '$lib/types/api/request-params';
 import { UserData } from '$lib/core/user-data';
 import { Storage } from '$lib/core/storage';
 import { Metadata } from '$lib/core/metadata';

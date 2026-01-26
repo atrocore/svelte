@@ -9,8 +9,6 @@
  -->
 <script lang="ts">
     import { Language } from '$lib/core/language';
-    import { Config } from '$lib/core/config';
-    import { Utils } from '$lib/core/utils';
     import { Notifier } from '$lib/core/notifier';
     import BaseNavbarButtonPanel
         from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
@@ -20,6 +18,16 @@
         from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
     import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
     import type SelectionGroup from './types/selection-group';
+    import {
+        checkComparable,
+        checkMergeable,
+        parseSelectionItemsResponse,
+        mergeGroups,
+        addIconsToGroups,
+        removeItemFromGroups,
+        calculateTotalItems
+    } from './utils/selection-utils';
+    import { fetchSelectionItems as fetchSelectionItemsApi, deleteSelectionItem } from './utils/selection-api';
 
     export let isOpen = false;
     export let close: () => void;
@@ -62,102 +70,35 @@
     }
 
     $: canLoadMore = groups.length > 0 && currentOffset < total;
-    $: isComparable = currentSelectionId && groups.length > 0 && (groups.length > 1 || groups[0]?.collection.length > 1);
-    $: isMergeable = checkMergeable(groups);
+    $: isComparable = checkComparable(currentSelectionId, groups);
+    $: isMergeable = checkMergeable(groups, isComparable);
 
-    function checkMergeable(grps: SelectionGroup[]): boolean {
-        if (!isComparable) return false;
-        let scope: string | null = null;
-        for (const group of grps) {
-            if (!scope) {
-                scope = group.key;
-                continue;
-            }
-            if (scope !== group.key) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function fetchSelectionItems(offset = 0): Promise<void> {
+    async function fetchItems(offset = 0): Promise<void> {
         if (!currentSelectionId) {
             loadingGroups = false;
             return;
         }
 
         try {
-            const response = await Utils.getRequest('SelectionItem', {
-                maxSize: 20,
-                offset: String(offset),
-                where: JSON.stringify([
-                    {
-                        attribute: 'selectionId',
-                        type: 'equals',
-                        value: currentSelectionId
-                    }
-                ])
-            });
+            const response = await fetchSelectionItemsApi(currentSelectionId, offset);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch selection items');
             }
 
             const data = await response.json();
-            const result: Record<string, SelectionGroup> = {};
-
-            data.list.forEach((item: any) => {
-                if (!result[item.entityType]) {
-                    result[item.entityType] = {
-                        key: item.entityType,
-                        collection: [],
-                        rowList: []
-                    };
-                }
-
-                result[item.entityType].collection.push({
-                    id: item.id,
-                    entityId: item.entityId,
-                    entityName: item.name,
-                    entityType: item.entityType
-                });
-
-                result[item.entityType].rowList.push(item.entityId);
-            });
+            const parsedGroups = parseSelectionItemsResponse(data);
 
             if (offset > 0 && groups.length > 0) {
-                const keys = groups.map(g => g.key);
-                Object.values(result).forEach(el => {
-                    if (!keys.includes(el.key)) {
-                        groups.push(el);
-                    } else {
-                        groups = groups.map(group => {
-                            if (el.key === group.key) {
-                                return {
-                                    ...group,
-                                    collection: [...group.collection, ...el.collection],
-                                    rowList: [...group.rowList, ...el.rowList]
-                                };
-                            }
-                            return group;
-                        });
-                    }
-                });
+                groups = mergeGroups(groups, parsedGroups);
             } else {
-                groups = Object.values(result);
+                groups = Object.values(parsedGroups);
             }
 
-            if (!Config.get('tabIconsDisabled')) {
-                groups = groups.map(group => ({
-                    ...group,
-                    icon: Utils.getTabIcon(group.key)
-                }));
-            }
+            groups = addIconsToGroups(groups);
 
             total = data.total;
-            let length = 0;
-            groups.forEach(g => length += g.collection.length);
-            currentOffset = length;
+            currentOffset = calculateTotalItems(groups);
 
         } catch (error) {
             console.error('Error fetching selection items:', error);
@@ -171,22 +112,14 @@
         try {
             Notifier.notify(Language.translate('removing'));
 
-            const response = await Utils.request('DELETE', `SelectionItem/${selectionItemId}`, null);
+            const response = await deleteSelectionItem(selectionItemId);
 
             if (!response.ok) {
                 throw new Error('Failed to remove item');
             }
 
-            groups = groups.map(group => ({
-                ...group,
-                collection: group.collection.filter(s => s.id !== selectionItemId),
-                rowList: group.rowList.filter(id => {
-                    const item = group.collection.find(s => s.id === selectionItemId);
-                    return item ? id !== item.entityId : true;
-                })
-            })).filter(g => g.collection.length > 0);
-
-            currentOffset = groups.reduce((acc, g) => acc + g.collection.length, 0);
+            groups = removeItemFromGroups(groups, selectionItemId);
+            currentOffset = calculateTotalItems(groups);
             total--;
 
             Notifier.notify(Language.translate('Success'), 'success');
@@ -199,7 +132,7 @@
     function showMore(e: CustomEvent): void {
         e.detail?.event?.stopPropagation();
         showMoreLoading = true;
-        fetchSelectionItems(currentOffset);
+        fetchItems(currentOffset);
     }
 
     function openView(mode: string): void {
@@ -232,7 +165,7 @@
             loadingGroups = true;
             groups = [];
             currentOffset = 0;
-            fetchSelectionItems();
+            fetchItems();
         } else {
             groups = [];
             currentOffset = 0;
@@ -354,7 +287,7 @@
         padding: 10px 20px;
     }
 
-    .action-buttons button {
+    .action-buttons :global(button) {
         margin-right: 5px;
     }
 
@@ -402,7 +335,7 @@
         justify-content: center;
     }
 
-    .show-more :global(.preloader) {
+    .show-more :global(img.preloader) {
         height: 14px;
     }
 </style>
