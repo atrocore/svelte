@@ -14,6 +14,14 @@
 
     const handleClick = (e: MouseEvent) => {
         const el = e.currentTarget as HTMLElement;
+        const dropdown = el.closest('.btn-group');
+        if (dropdown) {
+            dropdown.classList.remove('open');
+        }
+        const menu = el.closest('.dropdown-menu') as HTMLElement;
+        if (menu) {
+            menu.style.display = 'none';
+        }
         dispatch('execute', {
             data: el.dataset,
             action: el.dataset.action,
