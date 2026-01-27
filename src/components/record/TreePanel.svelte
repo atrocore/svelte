@@ -1090,6 +1090,14 @@
                     };
                 });
 
+                const clonedItems = JSON.parse(JSON.stringify(treeItems));
+                // change labels for duplicates
+                clonedItems.forEach((item, index)=> {
+                    if (clonedItems.filter(value =>  value.label === item.label).length > 1) {
+                        treeItems[index].label = item.label + ' (' + item.name + ')';
+                    }
+                })
+
                 if (!hasItems) {
                     treeItems = treeItems.filter(item => item.name !== '_items');
                 }
