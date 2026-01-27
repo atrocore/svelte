@@ -18,7 +18,6 @@
 
     let qualityCheckSelect;
     let qualityChecksList = [];
-
     let activeItem = null
     let loading = false
     let data = null
@@ -148,6 +147,10 @@
         highlightedCheckId = evt.detail.checkId
     }
 
+    function openQualityCheckPage(): void {
+        window.open(`/#QualityCheck/edit/${activeItem}`, "_blank");
+    }
+
     onMount(() => {
         const forbiddenFields = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
 
@@ -235,27 +238,42 @@
 
                 <div style="float: right; display: inline-block">
                     <button on:click={highlightCheck} style="margin-right: 10px;"
-                            title="{Language.translate('highlight', 'labels', 'QualityCheck')}"><i
-                            class="{'ph ph-highlighter '+ (highlightedCheckId===activeItem ? 'ph-fill highlight-active': '')}"></i>
+                            title="{Language.translate('highlight', 'labels', 'QualityCheck')}">
+                        <i class="{'ph ph-highlighter '+ (highlightedCheckId===activeItem ? 'ph-fill highlight-active': '')}"></i>
                     </button>
-                    <button class="refresh" on:click={()=>loadQualityCheckData(true)} style="float: right;"
-                            title="{Language.translate('Refresh')}"><i
-                            class="ph ph-arrows-clockwise"></i>
+                    <button class="refresh" on:click={()=>loadQualityCheckData(true)} style="margin-right: 10px;"
+                            title="{Language.translate('Refresh')}">
+                        <i class="ph ph-arrows-clockwise"></i>
                     </button>
+                    {#if Acl.check('QualityCheck', 'edit')}
+                        <button class="refresh" on:click={openQualityCheckPage}
+                                title="{Language.translate('Edit')}">
+                            <i class="ph ph-pencil-simple"></i>
+                        </button>
+                    {/if}
                 </div>
             </div>
             {#each filteredRules as rule}
-                <div style="margin-bottom: 10px">
-                    <label class="control-label">
-                        <span class="label-text">{rule.code}</span>
-                    </label>
-                    <div style="display: flex;justify-content: space-between;">
+                <div class="rule-container">
+                    <div class="rule-status" style="{getStatusStyle(rule.status)}"></div>
+                    <div style="flex-grow: 1">
+                        <div>
+                            <label class="control-label">
+                                <span class="label-text">{rule.code}</span>
+                            </label>
+                            {#if Acl.check('QualityCheckRule', 'edit')}
+                                <a class="rule-edit-icon pull-right" href="{`/#QualityCheckRule/edit/${rule.id}`}"
+                                   target="_blank"
+                                   title="{Language.translate('Edit')}">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </a>
+                            {/if}
+                        </div>
                         <p>{rule.name}</p>
-                        <div class="rule-status" style="{getStatusStyle(rule.status)}"></div>
+                        {#if rule.error}
+                            <p class="rule-error">{rule.error}</p>
+                        {/if}
                     </div>
-                    {#if rule.error}
-                        <p class="rule-error">{rule.error}</p>
-                    {/if}
                 </div>
             {/each}
         </div>
@@ -264,12 +282,25 @@
 </div>
 
 <style>
+    .rule-container {
+        margin-bottom: 10px;
+        display: flex;
+    }
+
+    .rule-container .rule-edit-icon {
+        visibility: hidden;
+    }
+
+    .rule-container:hover .rule-edit-icon {
+        visibility: visible;
+    }
+
     .rule-status {
         width: 11px;
         height: 11px;
         border-radius: 50%;
         flex-shrink: 0;
-        margin-left: 10px;
+        margin: 5px 10px 0 0;
     }
 
     .control-label {
