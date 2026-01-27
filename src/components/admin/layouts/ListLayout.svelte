@@ -73,6 +73,10 @@
         if (field === '_admin') {
             return Language.translate('Administration', 'labels', 'Global')
         }
+
+        if (field === '_lastViewed') {
+            return Language.translate('LastViewed', 'scopeNamesPlural', 'Global')
+        }
         return Language.translate(field, 'fields', scope)
     }
 
@@ -87,6 +91,9 @@
             }
             if (UserData.get()?.user?.isAdmin) {
                 fields.push('_admin')
+            }
+            if (!Metadata.get(['scopes', params.scope, 'hideLastViewed'])) {
+                fields.push('_lastViewed')
             }
         }
 
