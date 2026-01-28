@@ -10,9 +10,9 @@
 
 type SelectionItem = {
     id: string;
-    entityId: string;
+    recordId: string;
+    recordName: string;
     entityName: string;
-    entityType: string;
 };
 
 export default SelectionItem;
