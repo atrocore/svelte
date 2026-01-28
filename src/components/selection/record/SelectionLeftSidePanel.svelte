@@ -75,7 +75,7 @@
     {#each Object.keys(data).sort((a, b) => a.localeCompare(b)) as entityType}
         <div>
             <div class="title">
-                <span class="title">{entityType}</span>
+                <span class="title">{Language.translate(entityType, 'scopeNamesPlural')}</span>
                 {#if selectionViewMode !== 'standard'}
                     <button class="small filter-button"
                             on:click={() => handledSelectAllButton(entityType)}>{ hasSelectedByType[entityType] ? Language.translate('hideAll') : Language.translate('selectAll')}</button>
