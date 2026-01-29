@@ -34,10 +34,10 @@
         dropdownActions = [...entityActions.dropdownButtons ?? [], ...dynamicDropdownActions];
     }
 
-    window.addEventListener('favorites:update', (e: CustomEvent) => {
+    window.addEventListener('favorites:update', ((e: CustomEvent) => {
         const list: string[] = e.detail || [];
         isFavoriteEntity = list.includes(scope);
-    });
+    }) as EventListener);
 
     function loadDynamicActions(): void {
         const single = new Map<string, ActionParams>();
