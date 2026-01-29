@@ -87,13 +87,13 @@
             if (v1 in model.defs.links) {
                 v1Name = Language.translate(v1, 'links', params.scope);
             } else if (v1Options) {
-                v1Name = Language.translate(v1Options.label, 'labels', params.scope);
+                v1Name = Language.translate(v1Options.label ?? v1Options.name, 'labels', params.scope);
             }
 
             if (v2 in model.defs.links) {
                 v2Name = Language.translate(v2, 'links', params.scope);
             } else if (v2Options) {
-                v2Name = Language.translate(v2Options.label, 'labels', params.scope);
+                v2Name = Language.translate(v2Options.label ?? v2Options.name, 'labels', params.scope);
             }
             return v1Name.localeCompare(v2Name);
         });
