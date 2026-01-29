@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { Metadata } from '$lib/core/metadata';
-    import { Language } from "$lib/core/language"
+    import { Language } from "$lib/core/language";
+    import { Acl } from "$lib/core/acl";
 
     import EntityCallbacks from "./interfaces/EntityCallbacks";
     import EntityActionButtons from "./interfaces/EntityActionsButtons";
@@ -33,10 +34,10 @@
         dropdownActions = [...entityActions.dropdownButtons ?? [], ...dynamicDropdownActions];
     }
 
-    window.addEventListener('favorites:update', (e: CustomEvent) => {
+    window.addEventListener('favorites:update', ((e: CustomEvent) => {
         const list: string[] = e.detail || [];
         isFavoriteEntity = list.includes(scope);
-    });
+    }) as EventListener);
 
     function loadDynamicActions(): void {
         const single = new Map<string, ActionParams>();
@@ -96,11 +97,11 @@
     <div class="right-group">
         <div class="entity-buttons">
             <TourButton {scope} mode="list"/>
-            {#if stagingEntityId}
+            {#if Acl.check(stagingEntityId, 'read') && stagingEntityId}
                 <a role="button" title={Language.translate('openStagingEntity')} href="#{stagingEntityId}"><i
                         class="ph ph-signpost"></i></a>
             {/if}
-            {#if primaryEntityId}
+            {#if Acl.check(primaryEntityId, 'read') && primaryEntityId}
                 <a role="button" title={Language.translate('openPrimaryEntity')} href="#{primaryEntityId}"><i
                         class="ph ph-crown"></i></a>
             {/if}
