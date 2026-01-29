@@ -88,6 +88,7 @@
             }
 
             const data = await response.json();
+
             const parsedGroups = parseSelectionItemsResponse(data);
 
             if (offset > 0 && groups.length > 0) {
@@ -253,7 +254,7 @@
                                         actions={getItemActions()}
                                         on:action={handleItemAction}
                                 >
-                                    <a href="#{item.entityType}/view/{item.entityId}">{item.entityName}</a>
+                                    <a href="#{item.entityName}/view/{item.recordId}">{item.recordName}</a>
                                 </SingleColumnTableItem>
                             {/each}
                         </SingleColumnTable>

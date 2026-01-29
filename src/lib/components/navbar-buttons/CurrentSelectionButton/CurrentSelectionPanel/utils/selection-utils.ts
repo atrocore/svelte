@@ -36,22 +36,22 @@ export function parseSelectionItemsResponse(data: any): Record<string, Selection
     const result: Record<string, SelectionGroup> = {};
 
     data.list.forEach((item: any) => {
-        if (!result[item.entityType]) {
-            result[item.entityType] = {
-                key: item.entityType,
+        if (!result[item.entityName]) {
+            result[item.entityName] = {
+                key: item.entityName,
                 collection: [],
                 rowList: []
             };
         }
 
-        result[item.entityType].collection.push({
+        result[item.entityName].collection.push({
             id: item.id,
-            entityId: item.entityId,
-            entityName: item.name,
-            entityType: item.entityType
+            recordId: item.entityId,
+            recordName: item.recordName,
+            entityName: item.entityName
         });
 
-        result[item.entityType].rowList.push(item.entityId);
+        result[item.entityName].rowList.push(item.entityId);
     });
 
     return result;
@@ -98,7 +98,7 @@ export function removeItemFromGroups(groups: SelectionGroup[], selectionItemId: 
         collection: group.collection.filter(s => s.id !== selectionItemId),
         rowList: group.rowList.filter(id => {
             const item = group.collection.find(s => s.id === selectionItemId);
-            return item ? id !== item.entityId : true;
+            return item ? id !== item.recordId : true;
         })
     })).filter(g => g.collection.length > 0);
 }
