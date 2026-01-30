@@ -1,6 +1,6 @@
 <script lang="ts">
     import Button from "../../../../../../components/admin/layouts/interfaces/Button";
-    import Params from "../../types/Params";
+    import Params from "../../types/params";
     import { Language } from "$lib/core/language"
 
     export let params: Params;

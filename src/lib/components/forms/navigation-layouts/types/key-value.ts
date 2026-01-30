@@ -1,4 +1,4 @@
-type KeyValue  = {
+type KeyValue = {
     [key: string]: any;
 }
 

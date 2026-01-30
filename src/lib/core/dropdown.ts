@@ -8,7 +8,16 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { autoUpdate, computePosition, flip, Middleware, offset, shift, size } from '@floating-ui/dom';
+import {
+    autoUpdate,
+    computePosition,
+    ComputePositionConfig,
+    flip,
+    Middleware,
+    offset,
+    shift,
+    size
+} from '@floating-ui/dom';
 
 import DropdownParams from "$lib/types/ui/dropdown-params";
 
@@ -105,10 +114,10 @@ export default class Dropdown {
         this.floatingEl.style.display = 'block';
 
         this.floatingHandler = autoUpdate(this.referenceEl, this.floatingEl, () => {
-            const positionOptions = {
+            const positionOptions: any = {
                 placement: 'bottom-start',
                 strategy: 'fixed',
-                middleware: [] as Middleware[]
+                middleware: []
             };
 
             if (this.params?.placement) {
@@ -149,7 +158,7 @@ export default class Dropdown {
             }));
 
             computePosition(this.referenceEl, this.floatingEl, positionOptions).then(({x, y}) => {
-                const options = {
+                const options: Record<string, any> = {
                     left: `${x}px`,
                     top: `${y}px`,
                 };

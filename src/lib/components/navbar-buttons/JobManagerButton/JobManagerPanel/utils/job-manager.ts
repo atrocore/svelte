@@ -1,5 +1,6 @@
 import { UserData } from "$lib/core/user-data";
 import { Notifier } from "$lib/core/notifier";
+import { Utils } from "$lib/core/utils";
 
 export async function startStopJm(pause: boolean) {
     let userData = UserData.get();
@@ -8,14 +9,7 @@ export async function startStopJm(pause: boolean) {
     }
 
     try {
-        const response = await fetch('/api/v1/App/action/QueueManagerUpdate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization-Token': btoa(userData.user.userName + ':' + userData.token)
-            },
-            body: JSON.stringify({pause: pause})
-        });
+        const response = await Utils.postRequest('/api/v1/App/action/QueueManagerUpdate', {pause: pause})
 
         if (!response.ok) {
             throw new Error('Network response was not ok');
