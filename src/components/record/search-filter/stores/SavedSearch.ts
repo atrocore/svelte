@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import SavedSearch from '../interfaces/SavedSearch'
-import Collection from '../../../../utils/interfaces/Collection'
+import Collection from '$lib/types/entity/collection'
 import { UserData } from "$lib/core/user-data";
 
 

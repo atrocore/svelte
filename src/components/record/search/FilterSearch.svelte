@@ -9,7 +9,7 @@
     import { getSavedSearchStore } from "../search-filter/stores/SavedSearch"
     import Rule from "../search-filter/interfaces/Rule";
     import { Metadata } from '$lib/core/metadata';
-    import Dropdown from "../../../utils/Dropdown";
+    import Dropdown from "$lib/core/dropdown";
 
 
     export let scope: string;

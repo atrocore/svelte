@@ -1,18 +1,13 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+
+    import { Language } from "$lib/core/language"
+    import { startStopJm } from "./utils/job-manager";
+
     export let isOpen = false;
     export let close: any;
     export let icon: any;
-
-    import { onDestroy, onMount } from 'svelte';
-
-    import { Language } from "$lib/core/language"
-    import { UserData } from '$lib/core/user-data';
-    import { Notifier } from '$lib/core/notifier';
-
-    let qmPaused = false;
-    window.addEventListener('publicDataFetched', (event: any): void => {
-        qmPaused = !!(event.detail.qmPaused);
-    });
+    export let jmPaused;
 
     let panel: any;
 
@@ -24,39 +19,11 @@
 
     onMount(() => {
         document.addEventListener('click', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
     });
-
-    onDestroy(() => {
-        document.removeEventListener('click', handleClickOutside);
-    });
-
-    async function startStopQm(pause: boolean) {
-        let userData = UserData.get();
-        if (!userData) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/v1/App/action/QueueManagerUpdate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization-Token': btoa(userData.user.userName + ':' + userData.token)
-                },
-                body: JSON.stringify({pause: pause})
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            await response.json();
-
-            Notifier.notify('Done', 'success');
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
 </script>
 
 {#if isOpen}
@@ -75,13 +42,13 @@
                             on:click={e => {window.location.href = '#Job'; close();}}
                             class="primary outline"><i
                             class="ph ph-list"></i><span>{Language.translate('View List')}</span></button>
-                    {#if qmPaused}
+                    {#if jmPaused}
                         <button title="{Language.translate('Start')}" class="primary outline"
-                                on:click={event=>{event.preventDefault();startStopQm(false);}}><i
+                                on:click={event=>{event.preventDefault();startStopJm(false);}}><i
                                 class="ph ph-play"></i><span>{Language.translate('Start')}</span></button>
                     {:else}
                         <button title="{Language.translate('Pause')}" class="primary outline"
-                                on:click={event=>{event.preventDefault();startStopQm(true);}}><i
+                                on:click={event=>{event.preventDefault();startStopJm(true);}}><i
                                 class="ph ph-pause"></i><span>{Language.translate('Pause')}</span></button>
                     {/if}
                 </div>

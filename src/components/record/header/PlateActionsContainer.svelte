@@ -4,7 +4,7 @@
     import MassAction from "./interfaces/MassAction";
     import { Language } from "$lib/core/language"
     import { onMount } from "svelte";
-    import Dropdown from "../../../utils/Dropdown";
+    import Dropdown from "$lib/core/dropdown";
 
     export let loading: boolean = false;
     export let counters: Array<Counter[]> = [];

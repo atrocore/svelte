@@ -1,13 +1,16 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs'
-    import BaseLayout from './BaseLayout.svelte';
-    import type Button from '../../admin/layouts/interfaces/Button';
-    import type Params from "./interfaces/Params";
-    import type KeyValue from "./interfaces/KeyValue";
-    import type Item from "./interfaces/Item";
+    import LayoutContainer from './LayoutContainer/LayoutContainer.svelte';
+    import Button from "$lib/components/forms/navigation-layouts/types/button";
+    import Params from "$lib/components/forms/navigation-layouts/types/params";
+    import KeyValue from "$lib/components/forms/navigation-layouts/types/key-value";
+    import Item from "$lib/components/forms/navigation-layouts/types/item";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
+    import {
+        getDataAttributeProps,
+    } from './utils/rows-layout';
 
     let layoutElement: HTMLElement
 
@@ -31,7 +34,7 @@
 
     export let fieldsInGroup: KeyValue;
 
-    let baseLayout: BaseLayout;
+    let layoutContainer: LayoutContainer;
 
     $: calculateFieldsInGroup(enabledItems)
 
@@ -199,28 +202,10 @@
         }
         return true;
     }
-
-    function toDom(str: string): string {
-        return str.toLowerCase();
-    }
-
-    function prop(obj: any, key: string): any {
-        return obj[key];
-    }
-
-    function getDataAttributeProps(item: Field): any {
-        let dataAttributes = {};
-        ['name', 'id'].forEach(attr => {
-            if (prop(item, attr) != null) {
-                dataAttributes[`data-${toDom(attr)}`] = prop(item, attr);
-            }
-        })
-        return dataAttributes;
-    }
 </script>
 
-<BaseLayout
-        bind:this={baseLayout}
+<LayoutContainer
+        bind:this={layoutContainer}
         {params}
         {validate}
         {fetch}
@@ -281,7 +266,7 @@
             </div>
         </div>
     </div>
-</BaseLayout>
+</LayoutContainer>
 
 <style>
     header {

@@ -2,7 +2,7 @@
     import { Config } from '$lib/core/config';
     import { Utils } from "$lib/core/utils";
     import { UserData } from "$lib/core/user-data";
-    import { LayoutManager } from "../../utils/LayoutManager";
+    import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
 

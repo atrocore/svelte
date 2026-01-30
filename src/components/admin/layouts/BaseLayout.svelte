@@ -4,7 +4,7 @@
     import type Button from './interfaces/Button'
     import type Params from './interfaces/Params'
     import { Notifier } from "$lib/core/notifier";
-    import { LayoutManager } from "../../../utils/LayoutManager";
+    import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
     import { UserData } from "$lib/core/user-data";
 

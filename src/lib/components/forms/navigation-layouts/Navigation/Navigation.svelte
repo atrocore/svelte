@@ -1,10 +1,10 @@
 <script lang="ts">
 
-    import RowsLayout from './RowsLayout.svelte';
-    import type Button from '../../admin/layouts/interfaces/Button';
-    import type Params from "./interfaces/Params";
-    import type KeyValue from "./interfaces/KeyValue";
-    import type Item from "./interfaces/Item";
+    import RowsLayout from '$lib/components/forms/navigation-layouts/RowsLayout/RowsLayout.svelte';
+    import Button from "$lib/components/forms/navigation-layouts/types/button";
+    import Params from "$lib/components/forms/navigation-layouts/types/params";
+    import KeyValue from "$lib/components/forms/navigation-layouts/types/key-value";
+    import Item from "$lib/components/forms/navigation-layouts/types/item";
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
 

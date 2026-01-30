@@ -1,25 +1,25 @@
 import { writable } from 'svelte/store';
 
-interface LayoutManagerInterface {
+type LayoutManagerAdapter = {
     data: any
 
     resetToDefault(scope: string, type: string, relatedScope: string | null, layoutProfileId: string, callback: any): any
 
     get(scope: string, type: string, relatedScope: string | null, layoutProfileId: string, callback: any, cache: any, isAdminPage: boolean): any
 
-    set(scope: string, type: string, relatedScope: string | null, layoutProfileId: string, layout: any, callback: any): any
+    set(scope: string, type: string, relatedScope: string | null, layoutProfileId: string, layout: any, callback: any, errorCallback: any): any
 }
 
-const data = writable<LayoutManagerInterface>();
+const data = writable<LayoutManagerAdapter>();
 
 export const LayoutManager = {
-    setLayoutManager(layoutManager: LayoutManagerInterface): void {
+    setLayoutManager(layoutManager: LayoutManagerAdapter): void {
         data.set(layoutManager);
     },
 
     resetToDefault(scope: string, type: string, relatedScope: string | null, layoutProfileId: string, callback: any) {
         let res = null
-        data.subscribe((current: LayoutManagerInterface) => {
+        data.subscribe((current: LayoutManagerAdapter) => {
             if (current) {
                 res = current.resetToDefault(scope, type, relatedScope, layoutProfileId, callback);
             }
@@ -29,7 +29,7 @@ export const LayoutManager = {
 
     get: function (scope: string, type: string, relatedScope: string | null, layoutProfileId: string, callback: any, cache: any, isAdminPage: boolean): any {
         let res = null
-        data.subscribe((current: LayoutManagerInterface) => {
+        data.subscribe((current: LayoutManagerAdapter) => {
             if (current) {
                 res = current.get(scope, type, relatedScope, layoutProfileId, callback, cache, isAdminPage);
             }
@@ -39,7 +39,7 @@ export const LayoutManager = {
 
     set: function (scope: string, type: string, relatedScope: string | null, layoutProfileId: string, layout: any, callback: any, errorCallback: any): any {
         let res = null
-        data.subscribe((current: LayoutManagerInterface) => {
+        data.subscribe((current: LayoutManagerAdapter) => {
             if (current) {
                 res = current.set(scope, type, relatedScope, layoutProfileId, layout, callback, errorCallback);
             }
@@ -48,7 +48,7 @@ export const LayoutManager = {
     },
 
     clearListAndDetailCache: function () {
-        data.subscribe((current: LayoutManagerInterface) => {
+        data.subscribe((current: LayoutManagerAdapter) => {
             if (current) {
                 current.data = {}
                 for (const i in localStorage) {

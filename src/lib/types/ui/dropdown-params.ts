@@ -8,7 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-export default interface DropdownParams {
+type DropdownParams = {
     disableAutoHide?: boolean;
     usePositionOnly?: boolean;
     isOpen?: boolean;
@@ -25,3 +25,5 @@ export default interface DropdownParams {
     arrow?: boolean | Record<string, any>,
     hide?: boolean | Record<string, any>
 }
+
+export default DropdownParams;

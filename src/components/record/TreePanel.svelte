@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, tick } from 'svelte';
     import { Storage } from "$lib/core/storage";
-    import { LayoutManager } from "../../utils/LayoutManager";
+    import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
     import { Config } from '$lib/core/config';
