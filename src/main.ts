@@ -10,7 +10,7 @@ import { UserData } from '$lib/core/user-data';
 import { Notifier } from '$lib/core/notifier';
 import { LayoutManager } from "./utils/LayoutManager";
 import { Metadata } from '$lib/core/metadata';
-import { ModelFactory } from "./utils/ModelFactory";
+import { ModelFactory } from "$lib/core/model-factory";
 import { Config } from '$lib/core/config';
 import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
@@ -20,14 +20,14 @@ import Dropdown from "./utils/Dropdown"
 import JobManagerIcon from './components/icons/JobManagerIcon.svelte';
 import UpdatePanel from "./components/panels/UpdatePanel.svelte";
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
-import RebuildDatabaseModal from "./components/admin/modals/RebuildDatabaseModal.svelte";
-import ApiRequestComponent from "./components/admin/api-request/ApiRequestComponent.svelte";
-import Script from "./components/fields/Script.svelte";
+import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/RebuildDatabaseModal.svelte";
+import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
+import Script from "$lib/components/fields/Script/Script.svelte";
 import Navigation from "./components/layout-profile/navigation/Navigation.svelte";
 import Favorites from "./components/layout-profile/navigation/Favorites.svelte";
 import TreePanel from "./components/record/TreePanel.svelte";
 import RightSideView from "./components/record/RightSideView.svelte";
-import BaseHeader from "./components/record/header/BaseHeader.svelte";
+import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
 import ListHeader from "./components/record/header/ListHeader.svelte";
 import ListActionsContainer from "./components/record/header/ListActionsContainer.svelte";
 import PlateActionsContainer from "./components/record/header/PlateActionsContainer.svelte";
@@ -40,7 +40,7 @@ import CurrentSelectionButton
 import ContentFilter from "./components/record/ContentFilter.svelte";
 import AnchorNavigation from "./components/record/header/navigation/AnchorNavigation.svelte";
 import DashboardHeader from "./components/record/header/DashboardHeader.svelte";
-import { default as Administration } from "./components/admin/Index.svelte";
+import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import SelectionLeftSidePanel from "./components/selection/record/SelectionLeftSidePanel.svelte";
 
 declare global {

@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
-    import BaseHeader from "./BaseHeader.svelte";
-    import BreadcrumbsItem from "./interfaces/BreadcrumbsItem";
+
+    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
+    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
 
     export let tabs: string[] = [];
     export let selectedTabIndex: number = 0;

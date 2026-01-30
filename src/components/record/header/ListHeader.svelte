@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
 
-    import BaseHeader from "./BaseHeader.svelte";
+    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
     import Params from "./interfaces/Params"
     import EntityActionsGroup from "./EntityActionsGroup.svelte";
     import EntityActionButtons from "./interfaces/EntityActionsButtons";

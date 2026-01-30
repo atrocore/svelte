@@ -1,26 +1,15 @@
 <script lang="ts">
-    import BaseHeader from "../record/header/BaseHeader.svelte";
-    import BreadcrumbsItem from "../record/header/interfaces/BreadcrumbsItem";
-    import { Language } from "$lib/core/language"
-    import TreePanel from "../record/TreePanel.svelte";
-    import { Metadata } from '$lib/core/metadata';
-    import Collapser from "../base/Collapser.svelte";
+    import { Language } from "$lib/core/language";
 
-    interface AdminCardGroup {
-        id: string;
-        title: string;
-        items: AdminCard[];
-    }
+    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import AdminCardGroup from "./types/admin-card-group";
+    import { getAdminCardGroups } from "./utils/admin-utils";
 
-    interface AdminCard {
-        icon: string;
-        title: string;
-        description: string;
-        url: string;
-        alert?: string;
-        tooltip?: string;
-        docsUrl?: string;
-    }
+    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
+    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+
+    // TODO: replace import path after refactoring
+    import TreePanel from "../../../components/record/TreePanel.svelte";
 
     export let cacheDate: string | null = null;
 
@@ -30,40 +19,7 @@
         }
     ];
 
-    const groups: AdminCardGroup[] = [];
-
-    for (let [id, data] of Object.entries(Metadata.get(['app', 'adminPanel']) || {})) {
-        const group = {
-            id,
-            title: Language.translate(data.label, 'labels', 'Admin')
-        } as AdminCardGroup;
-
-        group.items = data.itemList.map((item: Record<string, any>) => {
-            let alert = null;
-            let tooltip = null;
-
-            if (item.url === '#Admin/rebuildDb' && (localStorage.getItem('pd_isNeedToRebuildDatabase') || false) === 'true') {
-                alert = Language.translate('rebuildDbWarning', 'labels', 'Admin');
-            } else if (item.url === '#Composer/list' && (localStorage.getItem('pd_isNeedToUpdate') || false) === 'true') {
-                alert = Language.translate('updatesAvailable', 'labels', 'Admin');
-            } else if (item.url === '#Admin/clearCache' && cacheDate) {
-                tooltip = Language.translate('clearCacheTooltip', 'labels', 'Admin') + ' ' + cacheDate;
-            }
-
-            return {
-                url: item.url,
-                icon: item.icon || 'ph ph-gear',
-                title: Language.translate(item.label, 'labels', 'Admin'),
-                description: Language.translate(item.description, 'descriptions', 'Admin'),
-                docsUrl: item.docsUrl,
-                alert: alert,
-                tooltip: tooltip
-            }
-        });
-
-        groups.push(group);
-    }
-
+    const groups: AdminCardGroup[] = getAdminCardGroups(cacheDate);
 </script>
 
 <TreePanel isAdminPage={true} scope="Administration" mode="detail"/>

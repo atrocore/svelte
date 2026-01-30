@@ -1,20 +1,18 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
+    import { ModelFactory } from "$lib/core/model-factory";
     import { onMount } from "svelte";
-    import { ModelFactory } from "../../../utils/ModelFactory";
-    import BaseHeader from "../../record/header/BaseHeader.svelte";
 
-    export let afterOnMount = () => null;
-    export let sendRequest = () => null;
+    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
 
-    let content = null;
+    export let afterOnMount = (model: Record<string, any>) => null;
+    export let sendRequest = (model: Record<string, any>) => null;
 
-    let response = null;
-    let model = null;
+    let model: Record<string, any>;
 
 
     onMount(() => {
-        ModelFactory.create('', function (m) {
+        ModelFactory.create('', m => {
             model = m;
             afterOnMount(model);
         })
@@ -45,12 +43,9 @@
     <div class="col-sm-3">
         <div class="row">
             <div class="col-xs-12 cell form-group">
-                <label class="control-label"
-                       data-name="type">{Language.translate('Type', 'fields', 'Admin')}</label>
+                <label class="control-label" data-name="type">{Language.translate('Type', 'fields', 'Admin')}</label>
                 <div class="field" data-name="type"></div>
-
             </div>
-
         </div>
     </div>
 </div>
@@ -60,11 +55,8 @@
         <div class="field" data-name="request"></div>
     </div>
     <div class="col-sm-12 col-md-6 cell form-group">
-        <label style="width:100%" class="control-label"
-               data-name="response">{Language.translate('response', 'fields', 'Admin')}
-            <span class="pull-right status hidden">
-                    {Language.translate('status', 'labels', 'Admin')}: <span></span>
-                </span></label>
+        <label style="width:100%" class="control-label" data-name="response">{Language.translate('response', 'fields', 'Admin')}
+            <span class="pull-right status hidden">{Language.translate('status', 'labels', 'Admin')}: <span></span></span></label>
         <div class="field" data-name="response"></div>
     </div>
 </div>

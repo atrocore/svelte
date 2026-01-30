@@ -5,7 +5,7 @@
     import { Metadata } from '$lib/core/metadata';
 
     import { onMount } from "svelte";
-    import Preloader from "../../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import DropdownActionButton from "$lib/components/buttons/DropdownActionButton/DropdownActionButton.svelte";
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";

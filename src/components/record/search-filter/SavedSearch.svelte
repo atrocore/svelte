@@ -3,7 +3,7 @@
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
-    import Preloader from "../../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import { getSavedSearchStore } from "./stores/SavedSearch";
     import SavedSearch from "./interfaces/SavedSearch"
     import { get } from "svelte/store"

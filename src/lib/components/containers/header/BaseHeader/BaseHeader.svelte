@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Breadcrumbs from "./navigation/Breadcrumbs.svelte";
-    import BreadcrumbsItem from "./interfaces/BreadcrumbsItem";
-    import NavigationHistory from "./navigation/NavigationHistory.svelte";
+    import Breadcrumbs from "./Breadcrumbs/Breadcrumbs.svelte";
+    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import NavigationHistory from "./NavigationHistory/NavigationHistory.svelte";
 
     export let breadcrumbs: BreadcrumbsItem[] = [];
     export let disableNavigationHistory: boolean = false;
@@ -11,7 +11,7 @@
 
 </script>
 
-{#if !disableNavigationHistory}
+{#if !disableNavigationHistory && scope}
     <NavigationHistory {scope} {id} tabId={sessionStorage.tabId}/>
 {/if}
 

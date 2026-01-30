@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
-    import Preloader from "../../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import FilterSearch from "../search/FilterSearch.svelte";
     import SearchBar from "../search/SearchBar.svelte";
     import { Notifier } from "$lib/core/notifier";

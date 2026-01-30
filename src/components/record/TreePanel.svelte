@@ -7,7 +7,7 @@
     import { Config } from '$lib/core/config';
     import { Notifier } from "$lib/core/notifier";
     import { UserData } from "$lib/core/user-data";
-    import Preloader from "../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import BaseSidebar from "./BaseSidebar.svelte";
     import { Utils } from "$lib/core/utils";
 
