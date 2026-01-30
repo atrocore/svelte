@@ -85,7 +85,9 @@
                                 class="ph ph-pause"></i><span>{Language.translate('Pause')}</span></button>
                     {/if}
                 </div>
-                <div class="list-container">{Language.translate('Loading...')}</div>
+                <div class="list-container">
+                    <div class="no-data-container">{Language.translate('Loading...')}</div>
+                </div>
             </div>
         </div>
     </div>
