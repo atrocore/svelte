@@ -8,6 +8,9 @@
     import Item from "$lib/components/forms/navigation-layouts/types/Item";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
+    import {
+        getDataAttributeProps,
+    } from './utils/rows-layout';
 
     let layoutElement: HTMLElement
 
@@ -198,24 +201,6 @@
             return false;
         }
         return true;
-    }
-
-    function toDom(str: string): string {
-        return str.toLowerCase();
-    }
-
-    function prop(obj: any, key: string): any {
-        return obj[key];
-    }
-
-    function getDataAttributeProps(item: Field): any {
-        let dataAttributes = {};
-        ['name', 'id'].forEach(attr => {
-            if (prop(item, attr) != null) {
-                dataAttributes[`data-${toDom(attr)}`] = prop(item, attr);
-            }
-        })
-        return dataAttributes;
     }
 </script>
 
