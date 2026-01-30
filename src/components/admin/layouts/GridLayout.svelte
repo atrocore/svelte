@@ -715,7 +715,7 @@
                                 <span class="title">{Language.translate(group.name, 'scopeNames')}</span>
                             {/if}
                             <ul class="disabled cells clearfix" data-name="{group.name}">
-                                {#each group.fields.sort((a, b) => a.label.localeCompare(b.label)) as field (field.name)}
+                                {#each group.fields.sort((a, b) => (a.label ?? a.name).localeCompare(b.label ?? b.name)) as field (field.name)}
                                     <li class="cell" data-name={field.name} title="{field.label}"
                                         on:dragstart={event => {event.dataTransfer.setData('name', field.name)}}>
                                         <span class="left">{field.label}</span>
