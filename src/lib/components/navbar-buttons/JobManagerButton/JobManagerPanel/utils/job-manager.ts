@@ -9,7 +9,7 @@ export async function startStopJm(pause: boolean) {
     }
 
     try {
-        const response = await Utils.postRequest('/api/v1/App/action/QueueManagerUpdate', {pause: pause})
+        const response = await Utils.postRequest('App/action/JobManagerUpdate', {pause: pause})
 
         if (!response.ok) {
             throw new Error('Network response was not ok');

@@ -15,7 +15,7 @@
     }
 
     function updateJmPaused(event: any): void {
-        jmPaused = !!(event.detail.qmPaused);
+        jmPaused = !!(event.detail.jmPaused);
     }
 
     onMount(() => {
