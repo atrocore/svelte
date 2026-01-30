@@ -1,10 +1,22 @@
+<!--
+  -  AtroCore Software
+  -
+  -  This source file is available under GNU General Public License version 3 (GPLv3).
+  -  Full copyright and license information is available in LICENSE.txt, located in the root directory.
+  -
+  -  @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+  -  @license    GPLv3 (https://www.gnu.org/licenses/)
+  -->
+
 <script>
     import * as monaco from 'monaco-editor';
-    import { Notifier } from "$lib/core/notifier";
     import { onMount } from 'svelte';
-    import Text from './Text.svelte';
+
+    import { Notifier } from "$lib/core/notifier";
     import { Metadata } from '$lib/core/metadata';
     import { Language } from "$lib/core/language"
+
+    import Text from '$lib/components/fields/Text/Text.svelte';
 
     const jsonTwigLanguageConfig = {
         defaultToken: '',

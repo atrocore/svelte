@@ -19,29 +19,30 @@ export const Utils = {
         return value[0].toUpperCase() + value.slice(1);
     },
 
-    patchRequest(url: string, data: any) {
-        return this.request('PATCH', url, data);
+    patchRequest(url: string, data: any, headers?: Record<string, string>) {
+        return this.request('PATCH', url, data, headers);
     },
 
-    postRequest(url: string, data: any) {
-        return this.request('POST', url, data);
+    postRequest(url: string, data?: any, headers?: Record<string, string>) {
+        return this.request('POST', url, data, headers);
     },
 
-    getRequest(url: string, data: Record<string, any>) {
+    getRequest(url: string, data?: Record<string, any>, headers?: Record<string, string>) {
         const query = new URLSearchParams(data).toString();
         const finalUrl = query ? `${url}?${query}` : url;
 
-        return this.request('GET', finalUrl, null);
+        return this.request('GET', finalUrl, null, headers);
     },
 
-    request(method: string, url: string, data: any) {
+    request(method: string, url: string, data: any, headers?: Record<string, string>) {
         const userData = UserData.get();
+        const baseHeaders = {
+            'Content-Type': 'application/json',
+        };
 
         const params: RequestParams = {
             'method': method,
-            'headers': {
-                'Content-Type': 'application/json',
-            },
+            'headers': Object.assign(baseHeaders, headers),
             body: undefined
         };
 

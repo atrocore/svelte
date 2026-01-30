@@ -18,16 +18,16 @@ import { CollectionFactory } from "$lib/core/collection-factory";
 import Dropdown from "$lib/core/dropdown"
 
 import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
-import SystemUpdatePanel from "$lib/components/panels/SystemUpdatePanel.svelte";
+import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePanel.svelte";
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
-import RebuildDatabaseModal from "./components/admin/modals/RebuildDatabaseModal.svelte";
-import ApiRequestComponent from "./components/admin/api-request/ApiRequestComponent.svelte";
-import Script from "./components/fields/Script.svelte";
+import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/RebuildDatabaseModal.svelte";
+import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
+import Script from "$lib/components/fields/Script/Script.svelte";
 import Navigation from "$lib/components/forms/navigation-layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/forms/navigation-layouts/Favorites/Favorites.svelte";
 import TreePanel from "./components/record/TreePanel.svelte";
 import RightSideView from "./components/record/RightSideView.svelte";
-import BaseHeader from "./components/record/header/BaseHeader.svelte";
+import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
 import ListHeader from "./components/record/header/ListHeader.svelte";
 import ListActionsContainer from "./components/record/header/ListActionsContainer.svelte";
 import PlateActionsContainer from "./components/record/header/PlateActionsContainer.svelte";
@@ -39,7 +39,7 @@ import CurrentSelectionButton from "$lib/components/navbar-buttons/CurrentSelect
 import ContentFilter from "./components/record/ContentFilter.svelte";
 import AnchorNavigation from "./components/record/header/navigation/AnchorNavigation.svelte";
 import DashboardHeader from "./components/record/header/DashboardHeader.svelte";
-import { default as Administration } from "./components/admin/Index.svelte";
+import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import SelectionLeftSidePanel from "./components/selection/record/SelectionLeftSidePanel.svelte";
 
 declare global {

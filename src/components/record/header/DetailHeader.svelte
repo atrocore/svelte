@@ -4,7 +4,7 @@
     import Params from "./interfaces/Params"
     import AnchorNavItem from "./interfaces/AnchorNavItem";
 
-    import BaseHeader from "./BaseHeader.svelte";
+    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
     import AnchorNavigation from "./navigation/AnchorNavigation.svelte";
     import RecordActionButtons from "./interfaces/RecordActionsButtons";
     import RecordActionsGroup from "./RecordActionsGroup.svelte";

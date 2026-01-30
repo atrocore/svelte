@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import Base from './Base.svelte';
+    import Base from '$lib/components/fields/Base/Base.svelte';
 
     export let value = '';
     export let mode = 'detail';

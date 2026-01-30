@@ -1,6 +1,7 @@
 <script lang="ts">
-    import SpinnerIcon from "$lib/components/loaders/SpinnerIcon/SpinnerIcon.svelte";
     import { afterUpdate } from "svelte";
+
+    import SpinnerIcon from "$lib/components/loaders/SpinnerIcon/SpinnerIcon.svelte";
 
     export let applicationName: string = 'AtroCore';
     export let logoPath: string | null = null;
@@ -38,7 +39,7 @@
     }
 
     function logsScrollHandler(e: Event): void {
-        const target: Element = e.currentTarget;
+        const target = e.currentTarget as Element;
         autoScroll = target.scrollHeight - target.scrollTop === target.clientHeight;
     }
 
