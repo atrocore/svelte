@@ -1,19 +1,19 @@
 import { writable } from 'svelte/store';
 
-interface ModelFactoryInterface {
+type ModelFactoryAdapter = {
     create(modelName: string, callback: Function): void
 }
 
-const data = writable<ModelFactoryInterface>();
+const data = writable<ModelFactoryAdapter>();
 
 export const ModelFactory = {
 
-    setModelFactory(modelFactory: ModelFactoryInterface): void {
+    setModelFactory(modelFactory: ModelFactoryAdapter): void {
         data.set(modelFactory);
     },
     create(modelName: string, callback: Function): void {
         let res = null
-        data.subscribe((current: ModelFactoryInterface) => {
+        data.subscribe((current: ModelFactoryAdapter) => {
             if (current) {
                 current.create(modelName, callback);
             }

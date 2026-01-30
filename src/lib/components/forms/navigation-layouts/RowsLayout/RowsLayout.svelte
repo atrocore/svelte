@@ -1,11 +1,11 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs'
-    import BaseLayout from './BaseLayout.svelte';
-    import type Button from '../../admin/layouts/interfaces/Button';
-    import type Params from "./interfaces/Params";
-    import type KeyValue from "./interfaces/KeyValue";
-    import type Item from "./interfaces/Item";
+    import LayoutContainer from './LayoutContainer/LayoutContainer.svelte';
+    import Button from "../../../../../components/admin/layouts/interfaces/Button";
+    import Params from "../types/Params";
+    import KeyValue from "$lib/components/forms/navigation-layouts/types/KeyValue";
+    import Item from "$lib/components/forms/navigation-layouts/types/Item";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
 
@@ -31,7 +31,7 @@
 
     export let fieldsInGroup: KeyValue;
 
-    let baseLayout: BaseLayout;
+    let layoutContainer: LayoutContainer;
 
     $: calculateFieldsInGroup(enabledItems)
 
@@ -219,8 +219,8 @@
     }
 </script>
 
-<BaseLayout
-        bind:this={baseLayout}
+<LayoutContainer
+        bind:this={layoutContainer}
         {params}
         {validate}
         {fetch}
@@ -281,7 +281,7 @@
             </div>
         </div>
     </div>
-</BaseLayout>
+</LayoutContainer>
 
 <style>
     header {

@@ -8,12 +8,12 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
+import { autoUpdate, computePosition, flip, Middleware, offset, shift, size } from '@floating-ui/dom';
 
-import DropdownParams from "./interfaces/DropdownParams";
+import DropdownParams from "$lib/types/ui/dropdown-params";
 
 export default class Dropdown {
-    private readonly referenceEl: HTMLElement;
+    private readonly referenceEl: HTMLElement & { _dropdown?: any };
     private readonly floatingEl: HTMLElement;
     private readonly floatingListElSelector: string = 'li';
     private floatingHandler?: Function;
@@ -43,7 +43,7 @@ export default class Dropdown {
             this.isOpen = this.params.isOpen;
         }
 
-        referenceEl._dropdown = this;
+        this.referenceEl._dropdown = this;
 
         if (this.usePositionOnly) {
             this.updateDropdown();
@@ -108,7 +108,7 @@ export default class Dropdown {
             const positionOptions = {
                 placement: 'bottom-start',
                 strategy: 'fixed',
-                middleware: []
+                middleware: [] as Middleware[]
             };
 
             if (this.params?.placement) {

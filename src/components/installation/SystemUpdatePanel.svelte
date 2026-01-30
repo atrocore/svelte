@@ -1,5 +1,5 @@
 <script lang="ts">
-    import SpinnerIcon from "../icons/loading/SpinnerIcon.svelte";
+    import SpinnerIcon from "$lib/components/loaders/SpinnerIcon/SpinnerIcon.svelte";
     import { afterUpdate } from "svelte";
 
     export let applicationName: string = 'AtroCore';

@@ -1,7 +1,6 @@
-<!-- BaseLayout.svelte -->
 <script lang="ts">
-    import type Button from '../../admin/layouts/interfaces/Button';
-    import type Params from "./interfaces/Params";
+    import Button from "../../../../../../components/admin/layouts/interfaces/Button";
+    import Params from "../../types/Params";
     import { Language } from "$lib/core/language"
 
     export let params: Params;

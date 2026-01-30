@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
     import { onMount } from "svelte";
-    import { ModelFactory } from "../../../utils/ModelFactory";
+    import { ModelFactory } from "$lib/core/model-factory";
     import BaseHeader from "../../record/header/BaseHeader.svelte";
 
     export let afterOnMount = () => null;

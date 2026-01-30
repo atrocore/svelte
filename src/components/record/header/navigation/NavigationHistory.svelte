@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
     import { onMount } from "svelte";
-    import Preloader from "../../../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import { UserData } from "$lib/core/user-data";
 
     interface LastEntityRecord {

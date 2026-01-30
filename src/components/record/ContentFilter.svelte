@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
-    import Dropdown from "../../utils/Dropdown";
+    import Dropdown from "$lib/core/dropdown";
 
 
     export let scope: string;

@@ -5,7 +5,7 @@
     import { Notifier } from "$lib/core/notifier";
     import BaseLayout from "./BaseLayout.svelte";
     import { Language } from "$lib/core/language"
-    import { LayoutManager } from "../../../utils/LayoutManager";
+    import { LayoutManager } from "$lib/core/layout-manager";
     import { Metadata } from '$lib/core/metadata';
     import Group from "./interfaces/Group";
     import { Utils } from "$lib/core/utils";

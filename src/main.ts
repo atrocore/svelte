@@ -8,23 +8,23 @@ import tippy from 'tippy.js';
 import { Language } from '$lib/core/language';
 import { UserData } from '$lib/core/user-data';
 import { Notifier } from '$lib/core/notifier';
-import { LayoutManager } from "./utils/LayoutManager";
+import { LayoutManager } from "$lib/core/layout-manager";
 import { Metadata } from '$lib/core/metadata';
-import { ModelFactory } from "./utils/ModelFactory";
+import { ModelFactory } from "$lib/core/model-factory";
 import { Config } from '$lib/core/config';
 import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
-import { CollectionFactory } from "./utils/CollectionFactory";
-import Dropdown from "./utils/Dropdown"
+import { CollectionFactory } from "$lib/core/collection-factory";
+import Dropdown from "$lib/core/dropdown"
 
-import JobManagerIcon from './components/icons/JobManagerIcon.svelte';
-import UpdatePanel from "./components/panels/UpdatePanel.svelte";
+import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
+import SystemUpdatePanel from "./components/installation/SystemUpdatePanel.svelte";
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
 import RebuildDatabaseModal from "./components/admin/modals/RebuildDatabaseModal.svelte";
 import ApiRequestComponent from "./components/admin/api-request/ApiRequestComponent.svelte";
 import Script from "./components/fields/Script.svelte";
-import Navigation from "./components/layout-profile/navigation/Navigation.svelte";
-import Favorites from "./components/layout-profile/navigation/Favorites.svelte";
+import Navigation from "$lib/components/forms/navigation-layouts/Navigation/Navigation.svelte";
+import Favorites from "$lib/components/forms/navigation-layouts/Favorites/Favorites.svelte";
 import TreePanel from "./components/record/TreePanel.svelte";
 import RightSideView from "./components/record/RightSideView.svelte";
 import BaseHeader from "./components/record/header/BaseHeader.svelte";
@@ -75,8 +75,8 @@ window.Dropdown = Dropdown;
 
 export {
     Script,
-    UpdatePanel,
-    JobManagerIcon,
+    SystemUpdatePanel,
+    JobManagerButton,
     LayoutComponent,
     RightSideView,
     TreePanel,
