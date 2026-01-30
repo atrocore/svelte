@@ -5,7 +5,7 @@
 
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
     import ActionParams from "./header/interfaces/ActionParams";
-    import Preloader from "../icons/loading/Preloader.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
 
     import { Language } from "$lib/core/language"
 
@@ -15,8 +15,6 @@
     import 'swiper/css/zoom';
     import 'swiper/css/free-mode';
     import 'swiper/css/scrollbar';
-
-    ;
 
     interface GalleryMedia {
         id: string;

@@ -5,7 +5,7 @@
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
     import { LayoutManager } from "../../../utils/LayoutManager";
-    import { ModelFactory } from "../../../utils/ModelFactory";
+    import { ModelFactory } from "$lib/core/model-factory";
     import Group from "./interfaces/Group";
 
     export let params: Params;

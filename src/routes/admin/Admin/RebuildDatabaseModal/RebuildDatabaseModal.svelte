@@ -1,8 +1,9 @@
 <script lang="ts">
-    import SpinnerIcon from "../../icons/loading/SpinnerIcon.svelte";
     import { Language } from "$lib/core/language"
     import { onMount } from "svelte";
     import { Utils } from "$lib/core/utils";
+
+    import SpinnerIcon from "$lib/components/loaders/SpinnerIcon/SpinnerIcon.svelte";
 
     export let onApply: () => void;
     export let onCancel: () => void;
@@ -13,7 +14,7 @@
 
     onMount(() => {
         loading = true;
-        Utils.request('get', '/Admin/getSchemaDiff')
+        Utils.getRequest('Admin/getSchemaDiff')
             .then(response => {
                 if (response.ok) {
                     response.text().then(text => {
@@ -24,9 +25,8 @@
                         data = text;
                     })
                 }
-            }).finally(() => {
-            loading = false;
-        });
+            })
+            .finally(() => loading = false);
     });
 </script>
 
