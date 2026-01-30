@@ -18,7 +18,7 @@ import { CollectionFactory } from "$lib/core/collection-factory";
 import Dropdown from "$lib/core/dropdown"
 
 import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
-import SystemUpdatePanel from "./components/installation/SystemUpdatePanel.svelte";
+import SystemUpdatePanel from "$lib/components/panels/SystemUpdatePanel.svelte";
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
 import RebuildDatabaseModal from "./components/admin/modals/RebuildDatabaseModal.svelte";
 import ApiRequestComponent from "./components/admin/api-request/ApiRequestComponent.svelte";
