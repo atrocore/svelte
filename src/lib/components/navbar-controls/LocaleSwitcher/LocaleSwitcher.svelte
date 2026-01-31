@@ -9,14 +9,14 @@
     export let checkConfirmLeaveOut: Function;
     let mainLanguageCode = ''
 
-    for (const [code, language] of Object.entries(Config.get('referenceData').Language || {})) {
+    for (const [code, language]  of Object.entries(Config.get('referenceData').Language || {}) as [string, any][]) {
         if (language.role === 'main') {
             mainLanguageCode = code
         }
     }
 
-    let locales = Config.get('locales') || {}
-    let languages = [mainLanguageCode, ...(Config.get('inputLanguageList') || [])].reduce((res, item) => {
+    let locales: Record<string, any>  = Config.get('locales') || {}
+    let languages: Record<string, any> = [mainLanguageCode, ...(Config.get('inputLanguageList') || [])].reduce((res, item) => {
         res[item] = Config.get('referenceData').Language?.[item]
         return res
     }, {})
@@ -41,7 +41,7 @@
 
     disabledLanguages = disabledLanguages.filter(code => !!languages[code])
 
-    function setAllLanguages(event) {
+    function setAllLanguages() {
         enabledLanguages = Object.keys(languages).filter(item => item !== defaultLanguageCode)
         onLanguageChange()
     }
@@ -50,12 +50,12 @@
 
 
     async function onLocaleChange() {
-        const userData = UserData.get()
+        const userData = UserData.get()!
         const code = locales[locale]?.language
         const newDefaultCode = code && languages[code] ? code : mainLanguageCode
 
         checkConfirmLeaveOut(async () => {
-            if (locale === UserData.get().user.localeId) {
+            if (locale === UserData.get()!.user.localeId) {
                 Storage.clear('user', 'locale')
             } else {
                 Storage.set('user', 'locale', locale)
@@ -71,7 +71,7 @@
     }
 
     async function onLanguageChange() {
-        const userData = UserData.get()
+        const userData = UserData.get()!
         const disabledLanguages = Object.keys(languages).filter(item => item !== defaultLanguageCode && !enabledLanguages.includes(item));
         await Utils.patchRequest('/UserProfile/' + userData.user.id, {
             disabledLanguages: disabledLanguages

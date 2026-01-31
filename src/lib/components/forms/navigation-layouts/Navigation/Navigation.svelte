@@ -27,10 +27,14 @@
             label: Language.translate('addGroup', 'labels'),
             cssStyle: 'margin-left: 30px',
             action: () => {
+                if (!params.onEditItem) {
+                    return
+                }
+
                 params.onEditItem({
                     id: getGroupId(),
                     groupEnd: false
-                }, (newItem) => {
+                }, (newItem: any) => {
                     let sortOrder = 10;
                     if (enabledItems.length) {
                         sortOrder = enabledItems[enabledItems.length - 1].sortOrder + 10;
@@ -40,7 +44,6 @@
                         isGroup: true,
                         canEdit: true,
                         canRemove: true,
-                        isGroup: true,
                         canDisabled: false,
                         name: '',
                         label: '',
@@ -56,7 +59,6 @@
                             isGroup: true,
                             canEdit: true,
                             canRemove: true,
-                            isGroup: true,
                             canDisabled: false,
                             groupEnd: true,
                             name: '',
@@ -71,7 +73,7 @@
         },
     ];
 
-    function getGroupId(): Item {
+    function getGroupId(): string {
         return defaultDelimiter + getRandomHash();
     }
 
@@ -79,8 +81,12 @@
         key++;
     }
 
-    function editItem(item): void {
-        params.onEditItem(item, (newItem) => {
+    function editItem(item: Item): void {
+        if (!params.onEditItem) {
+            return
+        }
+
+        params.onEditItem(item, (newItem: any) => {
             let index = enabledItems.findIndex(i => i.id === newItem.id);
             enabledItems[index] = newItem;
             refresh();
@@ -97,10 +103,10 @@
     loadData()
 
     function loadData(): void {
-        let navigation = params.list ?? [];
+        let navigation: any[] = params.list ?? [];
         let sortOrder = 0;
         for (let i = 0; i < navigation.length; i++) {
-            let item = navigation[i];
+            let item: any = navigation[i];
             if (typeof item === 'string') {
                 if (Metadata.get(['scopes', item, 'tab'])) {
                     enabledItems.push({
@@ -157,7 +163,7 @@
             }
         }
 
-        Object.entries(Metadata.get(['scopes'])).forEach(([key, value]) => {
+        Object.entries(Metadata.get(['scopes'])).forEach(([key, value]: [string, any]) => {
             if (value.disabled || !value.tab) {
                 return;
             }
@@ -172,7 +178,7 @@
             });
         });
 
-        disabledItems.sort((a, b) => a.label.localeCompare(b.label));
+        disabledItems.sort((a, b) => (a.label ?? '').localeCompare(b.label ?? ''));
     }
 
 </script>

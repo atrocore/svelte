@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Button from "../../../../../../components/admin/layouts/interfaces/Button";
+    import Button from "$lib/components/forms/navigation-layouts/types/button";
     import Params from "../../types/params";
     import { Language } from "$lib/core/language"
 
@@ -7,7 +7,7 @@
     export let fetch: any
 
 
-    export let validate = () => {
+    export let validate = (itemsToSave: Array<any>):boolean => {
         return true;
     }
 
@@ -17,12 +17,11 @@
         {name: 'save', label: Language.translate('Save', 'labels'), style: 'primary'},
         {name: 'cancel', label: Language.translate('Cancel', 'labels')}
     ];
-    let buttonContainer;
 
     export function save(): void {
         disabled = true;
         const itemsToSave = fetch();
-        if (validate(itemsToSave)) {
+        if (validate(itemsToSave) && params.onSaved) {
             params.onSaved(itemsToSave)
         }
         disabled = false
@@ -33,7 +32,7 @@
     }
 
 
-    function onClick(button): void {
+    function onClick(button: Button): void {
         if (button.action) {
             button.action();
             return;
@@ -49,7 +48,7 @@
     }
 </script>
 
-<div class="button-container" style="padding-top: 10px" bind:this={buttonContainer}>
+<div class="button-container" style="padding-top: 10px">
     {#each buttonList as button}
         <button on:click={()=>onClick(button)}
                 data-action="{button.name}"

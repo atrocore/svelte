@@ -18,6 +18,8 @@ type UserDataType = {
         id: string;
         name: string;
         userName: string;
+        localeId?: string;
+        disabledLanguages?: string[];
     };
     token: string;
 };

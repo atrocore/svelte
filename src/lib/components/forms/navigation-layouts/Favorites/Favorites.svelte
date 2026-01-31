@@ -55,7 +55,7 @@
             }
         }
 
-        Object.entries(Metadata.get(['scopes'])).forEach(([key, value]) => {
+        Object.entries(Metadata.get(['scopes'])).forEach(([key, value]: [string, any]) => {
             if (value.disabled || !value.tab || !Acl.check(key, 'read')) {
                 return;
             }
@@ -70,7 +70,7 @@
             });
         });
 
-        disabledItems.sort((a, b) => a.label.localeCompare(b.label));
+        disabledItems.sort((a, b) => a.label!.localeCompare(b.label!));
     }
 
 </script>
