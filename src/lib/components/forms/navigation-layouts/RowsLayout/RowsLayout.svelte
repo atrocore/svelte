@@ -22,11 +22,11 @@
     export let disabledItems: Item[] = [];
 
     export let buttonList: Button[]
-    export let loadData: Function;
     export let refresh: Function = () => {
     };
 
-    export let editItem: Function;
+    export let editItem: Function = () => {
+    };
 
     export let getGroupId: Function = () => {
         return 'id'
@@ -46,7 +46,7 @@
                 inGroup = item.name !== ''
                 return;
             }
-            if (inGroup) {
+            if (inGroup && item.name) {
                 inGroupValues[item.name] = true;
             }
         });
@@ -70,40 +70,40 @@
             animation: 150
         };
 
-        sortableEnabled = Sortable.create(layoutElement.querySelector('ul.enabled'), {
+        sortableEnabled = Sortable.create(layoutElement.querySelector('ul.enabled')!, {
             ...options,
             onEnd: function (evt) {
-                if (evt.to.closest('.connected').classList.contains('enabled')) {
-                    const [movedItem] = enabledItems.splice(evt.oldIndex, 1);
-                    enabledItems.splice(evt.newIndex, 0, movedItem);
-                    for (let i = evt.newIndex; i < enabledItems.length; i++) {
+                if (evt.to.closest('.connected')!.classList.contains('enabled')) {
+                    const [movedItem] = enabledItems.splice(evt.oldIndex!, 1);
+                    enabledItems.splice(evt.newIndex!, 0, movedItem);
+                    for (let i = evt.newIndex!; i < enabledItems.length; i++) {
                         enabledItems[i].sortOrder = (i > 0 ? enabledItems[i - 1].sortOrder : 0) + i;
                     }
                     calculateFieldsInGroup(enabledItems);
                     refresh();
                 } else {
-                    const movedItem = enabledItems[evt.oldIndex]
+                    const movedItem = enabledItems[evt.oldIndex!]
                     if (movedItem.canDisabled === false) {
                         refresh()
                         return;
                     }
-                    enabledItems.splice(evt.oldIndex, 1)
-                    disabledItems.splice(evt.newIndex, 0, movedItem)
+                    enabledItems.splice(evt.oldIndex!, 1)
+                    disabledItems.splice(evt.newIndex!, 0, movedItem)
                     refresh()
                 }
             }
         });
-        sortableDisabled = Sortable.create(layoutElement.querySelector('ul.disabled'), {
+        sortableDisabled = Sortable.create(layoutElement.querySelector('ul.disabled')!, {
             ...options,
             onEnd: function (evt) {
-                if (evt.to.closest('.connected').classList.contains('disabled')) {
-                    const [movedItem] = disabledItems.splice(evt.oldIndex, 1);
-                    disabledItems.splice(evt.newIndex, 0, movedItem);
+                if (evt.to.closest('.connected')!.classList.contains('disabled')) {
+                    const [movedItem] = disabledItems.splice(evt.oldIndex!, 1);
+                    disabledItems.splice(evt.newIndex!, 0, movedItem);
                 } else {
-                    const movedItem = disabledItems[evt.oldIndex]
-                    disabledItems.splice(evt.oldIndex, 1)
-                    enabledItems.splice(evt.newIndex, 0, movedItem)
-                    for (let i = evt.newIndex; i < enabledItems.length; i++) {
+                    const movedItem = disabledItems[evt.oldIndex!]
+                    disabledItems.splice(evt.oldIndex!, 1)
+                    enabledItems.splice(evt.newIndex!, 0, movedItem)
+                    for (let i = evt.newIndex!; i < enabledItems.length; i++) {
                         enabledItems[i].sortOrder = (i > 0 ? enabledItems[i - 1].sortOrder : 0) + i;
                     }
                     calculateFieldsInGroup(enabledItems);
@@ -115,7 +115,7 @@
 
 
     export let fetch = () => {
-        let data = [];
+        let data: Array<any> = [];
         let inGroup = false;
         let adjusted = false;
         for (let i = 0; i < enabledItems.length; i++) {
@@ -195,8 +195,8 @@
         refresh();
     }
 
-    export let validate: Function = (itemToSaved: Array<any>): boolean => {
-        if (itemToSaved.length === 0) {
+    export let validate = (itemsToSave: Array<any>): boolean => {
+        if (itemsToSave.length === 0) {
             Notifier.notify('Menu cannot be empty', 'error');
             return false;
         }
@@ -209,7 +209,6 @@
         {params}
         {validate}
         {fetch}
-        {loadData}
         {buttonList}
 >
 
@@ -221,7 +220,7 @@
                     <ul class="enabled connected">
                         {#each enabledItems.sort((a, b) => a.sortOrder - b.sortOrder) as item (item.name)}
                             <li {...getDataAttributeProps(item)}
-                                class="{item.isGroup ? 'group': ''} {item.groupEnd ? 'end' : ''} { (fieldsInGroup[item.name] && !item.isGroup) ? 'in-group': ''}">
+                                class="{item.isGroup ? 'group': ''} {item.groupEnd ? 'end' : ''} { (item.name && fieldsInGroup[item.name] && !item.isGroup) ? 'in-group': ''}">
                                 <div class="left">
                                     <label title="{item.label}">{item.label}</label>
                                 </div>
@@ -254,7 +253,7 @@
                 <header>{Language.translate('Available Fields', 'Admin')}</header>
                 <div class="rows-wrapper">
                     <ul class="disabled connected">
-                        {#each disabledItems.sort((a, b) => a.label.localeCompare(b.label)) as item (item.name)}
+                        {#each disabledItems.sort((a, b) => (a.label ?? '').localeCompare(b.label ?? '')) as item (item.name)}
                             <li {...getDataAttributeProps(item)}>
                                 <div class="left">
                                     <label title="{item.label}">{item.label}</label>

@@ -3,5 +3,6 @@ export default interface Button {
     label: string;
     style?: string;
     disabled?: boolean;
-    action?: Function
+    action?: Function,
+    cssStyle?: string
 }

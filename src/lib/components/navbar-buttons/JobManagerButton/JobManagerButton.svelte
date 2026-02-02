@@ -5,7 +5,7 @@
     import { onMount } from "svelte";
 
     export let renderTable = (): void => {
-        // should render table
+        // should render the table
     };
 
     let jmPaused = false;
