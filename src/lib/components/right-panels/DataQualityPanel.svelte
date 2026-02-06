@@ -4,10 +4,12 @@
     import { Config } from '$lib/core/config';
     import { Utils } from "$lib/core/utils";
     import { Language } from "$lib/core/language"
-    import ContentFilter from "./ContentFilter.svelte";
     import { Storage } from "$lib/core/storage";
     import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
+    import Item from "$lib/components/right-panels/types/item";
+    import ContentFilter from "../../../components/record/ContentFilter.svelte";
+    import { getStatusStyle, getValueStyle } from "$lib/components/right-panels/utils/data-quality-panel";
 
     const dispatch = createEventDispatcher();
 
@@ -16,66 +18,22 @@
     export let fetchModel: Function
 
 
-    let qualityCheckSelect;
-    let qualityChecksList = [];
-    let activeItem = null
-    let loading = false
-    let data = null
-    let selectedFilters = Storage.get('qualityCheckRuleFilters', scope) || []
-    let filteredRules = []
-    let highlightedCheckId = null
+    let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
+    let qualityChecksList: Array<Item> = [];
+    let activeItem: string | null = null
+    let loading: boolean = false
+    let data: any = null
+    let selectedFilters: Array<string> = Storage.get('qualityCheckRuleFilters', scope) || []
+    let filteredRules: Array<any> = []
+    let highlightedCheckId: string | null = null
 
     $: {
         const reelFilers = selectedFilters.length === 0 ? ['passed', 'failed'] : selectedFilters
-        filteredRules = (data?.rules || []).filter(rule => reelFilers.includes(rule.status))
+        filteredRules = (data?.rules || []).filter((rule: any) => reelFilers.includes(rule.status))
     }
 
-    function onFilterChange(evt, value) {
+    function onFilterChange(evt: CustomEvent, value: Array<string>) {
         selectedFilters = value
-    }
-
-    function getValueStyle(value) {
-        let backgroundColor = '#FFD6C9';
-        if (value === -1) {
-            backgroundColor = '#CCCCCC';
-        }
-        if (value > 0) {
-            backgroundColor = '#FFE7D1';
-        }
-        if (value > 24) {
-            backgroundColor = '#FEFFD6';
-        }
-        if (value > 49) {
-            backgroundColor = '#FFF8B8';
-        }
-        if (value > 74) {
-            backgroundColor = '#E0FFCC';
-        }
-        if (value === 100) {
-            backgroundColor = '#CAF2C2';
-        }
-
-        let data = {
-            cursor: 'pointer',
-            'font-weight': 'normal',
-            'background-color': backgroundColor,
-            color: Utils.getFontColor(backgroundColor),
-            border: Utils.getBorder(backgroundColor),
-            padding: '4px 10px',
-            fontSize: '100%'
-        };
-
-        if (value > 24) {
-            data.display = 'block';
-            data.width = `${value}%`;
-        }
-
-        return Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('; ')
-    }
-
-    function getStatusStyle(status) {
-        const backgroundColor = status === 'passed' ? '#CAF2C2' : (status === 'failed' ? '#FFD6C9' : '#CCCCCC');
-        return `background-color: ${backgroundColor};`
     }
 
     async function loadQualityCheckData(reload = false) {
@@ -100,6 +58,10 @@
         loading = false
     }
 
+    function onRecordSave(evt: any) {
+        loadQualityCheckData(true)
+    }
+
     async function recalculateCheck() {
         if (!Acl.check(scope, 'edit')) {
             return;
@@ -115,20 +77,20 @@
         if (resp.status === 200) {
             Notifier.notify('Done', 'success')
             fetchModel()
-            loadQualityCheckData(true)
+            await loadQualityCheckData(true)
         } else {
             Notifier.notify('Error occurred', 'error')
         }
     }
 
-    function onCheckRecalculated(evt) {
-        if (evt.detail.field === qualityChecksList.find(item => item.value === activeItem)?.field) {
+    function onCheckRecalculated(evt: Event) {
+        if ((evt as CustomEvent).detail.field === qualityChecksList.find(item => item.value === activeItem)?.field) {
             loadQualityCheckData()
         }
     }
 
-    function onShowDetails(evt) {
-        const item = qualityChecksList.find(item => item.field === evt.detail.field)
+    function onShowDetails(evt: Event) {
+        const item = qualityChecksList.find(item => item.field === (evt as CustomEvent).detail.field)
         if (item) {
             activeItem = item.value
             qualityCheckSelect.selectize.setValue(activeItem)
@@ -137,27 +99,27 @@
     }
 
     function highlightCheck() {
-        const el = document.querySelector(`.quality-check-highlighter[data-quality-check-id="${activeItem}"]`)
+        const el: HTMLSelectElement | null = document.querySelector(`.quality-check-highlighter[data-quality-check-id="${activeItem}"]`)
         if (el) {
             el.click()
         }
     }
 
-    function onCheckHighlighted(evt) {
-        highlightedCheckId = evt.detail.checkId
+    function onCheckHighlighted(evt: Event) {
+        highlightedCheckId = (evt as CustomEvent).detail.checkId
     }
 
     function openQualityCheckPage(): void {
-        window.open(`/#QualityCheck/edit/${activeItem}`, "_blank");
+        window.open(`/#QualityCheck/view/${activeItem}`, "_blank");
     }
 
     onMount(() => {
-        const forbiddenFields = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
+        const forbiddenFields: Array<string> = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
 
-        Object.entries(Metadata.get(['entityDefs', scope, 'fields'])).forEach(([field, defs]) => {
+        Object.entries(Metadata.get(['entityDefs', scope, 'fields'])).forEach(([field, defs]: [string, any]) => {
             if (defs.dataQualityCheck) {
-                let text;
-                Object.entries(Config.get('referenceData').QualityCheck).forEach(([key, check]) => {
+                let text: string = '';
+                Object.entries(Config.get('referenceData').QualityCheck).forEach(([key, check]: [string, any]) => {
                     if (check.id === defs.qualityCheckId) {
                         text = check.name;
                     }
@@ -177,7 +139,7 @@
             return
         }
 
-        window.addEventListener('record:save', loadQualityCheckData);
+        window.addEventListener('record:save', onRecordSave);
         window.addEventListener('record:check-recalculated', onCheckRecalculated)
         window.addEventListener('record:show-qc-details', onShowDetails)
         window.addEventListener('record:check-highlighted', onCheckHighlighted)
@@ -191,7 +153,7 @@
                 valueField: 'value',
                 labelField: 'text',
                 searchField: ['text'],
-                onChange: function (value) {
+                onChange: function (value: string) {
                     activeItem = value
                     loadQualityCheckData()
                 }
@@ -199,7 +161,7 @@
         })
 
         return () => {
-            window.removeEventListener('record:save', loadQualityCheckData)
+            window.removeEventListener('record:save', onRecordSave)
             window.removeEventListener('record:check-recalculated', onCheckRecalculated)
             window.removeEventListener('record:show-qc-details', onShowDetails)
             window.removeEventListener('record:check-highlighted', onCheckHighlighted)
@@ -236,17 +198,17 @@
                                titleLabel="" onExecute="{onFilterChange}"
                                style="padding-bottom: 10px; display: inline-block"/>
 
-                <div style="float: right; display: inline-block">
-                    <button on:click={highlightCheck} style="margin-right: 10px;"
+                <div style="float: right; display: flex; gap: 10px">
+                    <button on:click={highlightCheck} class="small"
                             title="{Language.translate('highlight', 'labels', 'QualityCheck')}">
                         <i class="{'ph ph-highlighter '+ (highlightedCheckId===activeItem ? 'ph-fill highlight-active': '')}"></i>
                     </button>
-                    <button class="refresh" on:click={()=>loadQualityCheckData(true)} style="margin-right: 10px;"
+                    <button class="small refresh" on:click={()=>loadQualityCheckData(true)}
                             title="{Language.translate('Refresh')}">
                         <i class="ph ph-arrows-clockwise"></i>
                     </button>
                     {#if Acl.check('QualityCheck', 'edit')}
-                        <button class="refresh" on:click={openQualityCheckPage}
+                        <button class="small refresh" on:click={openQualityCheckPage}
                                 title="{Language.translate('Edit')}">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
@@ -262,8 +224,8 @@
                                 <span class="label-text">{rule.code}</span>
                             </label>
                             {#if Acl.check('QualityCheckRule', 'edit')}
-                                <a class="rule-edit-icon pull-right" href="{`/#QualityCheckRule/edit/${rule.id}`}"
-                                   target="_blank"
+                                <a class="rule-edit-icon pull-right" href="{`/#QualityCheckRule/view/${rule.id}`}"
+                                   target="_blank" style="color: #333"
                                    title="{Language.translate('Edit')}">
                                     <i class="ph ph-pencil-simple"></i>
                                 </a>
