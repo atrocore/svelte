@@ -6,7 +6,7 @@
 
 
     export let scope: string;
-    export let onExecute: (e: CustomEvent) => void;
+    export let onExecute: (e: CustomEvent, value: Array<string>) => void;
     export let allFilters = ['filled', 'empty', 'optional', 'required']
     export let storageKey = 'fieldFilter'
     export let translationScope = 'Global'
@@ -14,7 +14,7 @@
     export let titleLabel = Language.translate('fieldValueFilters', 'labels', 'Global')
 
     let filters = [...allFilters]
-    let selectedFilters = Storage.get(storageKey, scope) || []
+    let selectedFilters: Array<string> = Storage.get(storageKey, scope) || []
     cleanFilters()
 
     let dropdownButton: HTMLElement;

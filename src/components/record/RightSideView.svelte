@@ -5,7 +5,7 @@
     import Item from './interfaces/Item'
     import BaseSidebar from "./BaseSidebar.svelte";
     import QueryBuilder from "./search-filter/QueryBuilder.svelte";
-    import DataQualityPanel from "./DataQualityPanel.svelte";
+    import DataQualityPanel from "$lib/components/right-panels/DataQualityPanel.svelte";
 
     export let scope: string;
     export let mode: string;
