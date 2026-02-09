@@ -1,16 +1,19 @@
-import {resolve} from 'path';
-import {defineConfig} from 'vite';
-import {svelte} from '@sveltejs/vite-plugin-svelte';
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { existsSync } from 'fs';
 
 export default defineConfig(({ command, mode }) => {
     const isWatch = process.argv.includes('--watch');
+    const atrocorePath = resolve(__dirname, '../atrocore');
+    const outDir = existsSync(atrocorePath) ? '../atrocore/client' : '../client';
 
     return {
         plugins: [svelte()],
         base: '/client',
         build: {
             minify: !isWatch, // minify only when NOT in watch mode
-            outDir: '../client',
+            outDir,
             rollupOptions: {
                 output: {
                     assetFileNames: (assetInfo) => {
