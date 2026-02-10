@@ -1,9 +1,5 @@
 import 'driver.js/dist/driver.css'
 import './styles/style.css';
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/dist/border.css';
-
-import tippy from 'tippy.js';
 
 import { Language } from '$lib/core/language';
 import { UserData } from '$lib/core/user-data';
@@ -15,7 +11,10 @@ import { Config } from '$lib/core/config';
 import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
 import { CollectionFactory } from "$lib/core/collection-factory";
-import Dropdown from "$lib/core/dropdown"
+
+import { Tooltip } from "$lib/dom/tooltip";
+import { Dropdown } from "$lib/dom/dropdown";
+import { Popover } from "$lib/dom/popover";
 
 import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
 import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePanel.svelte";
@@ -54,8 +53,9 @@ declare global {
         SvelteStorage: typeof Storage;
         SvelteAcl: typeof Acl;
         SvelteCollectionFactory: typeof CollectionFactory;
-        tippy: typeof tippy;
+        Tooltip: typeof Tooltip;
         Dropdown: typeof Dropdown;
+        Popover: typeof Popover;
     }
 }
 
@@ -69,8 +69,9 @@ window.SvelteConfig = Config;
 window.SvelteStorage = Storage;
 window.SvelteAcl = Acl;
 window.SvelteCollectionFactory = CollectionFactory;
-window.tippy = tippy;
 window.Dropdown = Dropdown;
+window.Popover = Popover;
+window.Tooltip = Tooltip;
 
 export {
     Script,

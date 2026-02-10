@@ -4,7 +4,7 @@
     import MassAction from "./interfaces/MassAction";
     import { Language } from "$lib/core/language"
     import { onMount } from "svelte";
-    import Dropdown from "$lib/core/dropdown";
+    import Floating from "$lib/dom/floating";
 
     export let loading: boolean = false;
     export let counters: Array<Counter[]> = [];
@@ -74,8 +74,8 @@
     }
 
     onMount(() => {
-        const sortDropdownHandle = new Dropdown(sortButton, sortDropdown);
-        const itemsInRowDropdownHandle = new Dropdown(itemsInRowButton, itemsInRowDropdown);
+        const sortDropdownHandle = new Floating(sortButton, sortDropdown);
+        const itemsInRowDropdownHandle = new Floating(itemsInRowButton, itemsInRowDropdown);
 
         return () => {
             sortDropdownHandle.destroy();

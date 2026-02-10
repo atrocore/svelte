@@ -19,19 +19,19 @@ import {
     size
 } from '@floating-ui/dom';
 
-import DropdownParams from "$lib/types/ui/dropdown-params";
+import FloatingParams from "$lib/types/ui/floating-params";
 
-export default class Dropdown {
-    private readonly referenceEl: HTMLElement & { _dropdown?: any };
+export default class Floating {
+    private readonly referenceEl: HTMLElement & { _dropdown?: Floating };
     private readonly floatingEl: HTMLElement;
     private readonly floatingListElSelector: string = 'li';
     private floatingHandler?: Function;
-    private params?: DropdownParams;
+    private params?: FloatingParams;
     private isOpen: boolean = false;
     private readonly autoHide: boolean = true;
     private readonly usePositionOnly: boolean = false;
 
-    constructor(referenceEl: HTMLElement, floatingEl: HTMLElement, params?: DropdownParams) {
+    constructor(referenceEl: HTMLElement, floatingEl: HTMLElement, params?: FloatingParams) {
         this.referenceEl = referenceEl;
         this.floatingEl = floatingEl;
         this.params = params;
