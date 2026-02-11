@@ -8,13 +8,15 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-type DropdownParams = {
+import {Placement, Strategy} from "@floating-ui/dom";
+
+type FloatingParams = {
     disableAutoHide?: boolean;
     usePositionOnly?: boolean;
     isOpen?: boolean;
     dropdownListElSelector?: string;
-    placement?: string;
-    strategy?: string;
+    placement?: Placement;
+    strategy?: Strategy;
     onDropdownShow?: (dropdown: HTMLElement) => void;
     onDropdownHide?: (dropdown: HTMLElement) => void;
     onDestroy?: (trigger: HTMLElement, dropdown: HTMLElement) => void;
@@ -26,4 +28,4 @@ type DropdownParams = {
     hide?: boolean | Record<string, any>
 }
 
-export default DropdownParams;
+export default FloatingParams;

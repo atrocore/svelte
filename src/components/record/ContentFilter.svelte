@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
-    import Dropdown from "$lib/core/dropdown";
+    import Floating from "$lib/dom/floating";
 
 
     export let scope: string;
@@ -55,7 +55,7 @@
     }
 
     onMount(() => {
-        const dropdown = new Dropdown(dropdownButton, dropdownMenu, {
+        const dropdown = new Floating(dropdownButton, dropdownMenu, {
             placement: 'bottom-start',
         });
 

@@ -9,7 +9,7 @@
     import { getSavedSearchStore } from "../search-filter/stores/SavedSearch"
     import Rule from "../search-filter/interfaces/Rule";
     import { Metadata } from '$lib/core/metadata';
-    import Dropdown from "$lib/core/dropdown";
+    import Floating from "$lib/dom/floating";
 
 
     export let scope: string;
@@ -185,7 +185,7 @@
             return exits;
         });
 
-        const dropdown = new Dropdown(dropdownButton, dropdownMenu, {
+        const dropdown = new Floating(dropdownButton, dropdownMenu, {
             placement: 'bottom-start',
             disableAutoHide: true,
         })
