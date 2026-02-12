@@ -7,9 +7,9 @@
     import { Storage } from "$lib/core/storage";
     import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
-    import Item from "$lib/components/right-panels/types/item";
-    import ContentFilter from "../../../components/record/ContentFilter.svelte";
-    import { getStatusStyle, getValueStyle } from "$lib/components/right-panels/utils/data-quality-panel";
+    import Item from "$lib/components/right-panels/DataQualityPanel/types/item";
+    import ContentFilter from "../../../../components/record/ContentFilter.svelte";
+    import { getStatusStyle, getValueStyle } from "$lib/components/right-panels/DataQualityPanel/utils/data-quality-panel";
 
     const dispatch = createEventDispatcher();
 
@@ -193,7 +193,7 @@
         <div style="margin-top: 10px;">
             <div style="margin-bottom: 10px; overflow: hidden; padding-left: 1px; padding-right: 1px;">
                 <ContentFilter allFilters="{['passed','failed','skipped']}" scope="{scope}"
-                               storageKey="qualityCheckRuleFilters"
+                               storageKey="qualityCheckRuleFilters" buttonClass="small"
                                translationScope="QualityCheckRule" translationField="status"
                                titleLabel="" onExecute="{onFilterChange}"
                                style="padding-bottom: 10px; display: inline-block"/>

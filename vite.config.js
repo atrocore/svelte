@@ -2,11 +2,20 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { existsSync } from 'fs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig(({ command, mode }) => {
     const isWatch = process.argv.includes('--watch');
-    const atrocorePath = resolve(__dirname, '../atrocore');
-    const outDir = existsSync(atrocorePath) ? '../atrocore/client' : '../client';
+    let outDir = '';
+
+    if (process.env.BUILD_PATH) {
+        outDir = process.env.BUILD_PATH;
+    } else {
+        const atrocorePath = resolve(__dirname, '../atrocore');
+        outDir = existsSync(atrocorePath) ? '../atrocore/client' : '../client';
+    }
 
     return {
         plugins: [svelte()],
