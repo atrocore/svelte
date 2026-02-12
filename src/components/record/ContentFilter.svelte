@@ -12,6 +12,7 @@
     export let translationScope = 'Global'
     export let translationField = 'fieldFilter'
     export let titleLabel = Language.translate('fieldValueFilters', 'labels', 'Global')
+    export let buttonClass: string = ''
 
     let filters = [...allFilters]
     let selectedFilters: Array<string> = Storage.get(storageKey, scope) || []
@@ -72,7 +73,7 @@
             <div bind:this={dropdownDiv} class="dropdown" class:has-content={selectedFilters.length>0}>
                 <button
                         bind:this={dropdownButton}
-                        class="filter-switcher"
+                        class="{buttonClass+ ' filter-switcher'}"
                         on:mousedown={event => event.preventDefault()}
                 >
                     <i class="ph-radio-button" class:ph={selectedFilters.length === 0}
