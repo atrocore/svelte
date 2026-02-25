@@ -27,7 +27,10 @@ export const Popover = {
                 offset: [0, 0],
                 disableAutoHide: true
             });
-            floating.open();
+
+            requestAnimationFrame(() => {
+                floating.open();
+            })
         });
     },
 
@@ -43,7 +46,11 @@ export const Popover = {
             if (!(node instanceof HTMLElement)) return;
 
             if (node.classList.contains('popover')) {
-                Popover.initWithinNode(node.closest('.cell') || node.parentNode as HTMLElement);
+                const target: HTMLElement | null = node.closest('.cell') || node.parentNode as HTMLElement;
+
+                if (!target) return;
+
+                Popover.initWithinNode(target);
             }
         });
     }
