@@ -10,6 +10,7 @@
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import BaseSidebar from "./BaseSidebar.svelte";
     import { Utils } from "$lib/core/utils";
+    import { Acl } from "$lib/core/acl";
 
     export let scope: string;
     export let model: any = null;
@@ -893,7 +894,7 @@
 
     //endregion Tree methods
 
-    function getLinkScope(link): string | null {
+    function getLinkScope(link: string): string | null {
         if (link === '_self') {
             return scope
         }
@@ -1058,29 +1059,35 @@
             treeItems = [activeItem];
             callback()
         } else {
-            LayoutManager.get(scope, 'navigation', null, null, (data) => {
+            LayoutManager.get(scope, 'navigation', null, null, (data: any) => {
                 layoutData = data
-                treeItems = data.layout.map(item => {
-                    const type = Metadata.get(['entityDefs', scope, 'fields', item.name, 'type'])
-                    let label = ''
+                treeItems = data.layout.map((item: any) => {
+                    let label: string = ''
                     if (item.name === '_self') {
-                        label = Language.get('Global', 'scopeNamesPlural', scope)
+                        label = Language.get('Global', 'scopeNamesPlural', scope) as string
                     } else if (item.name === '_bookmark') {
-                        label = Language.get('Global', 'scopeNamesPlural', 'Bookmark')
+                        label = Language.get('Global', 'scopeNamesPlural', 'Bookmark') as string
                     } else if (item.name === '_lastViewed') {
-                        label = Language.get('Global', 'scopeNamesPlural', 'LastViewed')
+                        label = Language.get('Global', 'scopeNamesPlural', 'LastViewed') as string
                     } else if (item.name === '_admin') {
-                        label = Language.get('Global', 'labels', 'Administration')
+                        label = Language.get('Global', 'labels', 'Administration') as string
                     } else if (item.name === '_items') {
-                        label = Language.get('Global', 'labels', 'Items')
+                        label = Language.get('Global', 'labels', 'Items') as string
                     } else {
-                        if (type == 'link') {
-                            const itemScope = getLinkScope(item.name)
-                            label = Language.get('Global', 'scopeNamesPlural', itemScope)
+                        const itemScope = getLinkScope(item.name)
+
+                        if (itemScope) {
+                            if (!Acl.check(itemScope, 'read')) {
+                                return null;
+                            }
+
+                            if (Metadata.get(['entityDefs', scope, 'fields', item.name, 'type']) == 'link') {
+                                label = Language.get('Global', 'scopeNamesPlural', itemScope) as string
+                            }
                         }
 
                         if (!label) {
-                            label = Language.get(scope, 'links', item.name) || Language.get(scope, 'fields', item.name) || Language.get('Global', 'fields', item.name)
+                            label = (Language.get(scope, 'links', item.name) || Language.get(scope, 'fields', item.name) || Language.get('Global', 'fields', item.name)) as string
                         }
                     }
 
@@ -1088,12 +1095,12 @@
                         name: item.name,
                         label: label
                     };
-                });
+                }).filter((item: any) => item !== null);
 
                 const clonedItems = JSON.parse(JSON.stringify(treeItems));
                 // change labels for duplicates
-                clonedItems.forEach((item, index)=> {
-                    if (clonedItems.filter(value =>  value.label === item.label).length > 1) {
+                clonedItems.forEach((item, index) => {
+                    if (clonedItems.filter(value => value.label === item.label).length > 1) {
                         treeItems[index].label = item.label + ' (' + item.name + ')';
                     }
                 })
