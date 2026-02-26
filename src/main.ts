@@ -21,7 +21,8 @@ import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePan
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
 import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/RebuildDatabaseModal.svelte";
 import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
-import Script from "$lib/components/fields/Script/Script.svelte";
+import { default as ScriptField } from "$lib/components/fields/Script/Script.svelte";
+import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
 import Navigation from "$lib/components/forms/navigation-layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/forms/navigation-layouts/Favorites/Favorites.svelte";
 import TreePanel from "./components/record/TreePanel.svelte";
@@ -74,7 +75,8 @@ window.Popover = Popover;
 window.Tooltip = Tooltip;
 
 export {
-    Script,
+    ScriptField,
+    BoolField,
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,
