@@ -175,7 +175,7 @@
         refreshAdvancedFilterDisabled();
         cleanUpSavedRule((field: string) => {
             // we do not clean up attribute here
-            if (field.startsWith('attr_')) {
+            if (field.includes('attr_')) {
                 return true;
             }
             let exits = !!Metadata.get(['entityDefs', scope, 'fields', field]);

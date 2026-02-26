@@ -325,6 +325,7 @@
         });
 
         const rulesObj = $queryBuilder[0].queryBuilder.getRules({allow_invalid: true});
+
         if (rulesObj && rulesObj.rules) {
             hasQbRules = rulesObj.rules.length > 0;
             isQbValid = rulesObj.valid;
@@ -475,7 +476,7 @@
     function getFieldOrAttributeId(field: string) {
         let id = field;
         let parts = field.split('_')
-        if (parts.length >= 2 && parts[0] === 'attr') {
+        if (parts.length >= 2 && ['attr', 'unitattr'].includes(parts[0])) {
             id = parts[1];
             const endings = ["From", "To", "UnitId", "Id"];
             for (const ending of endings) {
@@ -490,7 +491,7 @@
 
     function prepareFilters(callback: Function) {
 
-        filters = filters.filter(item => item.id.startsWith('attr_'));
+        filters = filters.filter(item => item.id.includes('attr_'));
 
         let promiseList: Promise[] = [];
 
@@ -532,11 +533,10 @@
             promiseList.push(new Promise(resolve => {
                 let attributesIds: string[] = [];
                 getRulesIds(rules.rules).forEach(id => {
-                    if (id.startsWith('attr_')) {
+                    if (id.includes('attr_')) {
                         attributesIds.push(getFieldOrAttributeId(id));
                     }
                 });
-
 
                 if (attributesIds.length > 0) {
                     const where = [{attribute: 'id', type: 'in', value: attributesIds}];
@@ -550,8 +550,10 @@
                     }).then(response => {
                         return response.json().then(attrs => {
                             // we clean up the rules to remove attribute rule if attribute does not exist anymore
+
                             cleanUpSavedRule((fieldId: string) => {
-                                if (fieldId.startsWith('attr_')) {
+                                console.log(fieldId)
+                                if (fieldId.includes('attr_')) {
                                     return !!attrs.list.find(v => v.id === getFieldOrAttributeId(fieldId))
                                 } else {
                                     return true;
@@ -676,7 +678,12 @@
         if (['rangeInt', 'rangeFloat'].includes(attribute.type)) {
             let type = attribute.type === 'rangeInt' ? 'int' : 'float';
             ['From', 'To'].forEach((v, key) => {
-                promises.push(createFieldView(name + v, type, label + ' ' + Language.translate(v), params, key));
+                let customLabel = label + ' ' + Language.translate(v);
+                if(attribute.measureId) {
+                    promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`) , params, key));
+                }else{
+                    promises.push(createFieldView(name + v, type, customLabel , params, key+10));
+                }
             })
         } else if (attribute.isMultilang && (Config.get('inputLanguageList') ?? []).length > 0) {
             let referenceData = Config.get('referenceData');
@@ -694,11 +701,15 @@
                 });
             }
         } else {
-            promises.push(createFieldView(name, fieldType, label, params));
+            if(['int', 'float'].includes(attribute.type) && attribute.measureId) {
+                promises.push(createFieldView('unit' + name, `unit-${fieldType}`, label , params, 0));
+                promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`) , params, 1));
+            }else{
+                promises.push(createFieldView(name, fieldType, label, params));
+            }
         }
 
         if (attribute.measureId) {
-
             promises.push(createFieldView(name + 'UnitId', 'unit-link', label + ' ' + Language.translate('Unit'), {
                 ...params,
                 type: 'unit',
@@ -986,6 +997,7 @@
         }
 
         let rule = searchManager.getQueryBuilder();
+
         cleanUpRule(rule);
         if (hasChanged) {
             searchManager.update({queryBuilder: rule})
