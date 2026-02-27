@@ -680,6 +680,7 @@
                 let customLabel = label + ' ' + Language.translate(v);
                 if(attribute.measureId) {
                     promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`) , params, key));
+                    promises.push(createFieldView('unit' + name + v, `unit-${type}`, customLabel , params, key - 10));
                 }else{
                     promises.push(createFieldView(name + v, type, customLabel , params, key+10));
                 }
