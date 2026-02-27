@@ -552,7 +552,6 @@
                             // we clean up the rules to remove attribute rule if attribute does not exist anymore
 
                             cleanUpSavedRule((fieldId: string) => {
-                                console.log(fieldId)
                                 if (fieldId.includes('attr_')) {
                                     return !!attrs.list.find(v => v.id === getFieldOrAttributeId(fieldId))
                                 } else {
