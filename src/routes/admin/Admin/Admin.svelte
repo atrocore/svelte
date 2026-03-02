@@ -8,8 +8,7 @@
     import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
     import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
 
-    // TODO: replace import path after refactoring
-    import TreePanel from "../../../components/record/TreePanel.svelte";
+    import TreePanel from "$lib/components/containers/TreePanel/TreePanel.svelte";
 
     export let cacheDate: string | null = null;
 

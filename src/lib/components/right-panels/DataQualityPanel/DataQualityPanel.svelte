@@ -8,14 +8,14 @@
     import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
     import Item from "$lib/components/right-panels/DataQualityPanel/types/item";
-    import ContentFilter from "../../../../components/record/ContentFilter.svelte";
+    import ContentFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
     import { getStatusStyle, getValueStyle } from "$lib/components/right-panels/DataQualityPanel/utils/data-quality-panel";
 
     const dispatch = createEventDispatcher();
 
     export let scope: string;
     export let id: string;
-    export let fetchModel: Function
+    export let fetchModel: () => void
 
 
     let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
