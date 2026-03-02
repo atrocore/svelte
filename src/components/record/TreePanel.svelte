@@ -137,7 +137,7 @@
     }
 
     function canUseDataRequest() {
-        if (!['_self', '_bookmark'].includes(activeItem.name) || applyAdvancedFilter) {
+        if (!['_self', '_bookmark'].includes(activeItem.name) || (applyAdvancedFilter && getWhereData().length > 0)) {
             return true
         }
         return false
