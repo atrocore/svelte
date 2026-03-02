@@ -28,7 +28,7 @@
     let generalFilterStore = getGeneralFilterStore(uniqueKey);
     let savedSearchStore = getSavedSearchStore(scope, uniqueKey, {
         items: searchManager.savedSearchList || [],
-        selectedItems: searchManager.getSavedFilters().map(v => v.id)
+        selectedItems: searchManager.getSavedFilters().map((v: any) => v.id)
     });
 
     generalFilterStore.advancedFilterChecked.set(advancedFilterChecked);
@@ -171,11 +171,11 @@
 
     onMount(() => {
         refreshShowUnsetAll();
-        searchManager.collection.on('filter-state:changed', (value) => showUnsetAll = !!value);
+        searchManager.collection.on('filter-state:changed', (value: any) => showUnsetAll = !!value);
         refreshAdvancedFilterDisabled();
         cleanUpSavedRule((field: string) => {
             // we do not clean up attribute here
-            if (field.startsWith('attr_')) {
+            if (field.includes('attr_')) {
                 return true;
             }
             let exits = !!Metadata.get(['entityDefs', scope, 'fields', field]);
