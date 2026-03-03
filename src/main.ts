@@ -25,22 +25,22 @@ import { default as ScriptField } from "$lib/components/fields/Script/Script.sve
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
 import Navigation from "$lib/components/forms/navigation-layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/forms/navigation-layouts/Favorites/Favorites.svelte";
-import TreePanel from "$lib/components/containers/TreePanel/TreePanel.svelte";
-import DetailSidePanel from "$lib/components/right-panels/DetailSidePanel/DetailSidePanel.svelte";
-import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
-import ListHeader from "$lib/components/containers/header/ListHeader/ListHeader.svelte";
-import ListToolbar from "$lib/components/containers/toolbar/ListToolbar/ListToolbar.svelte";
-import PlateToolbar from "$lib/components/containers/toolbar/PlateToolbar/PlateToolbar.svelte";
-import DetailHeader from "$lib/components/containers/header/DetailHeader/DetailHeader.svelte";
-import Gallery from "$lib/components/media/Gallery/Gallery.svelte";
-import FilterSearchBar from "$lib/components/search/FilterSearchBar/FilterSearchBar.svelte";
+import TreePanel from "$lib/components/panels/TreePanel/TreePanel.svelte";
+import ContextPanel from "$lib/components/panels/ContextPanel/ContextPanel.svelte";
+import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
+import ListHeader from "$lib/components/headers/ListHeader/ListHeader.svelte";
+import ListToolbar from "$lib/components/toolbars/ListToolbar/ListToolbar.svelte";
+import PlateToolbar from "$lib/components/toolbars/PlateToolbar/PlateToolbar.svelte";
+import DetailHeader from "$lib/components/headers/DetailHeader/DetailHeader.svelte";
+import Gallery from "$lib/components/medias/Gallery/Gallery.svelte";
+import FilterSearchBar from "$lib/components/searches/FilterSearchBar/FilterSearchBar.svelte";
 import LocaleSwitcher from "$lib/components/navbar-controls/LocaleSwitcher/LocaleSwitcher.svelte";
 import CurrentSelectionButton from "$lib/components/navbar-buttons/CurrentSelectionButton/CurrentSelectionButton.svelte";
 import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
-import AnchorNavigation from "$lib/components/containers/header/AnchorNavigation/AnchorNavigation.svelte";
-import DashboardHeader from "$lib/components/containers/header/DashboardHeader/DashboardHeader.svelte";
+import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNavigation.svelte";
+import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
-import SelectionSidePanel from "$lib/components/left-panels/SelectionSidePanel/SelectionSidePanel.svelte";
+import SelectionSidePanel from "$lib/components/panels/TreePanel/SelectionSidePanel/SelectionSidePanel.svelte";
 
 declare global {
     interface Window {
@@ -80,7 +80,7 @@ export {
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,
-    DetailSidePanel,
+    ContextPanel,
     TreePanel,
     ApiRequestComponent,
     Navigation,

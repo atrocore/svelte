@@ -5,10 +5,10 @@
     import AdminCardGroup from "./types/admin-card-group";
     import { getAdminCardGroups } from "./utils/admin-utils";
 
-    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
+    import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
     import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
 
-    import TreePanel from "$lib/components/containers/TreePanel/TreePanel.svelte";
+    import TreePanel from "$lib/components/panels/TreePanel/TreePanel.svelte";
 
     export let cacheDate: string | null = null;
 
