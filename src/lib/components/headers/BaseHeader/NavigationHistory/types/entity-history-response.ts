@@ -8,7 +8,7 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import ActionHistoryRecord from "$lib/types/entity/action-history-record";
+import type ActionHistoryRecord from "$lib/types/entity/action-history-record";
 
 type EntityHistoryResponse = {
     total: number;

@@ -9,8 +9,8 @@
  */
 
 import Floating from "$lib/dom/floating";
-import FloatingParams from "$lib/types/ui/floating-params";
-import HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
+import type FloatingParams from "$lib/types/ui/floating-params";
+import type HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
 
 type HTMLElementWithSelectize = HTMLElement & { selectize?: any };
 

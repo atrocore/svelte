@@ -10,7 +10,7 @@
 
 import { Language } from "$lib/core/language";
 
-import ActionHistoryRecord from "$lib/types/entity/action-history-record";
+import type ActionHistoryRecord from "$lib/types/entity/action-history-record";
 import NavigationHistoryItem
     from "$lib/components/headers/BaseHeader/NavigationHistory/types/navigation-history-item";
 import {

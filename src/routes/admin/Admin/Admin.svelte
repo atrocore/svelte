@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
 
-    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
-    import AdminCardGroup from "./types/admin-card-group";
+    import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import type AdminCardGroup from "./types/admin-card-group";
     import { getAdminCardGroups } from "./utils/admin-utils";
 
     import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";

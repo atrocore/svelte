@@ -7,7 +7,7 @@
     import { Storage } from "$lib/core/storage";
     import { Notifier } from "$lib/core/notifier";
     import { Acl } from "$lib/core/acl";
-    import Item from "$lib/components/ContextPanel/DataQualityPanel/types/item";
+    import type Item from "$lib/components/ContextPanel/DataQualityPanel/types/item";
     import ContentFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
     import { getStatusStyle, getValueStyle } from "$lib/components/ContextPanel/DataQualityPanel/utils/data-quality-panel";
 

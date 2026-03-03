@@ -2,7 +2,7 @@
     import { Language } from "$lib/core/language"
 
     import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
-    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
 
     export let tabs: string[] = [];
     export let selectedTabIndex: number = 0;

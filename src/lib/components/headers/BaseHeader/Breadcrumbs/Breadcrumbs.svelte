@@ -1,5 +1,5 @@
 <script lang="ts">
-    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
 
     export let items: BreadcrumbsItem[] = [];
     export let currentIsHeading: boolean = true;

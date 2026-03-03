@@ -8,7 +8,7 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
+import type HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
 import Floating from "$lib/dom/floating";
 
 export const Popover = {

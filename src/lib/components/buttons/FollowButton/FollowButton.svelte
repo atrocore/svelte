@@ -1,6 +1,6 @@
 <script lang="ts">
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
-    import ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
+    import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
     import { UserData } from "$lib/core/user-data";
     import { Language } from "$lib/core/language";
     import { followEntity, unfollowEntity } from "./utils/follow-api";

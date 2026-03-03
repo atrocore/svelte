@@ -2,10 +2,10 @@
     import { onDestroy, onMount } from 'svelte';
     import Sortable from 'sortablejs'
     import LayoutContainer from './LayoutContainer/LayoutContainer.svelte';
-    import Button from "$lib/components/RowsLayout/types/button";
-    import Params from "$lib/components/RowsLayout/types/params";
-    import KeyValue from "$lib/components/RowsLayout/types/key-value";
-    import Item from "$lib/components/RowsLayout/types/item";
+    import type Button from "$lib/components/RowsLayout/types/button";
+    import type Params from "$lib/components/RowsLayout/types/params";
+    import type KeyValue from "$lib/components/RowsLayout/types/key-value";
+    import type Item from "$lib/components/RowsLayout/types/item";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
     import {

@@ -5,8 +5,8 @@
     import ActionDropdownItem from "$lib/components/buttons/ActionDropdownItem/ActionDropdownItem.svelte";
     import { Language } from "$lib/core/language";
     import type ActionParams from "$lib/types/ui/action-params";
-    import ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
-    import DropdownActionParams from "$lib/components/buttons/DropdownActionButton/types/dropdown-action-params";
+    import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
+    import type DropdownActionParams from "$lib/components/buttons/DropdownActionButton/types/dropdown-action-params";
 
     export let actions: (ActionButtonParams | DropdownActionParams)[] = [];
     export let dropdownActions: ActionParams[] = [];
