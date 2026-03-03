@@ -1,7 +1,7 @@
 <script lang="ts">
     import JobManagerPanel from "./JobManagerPanel/JobManagerPanel.svelte";
     import { Language } from "$lib/core/language"
-    import BaseNavbarButton from "$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButton.svelte";
+    import PopoverButton from "$lib/components/buttons/PopoverButton/PopoverButton.svelte";
     import { onMount } from "svelte";
 
     export let renderTable = (): void => {
@@ -26,7 +26,7 @@
     })
 </script>
 
-<BaseNavbarButton
+<PopoverButton
         title={Language.translate('jobManager')}
         iconClass="ph ph-list-checks"
         on:close={onClosePanel}
@@ -41,7 +41,7 @@
         />
     </svelte:fragment>
     <i slot="badge-indicator" class={"ph-fill ph-pause-circle pause-icon "+(jmPaused?'':'hidden')}></i>
-</BaseNavbarButton>
+</PopoverButton>
 
 <style>
     .pause-icon {

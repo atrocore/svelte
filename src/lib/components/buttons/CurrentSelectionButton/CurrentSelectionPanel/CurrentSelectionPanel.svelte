@@ -11,8 +11,8 @@
 <script lang="ts">
     import { Language } from '$lib/core/language';
     import { Notifier } from '$lib/core/notifier';
-    import BaseNavbarButtonPanel
-        from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
+    import PopoverButtonPanel
+        from '$lib/components/buttons/PopoverButton/PopoverButtonPanel/PopoverButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
     import SingleColumnTable from '$lib/components/collections/SingleColumnTable/SingleColumnTable.svelte';
     import SingleColumnTableItem
@@ -182,7 +182,7 @@
     }
 </script>
 
-<BaseNavbarButtonPanel
+<PopoverButtonPanel
         {isOpen}
         {close}
         {icon}
@@ -282,7 +282,7 @@
                 on:execute={showMore}
         />
     </div>
-</BaseNavbarButtonPanel>
+</PopoverButtonPanel>
 
 <style>
     .action-buttons {

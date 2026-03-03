@@ -1,6 +1,6 @@
 <script lang="ts">
-    import Button from "$lib/components/forms/navigation-layouts/types/button";
-    import Params from "../../types/params";
+    import Button from "$lib/components/RowsLayout/types/button";
+    import Params from "$lib/components/RowsLayout/types/params";
     import { Language } from "$lib/core/language"
 
     export let params: Params;
