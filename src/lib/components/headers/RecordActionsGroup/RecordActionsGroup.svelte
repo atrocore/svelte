@@ -1,7 +1,6 @@
 <script lang="ts">
     import type RecordActionButtons from "$lib/components/headers/RecordActionsGroup/types/record-actions-buttons";
     import type Permissions from "$lib/components/headers/RecordActionsGroup/types/permissions";
-    import { UserData } from "$lib/core/user-data";
     import { Metadata } from '$lib/core/metadata';
 
     import { onMount } from "svelte";
