@@ -13,7 +13,7 @@
     import { getSavedSearchStore } from "$lib/stores/saved-search.store";
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store'
     import { Config } from '$lib/core/config';
-    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+    import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
     import { get } from "svelte/store";
 
     export let scope: string;

@@ -8,7 +8,7 @@
     import { Notifier } from "$lib/core/notifier";
     import { UserData } from "$lib/core/user-data";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
-    import CollapsibleSidebar from "$lib/components/containers/CollapsibleSidebar/CollapsibleSidebar.svelte";
+    import CollapsibleSidebar from "$lib/components/collapsers/CollapsibleSidebar/CollapsibleSidebar.svelte";
     import { Utils } from "$lib/core/utils";
     import { Acl } from "$lib/core/acl";
 

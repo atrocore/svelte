@@ -6,7 +6,7 @@
     import { getAdminCardGroups } from "./utils/admin-utils";
 
     import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
-    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+    import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
 
     import TreePanel from "$lib/components/panels/TreePanel/TreePanel.svelte";
 

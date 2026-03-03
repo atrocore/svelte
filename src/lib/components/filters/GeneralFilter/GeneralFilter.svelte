@@ -6,7 +6,7 @@
     import { Notifier } from '$lib/core/notifier'
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store'
     import { Acl } from "$lib/core/acl";
-    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+    import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
     import { Storage } from "$lib/core/storage";
 
     export let searchManager: any;

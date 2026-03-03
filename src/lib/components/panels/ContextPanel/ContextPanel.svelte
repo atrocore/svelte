@@ -3,7 +3,7 @@
     import { onDestroy, onMount } from "svelte";
     import { Language } from "$lib/core/language"
     import type Item from './types/sidebar-item'
-    import CollapsibleSidebar from "$lib/components/containers/CollapsibleSidebar/CollapsibleSidebar.svelte";
+    import CollapsibleSidebar from "$lib/components/collapsers/CollapsibleSidebar/CollapsibleSidebar.svelte";
     import QueryBuilder from "$lib/components/searches/QueryBuilder/QueryBuilder.svelte";
     import DataQualityPanel from "$lib/components/panels/ContextPanel/DataQualityPanel/DataQualityPanel.svelte";
 

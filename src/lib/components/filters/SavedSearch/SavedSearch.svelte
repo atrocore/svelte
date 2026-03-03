@@ -7,7 +7,7 @@
     import { getSavedSearchStore } from "$lib/stores/saved-search.store";
     import type SavedSearch from "./types/saved-search"
     import { get } from "svelte/store"
-    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+    import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
     import { UserData } from "$lib/core/user-data";
 
     export let scope: string;
