@@ -9,8 +9,8 @@
  -->
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import ItemActions from '$lib/components/collections/ItemActions/ItemActions.svelte';
-    import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
+    import ItemActions from '$lib/components/ItemActions/ItemActions.svelte';
+    import type ItemAction from '$lib/components/ItemActions/types/item-action';
 
     export let itemId: string = '';
     export let actions: ItemAction[] = [];

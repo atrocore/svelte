@@ -14,10 +14,10 @@
     import PopoverButtonPanel
         from '$lib/components/buttons/PopoverButton/PopoverButtonPanel/PopoverButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
-    import SingleColumnTable from '$lib/components/collections/SingleColumnTable/SingleColumnTable.svelte';
+    import SingleColumnTable from '$lib/components/SingleColumnTable/SingleColumnTable.svelte';
     import SingleColumnTableItem
-        from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
-    import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
+        from '$lib/components/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
+    import type ItemAction from '$lib/components/ItemActions/types/item-action';
     import type SelectionGroup from './types/selection-group';
     import {
         checkComparable,

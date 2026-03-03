@@ -40,7 +40,7 @@ import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStat
 import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNavigation.svelte";
 import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
-import SelectionSidePanel from "$lib/components/TreePanel/SelectionSidePanel/SelectionSidePanel.svelte";
+import GroupedSelectableList from "$lib/components/GroupedSelectableList/GroupedSelectableList.svelte";
 
 declare global {
     interface Window {
@@ -99,5 +99,5 @@ export {
     AnchorNavigation,
     RebuildDatabaseModal,
     Administration,
-    SelectionSidePanel
+    GroupedSelectableList
 };
