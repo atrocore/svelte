@@ -7,11 +7,11 @@
     import type EntityCallbacks from "$lib/components/headers/EntityActionsGroup/types/entity-callbacks";
     import type EntityActionButtons from "$lib/components/headers/EntityActionsGroup/types/entity-actions-buttons";
 
-    import FavoriteEntityButton from "$lib/components/buttons/FavoriteEntityButton/FavoriteEntityButton.svelte";
+    import FavoriteEntityButton from "$lib/components/entity-actions/FavoriteEntityButton/FavoriteEntityButton.svelte";
     import ActionGroup from "$lib/components/buttons/ActionGroup/ActionGroup.svelte";
-    import ViewModeSwitch from "$lib/components/buttons/ViewModeSwitch/ViewModeSwitch.svelte";
+    import ViewModeSwitch from "$lib/components/entity-actions/ViewModeSwitch/ViewModeSwitch.svelte";
     import type ActionParams from "$lib/types/ui/action-params";
-    import TourButton from "$lib/components/buttons/TourButton/TourButton.svelte";
+    import TourButton from "$lib/components/entity-actions/TourButton/TourButton.svelte";
 
     export let scope: string;
     export let viewMode: string;

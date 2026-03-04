@@ -9,11 +9,11 @@
  -->
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import ItemActions from '$lib/components/ItemActions/ItemActions.svelte';
-    import type ItemAction from '$lib/components/ItemActions/types/item-action';
+    import RowActions from '$lib/components/RowActions/RowActions.svelte';
+    import type RowAction from '$lib/components/RowActions/types/row-action';
 
     export let itemId: string = '';
-    export let actions: ItemAction[] = [];
+    export let actions: RowAction[] = [];
     export let className: string = '';
 
     const dispatch = createEventDispatcher();
@@ -29,7 +29,7 @@
     </div>
     <slot name="actions">
         {#if actions.length > 0}
-            <ItemActions {actions} {itemId} on:action={handleAction}/>
+            <RowActions {actions} {itemId} on:action={handleAction}/>
         {/if}
     </slot>
 </li>

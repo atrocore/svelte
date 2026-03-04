@@ -11,12 +11,12 @@
     import type DropdownActionParams from "$lib/components/buttons/DropdownActionButton/types/dropdown-action-params";
     import ActionGroup from "$lib/components/buttons/ActionGroup/ActionGroup.svelte";
     import type ActionParams from "$lib/types/ui/action-params";
-    import BookmarkButton from "$lib/components/buttons/BookmarkButton/BookmarkButton.svelte";
-    import FollowButton from "$lib/components/buttons/FollowButton/FollowButton.svelte";
+    import BookmarkButton from "$lib/components/navbar-buttons/BookmarkButton/BookmarkButton.svelte";
+    import FollowButton from "$lib/components/entity-actions/FollowButton/FollowButton.svelte";
     import type RecordCallbacks from "$lib/components/headers/RecordActionsGroup/types/record-callbacks";
-    import PrevNextNavigation from "$lib/components/buttons/PrevNextNavigation/PrevNextNavigation.svelte";
+    import PrevNextNavigation from "$lib/components/entity-actions/PrevNextNavigation/PrevNextNavigation.svelte";
     import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
-    import TourButton from "$lib/components/buttons/TourButton/TourButton.svelte";
+    import TourButton from "$lib/components/entity-actions/TourButton/TourButton.svelte";
     import { Language } from "$lib/core/language"
     import { Utils } from "$lib/core/utils";
 
