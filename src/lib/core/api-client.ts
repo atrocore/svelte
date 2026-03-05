@@ -68,19 +68,18 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return response.json() as Promise<T>;
 }
 
-export const Api = {
+export const ApiClient = {
     /**
      * GET /api/v1/{url}?{params}
      */
     get<T = unknown>(url: string, params?: Record<string, any>, headers?: Record<string, string>): Promise<T> {
         let finalUrl = url;
         if (params && Object.keys(params).length > 0) {
-            const query = new URLSearchParams(
-                Object.fromEntries(
-                    Object.entries(params).map(([k, v]) => [k, typeof v === 'object' ? JSON.stringify(v) : String(v)])
-                )
-            ).toString();
-            finalUrl = `${url}?${query}`;
+            const query = new URLSearchParams();
+            for (const [k, v] of Object.entries(params)) {
+                query.set(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+            }
+            finalUrl = `${url}?${query.toString()}`;
         }
         return fetch(joinUrl(finalUrl), {
             method: 'GET',
