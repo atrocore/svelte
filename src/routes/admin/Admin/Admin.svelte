@@ -1,15 +1,14 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
 
-    import BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
-    import AdminCardGroup from "./types/admin-card-group";
+    import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import type AdminCardGroup from "./types/admin-card-group";
     import { getAdminCardGroups } from "./utils/admin-utils";
 
-    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
-    import Collapser from "$lib/components/containers/Collapser/Collapser.svelte";
+    import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
+    import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
 
-    // TODO: replace import path after refactoring
-    import TreePanel from "../../../components/record/TreePanel.svelte";
+    import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
 
     export let cacheDate: string | null = null;
 

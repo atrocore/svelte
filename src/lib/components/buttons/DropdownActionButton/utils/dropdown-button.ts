@@ -9,7 +9,7 @@
  */
 
 import { getComputedClasses } from "$lib/components/buttons/ActionButton/utils/action-button";
-import DropdownActionParams from "../types/params";
+import type DropdownActionParams from "../types/dropdown-action-params";
 
 export const getToggleClasses = (params: DropdownActionParams, className: string): string => {
     return `${getComputedClasses(params, className)} dropdown-toggle`.trim();

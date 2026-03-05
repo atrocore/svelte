@@ -11,13 +11,13 @@
 <script lang="ts">
     import { Language } from '$lib/core/language';
     import { Notifier } from '$lib/core/notifier';
-    import BaseNavbarButtonPanel
-        from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButtonPanel/BaseNavbarButtonPanel.svelte';
+    import PopoverButtonPanel
+        from '$lib/components/buttons/PopoverButton/PopoverButtonPanel/PopoverButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';
-    import SingleColumnTable from '$lib/components/collections/SingleColumnTable/SingleColumnTable.svelte';
+    import SingleColumnTable from '$lib/components/SingleColumnTable/SingleColumnTable.svelte';
     import SingleColumnTableItem
-        from '$lib/components/collections/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
-    import type ItemAction from '$lib/components/collections/ItemActions/types/item-action';
+        from '$lib/components/SingleColumnTable/SingleColumnTableItem/SingleColumnTableItem.svelte';
+    import type RowAction from '$lib/components/RowActions/types/row-action';
     import type SelectionGroup from './types/selection-group';
     import {
         checkComparable,
@@ -142,13 +142,13 @@
         close();
     }
 
-    function getItemActions(): ItemAction[] {
+    function getRowActions(): RowAction[] {
         return [
             {name: 'remove', label: 'Remove'}
         ];
     }
 
-    function handleItemAction(e: CustomEvent): void {
+    function handleRowAction(e: CustomEvent): void {
         const {action, itemId} = e.detail;
         if (action === 'remove') {
             removeItem(itemId);
@@ -182,7 +182,7 @@
     }
 </script>
 
-<BaseNavbarButtonPanel
+<PopoverButtonPanel
         {isOpen}
         {close}
         {icon}
@@ -251,8 +251,8 @@
                             {#each group.collection as item}
                                 <SingleColumnTableItem
                                         itemId={item.id}
-                                        actions={getItemActions()}
-                                        on:action={handleItemAction}
+                                        actions={getRowActions()}
+                                        on:action={handleRowAction}
                                 >
                                     <a href="#{item.entityName}/view/{item.recordId}">{item.recordName}</a>
                                 </SingleColumnTableItem>
@@ -282,7 +282,7 @@
                 on:execute={showMore}
         />
     </div>
-</BaseNavbarButtonPanel>
+</PopoverButtonPanel>
 
 <style>
     .action-buttons {

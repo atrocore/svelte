@@ -9,7 +9,7 @@
  -->
 
 <script lang="ts">
-    import BaseNavbarButton from '$lib/components/navbar-buttons/BaseNavbarButton/BaseNavbarButton.svelte';
+    import PopoverButton from '$lib/components/buttons/PopoverButton/PopoverButton.svelte';
     import CurrentSelectionPanel from './CurrentSelectionPanel/CurrentSelectionPanel.svelte';
     import { Language } from '$lib/core/language';
 
@@ -20,7 +20,7 @@
     export let panelWidth: string = '500px';
     export let userModel: any;
 
-    let badgeComponent: BaseNavbarButton;
+    let badgeComponent: PopoverButton;
     let panelComponent: CurrentSelectionPanel;
 
     export function handleSelectionChange(): void {
@@ -30,7 +30,7 @@
     }
 </script>
 
-<BaseNavbarButton
+<PopoverButton
         bind:this={badgeComponent}
         title={Language.translate('currentSelection')}
         iconClass="ph ph-basket"
@@ -47,4 +47,4 @@
                 width={panelWidth}
         />
     </svelte:fragment>
-</BaseNavbarButton>
+</PopoverButton>

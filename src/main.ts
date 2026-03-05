@@ -23,24 +23,24 @@ import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/Rebu
 import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
 import { default as ScriptField } from "$lib/components/fields/Script/Script.svelte";
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
-import Navigation from "$lib/components/forms/navigation-layouts/Navigation/Navigation.svelte";
-import Favorites from "$lib/components/forms/navigation-layouts/Favorites/Favorites.svelte";
-import TreePanel from "./components/record/TreePanel.svelte";
-import RightSideView from "./components/record/RightSideView.svelte";
-import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
-import ListHeader from "./components/record/header/ListHeader.svelte";
-import ListActionsContainer from "./components/record/header/ListActionsContainer.svelte";
-import PlateActionsContainer from "./components/record/header/PlateActionsContainer.svelte";
-import DetailHeader from "./components/record/header/DetailHeader.svelte";
-import Gallery from "./components/record/Gallery.svelte";
-import FilterSearchBar from "./components/record/search/FilterSearchBar.svelte";
-import LocaleSwitcher from "$lib/components/navbar-controls/LocaleSwitcher/LocaleSwitcher.svelte";
+import Navigation from "$lib/components/layout-configurators/Navigation/Navigation.svelte";
+import Favorites from "$lib/components/layout-configurators/Favorites/Favorites.svelte";
+import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
+import EntityContextPanel from "$lib/components/EntityContextPanel/EntityContextPanel.svelte";
+import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
+import ListHeader from "$lib/components/headers/ListHeader/ListHeader.svelte";
+import ListToolbar from "$lib/components/toolbars/ListToolbar/ListToolbar.svelte";
+import PlateToolbar from "$lib/components/toolbars/PlateToolbar/PlateToolbar.svelte";
+import DetailHeader from "$lib/components/headers/DetailHeader/DetailHeader.svelte";
+import Gallery from "$lib/components/Gallery/Gallery.svelte";
+import FilterSearchBar from "$lib/components/searches/FilterSearchBar/FilterSearchBar.svelte";
+import LocaleSwitcher from "$lib/components/LocaleSwitcher/LocaleSwitcher.svelte";
 import CurrentSelectionButton from "$lib/components/navbar-buttons/CurrentSelectionButton/CurrentSelectionButton.svelte";
-import ContentFilter from "./components/record/ContentFilter.svelte";
-import AnchorNavigation from "./components/record/header/navigation/AnchorNavigation.svelte";
-import DashboardHeader from "./components/record/header/DashboardHeader.svelte";
+import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
+import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNavigation.svelte";
+import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
-import SelectionLeftSidePanel from "./components/selection/record/SelectionLeftSidePanel.svelte";
+import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
 
 declare global {
     interface Window {
@@ -80,24 +80,24 @@ export {
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,
-    RightSideView,
+    EntityContextPanel,
     TreePanel,
     ApiRequestComponent,
     Navigation,
     Favorites,
     BaseHeader,
     ListHeader,
-    ListActionsContainer,
-    PlateActionsContainer,
+    ListToolbar,
+    PlateToolbar,
     DetailHeader,
     DashboardHeader,
     FilterSearchBar,
     Gallery,
     LocaleSwitcher,
     CurrentSelectionButton,
-    ContentFilter,
+    FieldStateFilter,
     AnchorNavigation,
     RebuildDatabaseModal,
     Administration,
-    SelectionLeftSidePanel
+    SelectionItemList
 };

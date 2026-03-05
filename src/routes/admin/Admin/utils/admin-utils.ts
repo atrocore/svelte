@@ -11,9 +11,9 @@
 import { Language } from "$lib/core/language";
 import { Metadata } from "$lib/core/metadata";
 
-import AdminCard from "../types/admin-card";
-import AdminCardGroup from "../types/admin-card-group";
-import AdminMetadataGroup from "../types/admin-metadata-group";
+import type AdminCard from "../types/admin-card";
+import type AdminCardGroup from "../types/admin-card-group";
+import type AdminMetadataGroup from "../types/admin-metadata-group";
 
 export function getAdminCardGroups(cacheDate: string | null): AdminCardGroup[] {
     const groups: AdminCardGroup[] = [];

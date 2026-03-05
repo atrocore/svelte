@@ -3,7 +3,7 @@
     import { ModelFactory } from "$lib/core/model-factory";
     import { onMount } from "svelte";
 
-    import BaseHeader from "$lib/components/containers/header/BaseHeader/BaseHeader.svelte";
+    import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
 
     export let afterOnMount = (model: Record<string, any>) => null;
     export let sendRequest = (model: Record<string, any>) => null;

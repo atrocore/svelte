@@ -19,7 +19,7 @@ import {
     size
 } from '@floating-ui/dom';
 
-import FloatingParams from "$lib/types/ui/floating-params";
+import type FloatingParams from "$lib/types/ui/floating-params";
 
 export default class Floating {
     private readonly referenceEl: HTMLElement & { _dropdown?: Floating };
