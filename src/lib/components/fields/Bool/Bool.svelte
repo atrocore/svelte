@@ -10,69 +10,37 @@
 
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { Language } from '$lib/core/language';
+    import BoolDetail from './BoolDetail/BoolDetail.svelte';
+    import BoolEdit from './BoolEdit/BoolEdit.svelte';
     import type { FieldMode, FieldFetchResult } from '$lib/types/ui/field';
 
     export let name: string = '';
     export let value: boolean | null = null;
     export let mode: FieldMode = 'detail';
     export let notNull: boolean = true;
-    export let scope: string = '';
-    export let params: Record<string, unknown> = {};
 
     const dispatch = createEventDispatcher();
 
-    // Internal mutable state — replaces backbone model as source of truth.
-    // Syncs with the `value` prop whenever it changes from outside (e.g. parent or proxy $set).
-    let currentValue = value;
-    $: currentValue = value;
+    let editComponent: BoolEdit | undefined;
 
-    $: valueIsSet = value !== null && value !== undefined;
-    $: isNull = currentValue === null || currentValue === undefined;
-    $: selectValue = isNull ? 'null' : String(currentValue);
-
-    function handleCheckboxChange(event) {
-        currentValue = event.target.checked;
-        dispatch('change', { name, value: currentValue });
-    }
-
-    function handleSelectChange(event) {
-        const val = event.target.value;
-        currentValue = val === 'null' ? null : val === 'true';
-        dispatch('change', { name, value: currentValue });
+    function handleChange(event: CustomEvent<{ name: string; value: boolean | null }>) {
+        dispatch('change', event.detail);
     }
 
     export function fetch(): FieldFetchResult {
-        return { [name]: currentValue };
+        if (editComponent) return editComponent.fetch();
+        return { [name]: value };
     }
 </script>
 
-{#if mode === 'list' || mode === 'detail'}
-    {#if !valueIsSet}
-        ...
-    {:else if isNull}
-        <span class="text-gray">{Language.translate('Null')}</span>
-    {:else}
-        <input type="checkbox" checked={!!currentValue} disabled />
-    {/if}
+{#if mode === 'detail' || mode === 'list'}
+    <BoolDetail {value} />
 {:else if mode === 'edit' || mode === 'search'}
-    {#if notNull}
-        <input
-            type="checkbox"
-            {name}
-            checked={!!currentValue}
-            class="main-element"
-            on:change={handleCheckboxChange}
-        />
-    {:else}
-        <select
-            {name}
-            class="form-control main-element"
-            on:change={handleSelectChange}
-        >
-            <option value="null" selected={selectValue === 'null'}>NULL</option>
-            <option value="false" selected={selectValue === 'false'}>{Language.translate('No')}</option>
-            <option value="true" selected={selectValue === 'true'}>{Language.translate('Yes')}</option>
-        </select>
-    {/if}
+    <BoolEdit
+        bind:this={editComponent}
+        {name}
+        {value}
+        {notNull}
+        on:change={handleChange}
+    />
 {/if}
