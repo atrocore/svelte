@@ -61,7 +61,6 @@
     let isHidden: boolean = false;
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
-    let sortFields: Array = [];
     let applyAdvancedFilter: boolean = false;
     let showEmptyPlaceholder: boolean = false;
 
@@ -76,7 +75,6 @@
         }
     }
     $: isSelectionEnabled = activeItem && (((!['_self', '_bookmark'].includes(activeItem.name)) && mode === 'list') || (activeItem.name === '_admin'))
-    $: sortFields = getSortFields();
 
     export function handleCollectionSearch(searchedCollection) {
         if (collection && searchedCollection.name === scope) {
@@ -1323,7 +1321,7 @@
                                         <button type="button" class="sort-by-button"
                                                 data-toggle="dropdown">{Language.translate(sortBy, 'fields', treeScope)}</button>
                                         <ul class="dropdown-menu">
-                                            {#each sortFields.filter(field => field.name !== sortBy) as field }
+                                            {#each getSortFields().filter(field => field.name !== sortBy) as field }
                                                 <li><a href="#"
                                                        on:click|preventDefault={() => setSortBy(field.name)}>{field.label}</a>
                                                 </li>
