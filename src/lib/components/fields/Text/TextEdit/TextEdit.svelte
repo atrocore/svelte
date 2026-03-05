@@ -23,7 +23,7 @@
 
     const dispatch = createEventDispatcher();
 
-    let textElement;
+    let textElement: HTMLTextAreaElement | undefined;
     let currentValue = value;
     let currentLength = 0;
     let hasError = false;
@@ -35,7 +35,7 @@
         updateTextCounter();
     });
 
-    function getRealLength(text) {
+    function getRealLength(text: string): number {
         if (!text) return 0;
         if (countBytesInsteadOfCharacters) return encodeURI(text).split(/%..|./).length - 1;
         return text.toString().length;
@@ -47,7 +47,7 @@
         hasError = maxLength < currentLength;
     }
 
-    function controlTextareaHeight(lastHeight) {
+    function controlTextareaHeight(lastHeight?: number) {
         if (!textElement) return;
 
         const scrollHeight = textElement.scrollHeight;
@@ -70,8 +70,8 @@
         if (textElement.value.length === 0) textElement.rows = rowsMin;
     }
 
-    function handleInput(event) {
-        currentValue = event.target.value;
+    function handleInput(event: Event) {
+        currentValue = (event.target as HTMLTextAreaElement).value;
         dispatch('change', { name, value: currentValue });
         updateTextCounter();
         if (!autoHeightDisabled) controlTextareaHeight();
@@ -85,7 +85,7 @@
 <textarea
     bind:this={textElement}
     {name}
-    value={currentValue || ''}
+    bind:value={currentValue}
     {rows}
     on:input={handleInput}
     class="form-control"
