@@ -1,194 +1,129 @@
-<script>
-    import { onMount } from 'svelte';
-    import Base from '$lib/components/fields/Base/Base.svelte';
+<!--
+  AtroCore Software
 
-    export let value = '';
-    export let mode = 'detail';
-    export let name = '';
-    export let params = {};
+  This source file is available under GNU General Public License version 3 (GPLv3).
+  Full copyright and license information is available in LICENSE.txt, located in the root directory.
 
-    export let rowsMin = 2;
-    export let rowsMax = 10;
-    export let detailMaxLength = 400;
-    export let detailMaxNewLineCount = 10;
-    export let maxLength = null;
-    export let countBytesInsteadOfCharacters = false;
-    export let autoHeightDisabled = false;
-    export let useDisabledTextareaInViewMode = false;
-    export let seeMoreDisabled = params.seeMoreDisabled || false;
+  @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+  @license    GPLv3 (https://www.gnu.org/licenses/)
+-->
 
-    let seeMoreText = false;
-    let textElement;
-    let currentLength = 0;
-    let hasError = false;
+<script lang="ts">
+    import { createEventDispatcher } from 'svelte';
+    import TextDetail from './TextDetail/TextDetail.svelte';
+    import TextEdit from './TextEdit/TextEdit.svelte';
+    import TextList from './TextList/TextList.svelte';
+    import TextSearch from './TextSearch/TextSearch.svelte';
+    import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
-    $: rows = autoHeightDisabled ? rowsMax : rowsMin;
-    $: showFullText = seeMoreText || seeMoreDisabled || mode !== 'detail';
+    type TextParams = {
+        rowsMin?: number;
+        rowsMax?: number;
+        lengthOfCut?: number;
+        maxLength?: number | null;
+        countBytesInsteadOfCharacters?: boolean;
+        autoHeightDisabled?: boolean;
+        useDisabledTextareaInViewMode?: boolean;
+        seeMoreDisabled?: boolean;
+    };
 
-    onMount(() => {
-        if (!autoHeightDisabled && textElement) {
-            controlTextareaHeight();
-        }
-    });
+    export let name: string = '';
+    export let value: string = '';
+    export let mode: FieldMode = 'detail';
+    export let params: TextParams = {};
 
-    function getValueForDisplay(text) {
-        if (!text) return '';
+    // Individual props — fallback when used directly without a params object
+    export let rowsMin: number = 2;
+    export let rowsMax: number = 10;
+    export let detailMaxLength: number = 400;
+    export let detailMaxNewLineCount: number = 10;
+    export let maxLength: number | null = null;
+    export let countBytesInsteadOfCharacters: boolean = false;
+    export let autoHeightDisabled: boolean = false;
+    export let useDisabledTextareaInViewMode: boolean = false;
+    export let seeMoreDisabled: boolean = false;
+    export let searchType: string = 'startsWith';
+    export let searchValue: string = '';
 
-        if ((mode === 'detail' && !useDisabledTextareaInViewMode) || mode === 'list') {
-            if (!showFullText) {
-                text = text.toString();
-                let isCut = false;
+    const dispatch = createEventDispatcher();
 
-                if (text.length > detailMaxLength) {
-                    text = text.substr(0, detailMaxLength);
-                    isCut = true;
-                }
+    // Resolved effective params (params object takes precedence over individual props)
+    function resolveParams() {
+        return {
+            rowsMin: params.rowsMin ?? rowsMin,
+            rowsMax: params.rowsMax ?? rowsMax,
+            detailMaxLength: params.lengthOfCut ?? detailMaxLength,
+            detailMaxNewLineCount,
+            maxLength: params.maxLength ?? maxLength,
+            countBytesInsteadOfCharacters: params.countBytesInsteadOfCharacters ?? countBytesInsteadOfCharacters,
+            autoHeightDisabled: params.autoHeightDisabled ?? autoHeightDisabled,
+            useDisabledTextareaInViewMode: params.useDisabledTextareaInViewMode ?? useDisabledTextareaInViewMode,
+            seeMoreDisabled: params.seeMoreDisabled ?? seeMoreDisabled,
+        };
+    }
+    $: p = resolveParams();
 
-                const nlCount = (text.match(/\n/g) || []).length;
-                if (nlCount > detailMaxNewLineCount) {
-                    const lines = text.split('\n').slice(0, detailMaxNewLineCount);
-                    text = lines.join('\n');
-                    isCut = true;
-                }
+    $: rows = p.autoHeightDisabled ? p.rowsMax : p.rowsMin;
 
-                if (isCut) {
-                    text += ' ...\n[see more]';
-                }
-            }
-        }
+    $: currentValue = value;
 
-        return text;
+    let editComponent: TextEdit | undefined;
+    let searchComponent: TextSearch | undefined;
+
+    function handleChange(event: CustomEvent<{ name: string; value: string }>) {
+        currentValue = event.detail.value;
+        dispatch('change', event.detail);
     }
 
-    function controlTextareaHeight(lastHeight) {
-        if (!textElement) return;
-
-        const scrollHeight = textElement.scrollHeight;
-        const clientHeight = textElement.clientHeight;
-
-        if (typeof lastHeight === 'undefined' && clientHeight === 0) {
-            setTimeout(() => controlTextareaHeight(), 10);
-            return;
-        }
-
-        if (clientHeight === lastHeight) return;
-
-        if (scrollHeight > clientHeight + 1) {
-            let rows = textElement.rows;
-
-            if (rowsMax && rows >= rowsMax) return;
-
-            textElement.rows = rows + 1;
-            controlTextareaHeight(clientHeight);
-        }
-
-        if (textElement.value.length === 0) {
-            textElement.rows = rowsMin;
-        }
+    export function fetch(): FieldFetchResult {
+        if (editComponent) return editComponent.fetch();
+        return { [name]: currentValue === '' ? null : currentValue };
     }
 
-    function updateTextCounter() {
-        if (!maxLength) return;
-
-        const textLength = getRealLength(value);
-        currentLength = textLength;
-
-        hasError = maxLength < textLength;
-    }
-
-    function getRealLength(text) {
-        if (!text) return 0;
-
-        if (countBytesInsteadOfCharacters) {
-            return encodeURI(text).split(/%..|./).length - 1;
-        }
-        return text.toString().length;
-    }
-
-    function handleInput(event) {
-        value = event.target.value;
-
-        if (mode === 'edit') {
-            updateTextCounter();
-            if (!autoHeightDisabled) {
-                controlTextareaHeight();
-            }
-        }
-    }
-
-    function handleSeeMore() {
-        seeMoreText = true;
+    export function fetchSearch(): FieldSearchResult {
+        if (searchComponent) return searchComponent.fetchSearch();
+        return false;
     }
 </script>
 
-<Base {name} {value} {mode} {params}>
-    <slot>
-        {#if mode === 'detail' || (mode === 'detail' && useDisabledTextareaInViewMode)}
-            {#if useDisabledTextareaInViewMode}
-            <textarea
-                    bind:this={textElement}
-                    {name}
-                    value={getValueForDisplay(value)}
-                    rows={rows}
-                    disabled={true}
-                    class="form-control"
-            ></textarea>
-            {:else}
-                {#if getValueForDisplay(value)}
-                    <pre>{getValueForDisplay(value)}</pre>
-                    {#if !showFullText}
-                        <a href="javascript:" on:click={handleSeeMore}>See more</a>
-                    {/if}
-                {/if}
-            {/if}
-        {:else if mode === 'edit'}
-        <textarea
-                bind:this={textElement}
-                {name}
-                value={value || ''}
-                rows={rows}
-                on:input={handleInput}
-                class="form-control"
-                class:with-text-length={maxLength}
-                class:error={hasError}
-        ></textarea>
-            {#if maxLength}
-                <div class="text-counter">
-                    <span class="current" class:error={hasError}>{currentLength}</span>
-                    <span class="maximum">/{maxLength}</span>
-                </div>
-            {/if}
-        {:else if mode === 'list'}
-            <span>{getValueForDisplay(value)}</span>
-        {/if}
-    </slot>
-</Base>
-
-<style>
-    textarea {
-        width: 100%;
-        resize: vertical;
-    }
-
-    textarea.error {
-        border-color: red;
-    }
-
-    pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        margin: 0;
-        font-family: inherit;
-    }
-
-    .text-counter {
-        text-align: right;
-        font-size: 0.85em;
-        color: #666;
-        margin-top: 2px;
-    }
-
-    .text-counter .error {
-        color: red;
-    }
-</style>
+<slot>
+    {#if mode === 'detail'}
+        <TextDetail
+            {name}
+            value={currentValue}
+            {rows}
+            useDisabledTextareaInViewMode={p.useDisabledTextareaInViewMode}
+            seeMoreDisabled={p.seeMoreDisabled}
+            detailMaxLength={p.detailMaxLength}
+            detailMaxNewLineCount={p.detailMaxNewLineCount}
+        />
+    {:else if mode === 'list'}
+        <TextList
+            value={currentValue}
+            detailMaxLength={p.detailMaxLength}
+            detailMaxNewLineCount={p.detailMaxNewLineCount}
+            seeMoreDisabled={p.seeMoreDisabled}
+        />
+    {:else if mode === 'edit'}
+        <TextEdit
+            bind:this={editComponent}
+            {name}
+            value={currentValue}
+            {rows}
+            rowsMin={p.rowsMin}
+            rowsMax={p.rowsMax}
+            maxLength={p.maxLength}
+            countBytesInsteadOfCharacters={p.countBytesInsteadOfCharacters}
+            autoHeightDisabled={p.autoHeightDisabled}
+            on:change={handleChange}
+        />
+    {:else if mode === 'search'}
+        <TextSearch
+            bind:this={searchComponent}
+            {name}
+            {searchType}
+            {searchValue}
+            maxLength={p.maxLength}
+        />
+    {/if}
+</slot>
