@@ -8,8 +8,8 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { Utils } from '$lib/core/utils';
 import { Config } from '$lib/core/config';
+import { getTabIcon } from '$lib/helpers/icon';
 import type SelectionGroup from '../types/selection-group';
 
 export function checkMergeable(groups: SelectionGroup[], isComparable: boolean): boolean {
@@ -88,7 +88,7 @@ export function addIconsToGroups(groups: SelectionGroup[]): SelectionGroup[] {
 
     return groups.map(group => ({
         ...group,
-        icon: Utils.getTabIcon(group.key)
+        icon: getTabIcon(group.key)
     }));
 }
 

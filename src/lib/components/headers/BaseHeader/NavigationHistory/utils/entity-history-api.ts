@@ -8,35 +8,24 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { Utils } from "$lib/core/utils";
+import { ApiClient } from '$lib/core/api-client';
 
 import type EntityHistoryResponse
     from "$lib/components/headers/BaseHeader/NavigationHistory/types/entity-history-response";
 
 export async function loadLastEntities(scope: string, id: string | null, tabId: string | null): Promise<EntityHistoryResponse> {
-    let params: Record<string, any> = {
+    const params: Record<string, any> = {
         'maxSize': '32',
         'entity': scope
     };
 
-    if (id) {
-        params.id = id;
-    }
-
-    if (tabId) {
-        params.tabId = tabId;
-    }
+    if (id) params.id = id;
+    if (tabId) params.tabId = tabId;
 
     let entityHistory = {collection: [], total: 0} as EntityHistoryResponse;
 
     try {
-        const response = await Utils.getRequest('LastViewed/action/getNavigationHistory', params);
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        entityHistory = await response.json() as EntityHistoryResponse;
+        entityHistory = await ApiClient.get<EntityHistoryResponse>('LastViewed/action/getNavigationHistory', params);
     } catch (error) {
         console.error('Error:', error);
     }
@@ -44,22 +33,13 @@ export async function loadLastEntities(scope: string, id: string | null, tabId: 
     return entityHistory;
 }
 
-export async function createHistoryLog(name: string): Promise<void>
-{
+export async function createHistoryLog(name: string): Promise<void> {
     try {
-        const response = await Utils.postRequest(
+        await ApiClient.post(
             'App/logNavigation/' + name,
-            {
-                url: window.location.pathname + (window.location.hash || '#')
-            },
-            {
-                'Entity-History': sessionStorage.tabId || 'true'
-            }
+            { url: window.location.pathname + (window.location.hash || '#') },
+            { 'Entity-History': sessionStorage.tabId || 'true' }
         );
-
-        if (!response.ok) {
-            throw new Error('Unable to create history log');
-        }
     } catch (error) {
         console.error('Error:', error);
     }

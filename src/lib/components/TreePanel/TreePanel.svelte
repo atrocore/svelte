@@ -9,7 +9,8 @@
     import { UserData } from "$lib/core/user-data";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import CollapsibleSidebar from "$lib/components/collapsers/ResizableCollapser/ResizableCollapser.svelte";
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
+    import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
 
     export let scope: string;
@@ -67,9 +68,9 @@
     $: {
         treeScope = activeItem ? getLinkScope(activeItem.name) : null;
         if (treeScope) {
-            treeIcon = Utils.getTabIcon(treeScope);
+            treeIcon = getTabIcon(treeScope);
         } else if (activeItem?.name === '_admin') {
-            treeIcon = Utils.getSystemIconUrl('gear');
+            treeIcon = getSystemIconUrl('gear');
         } else {
             treeIcon = null;
         }
@@ -153,8 +154,8 @@
 
         if (!node.subTreeData) {
             Notifier.notify('Loading...')
-            const resp = await Utils.getRequest(generateSubTreeUrl(node))
-            node.subTreeData = filterResponse(await resp.json()).map(item => ({...item, scope: scope}))
+            const respData = await ApiClient.get<any[]>(generateSubTreeUrl(node))
+            node.subTreeData = filterResponse(respData).map(item => ({...item, scope: scope}))
         }
 
         if (!node.subTreeLoaded) {

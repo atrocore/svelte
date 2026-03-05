@@ -18,7 +18,7 @@
     import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
     import TourButton from "$lib/components/entity-actions/TourButton/TourButton.svelte";
     import { Language } from "$lib/core/language"
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
 
     export let mode: string = 'detail';
     export let recordButtons: RecordActionButtons;
@@ -83,13 +83,7 @@
     async function loadDynamicActions(): Promise<Record<string, any>[]> {
         try {
             const url = `Action/action/dynamicActions?type=record&scope=${scope}` + (id ? '&id=' + id : '');
-            const response = await Utils.getRequest(url);
-
-            if (!response.ok) {
-                return [];
-            }
-
-            return await response.json();
+            return await ApiClient.get<Record<string, any>[]>(url);
         } catch (error) {
             console.error(error);
             return [];

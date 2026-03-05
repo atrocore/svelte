@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Config } from '$lib/core/config';
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
     import { UserData } from "$lib/core/user-data";
     import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
@@ -63,7 +63,7 @@
 
             LayoutManager.clearListAndDetailCache()
 
-            await Utils.patchRequest('/UserProfile/' + userData.user.id, {
+            await ApiClient.patch('/UserProfile/' + userData.user.id, {
                 disabledLanguages: Object.keys(languages).filter(item => item !== newDefaultCode)
             })
             window.location.reload()
@@ -73,7 +73,7 @@
     async function onLanguageChange() {
         const userData = UserData.get()!
         const disabledLanguages = Object.keys(languages).filter(item => item !== defaultLanguageCode && !enabledLanguages.includes(item));
-        await Utils.patchRequest('/UserProfile/' + userData.user.id, {
+        await ApiClient.patch('/UserProfile/' + userData.user.id, {
             disabledLanguages: disabledLanguages
         })
 

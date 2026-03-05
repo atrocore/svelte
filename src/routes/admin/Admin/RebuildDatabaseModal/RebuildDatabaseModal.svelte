@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Language } from "$lib/core/language"
     import { onMount } from "svelte";
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
 
     import SpinnerIcon from "$lib/components/loaders/SpinnerIcon/SpinnerIcon.svelte";
 
@@ -14,18 +14,15 @@
 
     onMount(() => {
         loading = true;
-        Utils.getRequest('Admin/getSchemaDiff')
-            .then(response => {
-                if (response.ok) {
-                    response.text().then(text => {
-                        if (text) {
-                            buttonsDisabled = false;
-                        }
-
-                        data = text;
-                    })
+        ApiClient.request('GET', 'Admin/getSchemaDiff')
+            .then(response => response.text())
+            .then(text => {
+                if (text) {
+                    buttonsDisabled = false;
                 }
+                data = text;
             })
+            .catch(() => {})
             .finally(() => loading = false);
     });
 </script>

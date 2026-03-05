@@ -7,7 +7,7 @@
     import { Metadata } from '$lib/core/metadata';
     import { LayoutManager } from "$lib/core/layout-manager";
     import Group from "./interfaces/Group";
-    import { Utils } from "$lib/core/utils";
+    import { upperCaseFirst } from '$lib/helpers/string';
     import { UserData } from "$lib/core/user-data";
 
     export let params: Params;
@@ -233,9 +233,9 @@
             return false
         }
 
-        let disabledParameters = ['disabled', `layout${Utils.upperCaseFirst(params.type)}Disabled`, 'layoutListDisabled'];
+        let disabledParameters = ['disabled', `layout${upperCaseFirst(params.type)}Disabled`, 'layoutListDisabled'];
         if (params.reelType) {
-            disabledParameters.push(`layout${Utils.upperCaseFirst(params.reelType)}Disabled`)
+            disabledParameters.push(`layout${upperCaseFirst(params.reelType)}Disabled`)
         }
 
         if (params.reelType === 'selection') {

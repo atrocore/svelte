@@ -1,22 +1,18 @@
-import { Utils } from "$lib/core/utils";
+import { ApiClient } from '$lib/core/api-client';
 
 export async function addBookmark(entityType: string, entityId: string): Promise<Record<string, any> | null> {
-    const response = await Utils.postRequest('Bookmark', {
-        entityType,
-        entityId,
-    });
-
-    if (response.ok) {
-        return await response.json();
+    try {
+        return await ApiClient.post<Record<string, any>>('Bookmark', { entityType, entityId });
+    } catch {
+        return null;
     }
-
-    return null;
 }
 
 export async function removeBookmark(bookmarkId: string): Promise<boolean> {
-    const response = await Utils.request('DELETE', `Bookmark/${bookmarkId}`, null, {
-        'permanently': 'true',
-    });
-
-    return response.ok;
+    try {
+        await ApiClient.delete(`Bookmark/${bookmarkId}`, undefined, { 'permanently': 'true' });
+        return true;
+    } catch {
+        return false;
+    }
 }
