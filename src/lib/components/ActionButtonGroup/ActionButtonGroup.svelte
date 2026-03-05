@@ -2,7 +2,7 @@
     import DropdownActionButton from "$lib/components/buttons/DropdownActionButton/DropdownActionButton.svelte";
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
-    import ActionDropdownItem from "$lib/components/buttons/ActionGroup/ActionDropdownItem/ActionDropdownItem.svelte";
+    import ActionDropdownItem from "$lib/components/ActionButtonGroup/ActionDropdownItem/ActionDropdownItem.svelte";
     import { Language } from "$lib/core/language";
     import type ActionParams from "$lib/types/ui/action-params";
     import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";

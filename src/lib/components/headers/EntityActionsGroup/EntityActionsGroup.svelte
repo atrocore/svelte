@@ -8,7 +8,7 @@
     import type EntityActionButtons from "$lib/components/headers/EntityActionsGroup/types/entity-actions-buttons";
 
     import FavoriteEntityButton from "$lib/components/entity-actions/FavoriteEntityButton/FavoriteEntityButton.svelte";
-    import ActionGroup from "$lib/components/buttons/ActionGroup/ActionGroup.svelte";
+    import ActionButtonGroup from "$lib/components/ActionButtonGroup/ActionButtonGroup.svelte";
     import ViewModeSwitch from "$lib/components/entity-actions/ViewModeSwitch/ViewModeSwitch.svelte";
     import type ActionParams from "$lib/types/ui/action-params";
     import TourButton from "$lib/components/entity-actions/TourButton/TourButton.svelte";
@@ -91,7 +91,7 @@
 
 <div class="buttons-container">
     <div class="action-group-container">
-        <ActionGroup {actions} {dropdownActions} className="entity-actions" hasMoreButton={true}
+        <ActionButtonGroup {actions} {dropdownActions} className="entity-actions" hasMoreButton={true}
                      dropdownPosition="right"/>
     </div>
     <div class="right-group">

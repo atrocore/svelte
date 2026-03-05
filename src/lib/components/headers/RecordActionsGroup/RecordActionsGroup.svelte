@@ -9,7 +9,7 @@
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
     import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
     import type DropdownActionParams from "$lib/components/buttons/DropdownActionButton/types/dropdown-action-params";
-    import ActionGroup from "$lib/components/buttons/ActionGroup/ActionGroup.svelte";
+    import ActionButtonGroup from "$lib/components/ActionButtonGroup/ActionButtonGroup.svelte";
     import type ActionParams from "$lib/types/ui/action-params";
     import BookmarkButton from "$lib/components/navbar-buttons/BookmarkButton/BookmarkButton.svelte";
     import FollowButton from "$lib/components/entity-actions/FollowButton/FollowButton.svelte";
@@ -159,7 +159,7 @@
 </script>
 
 <div class="button-row">
-    <ActionGroup actions={recordActions} {dropdownActions}
+    <ActionButtonGroup actions={recordActions} {dropdownActions}
                  dynamicActionsDropdown={mode !== 'edit' ? dynamicActionsDropdown : []}
                  {executeAction} {loadingActions} hasMoreButton={true} className="record-actions">
         {#if mode === 'detail'}
@@ -198,7 +198,7 @@
                 {/if}
             {/each}
         {/if}
-    </ActionGroup>
+    </ActionButtonGroup>
 
     {#if mode === 'detail' && recordButtons?.headerButtons}
         <div class="header-buttons-container">
