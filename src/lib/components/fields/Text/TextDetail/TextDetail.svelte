@@ -1,0 +1,55 @@
+<!--
+  AtroCore Software
+
+  This source file is available under GNU General Public License version 3 (GPLv3).
+  Full copyright and license information is available in LICENSE.txt, located in the root directory.
+
+  @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+  @license    GPLv3 (https://www.gnu.org/licenses/)
+-->
+
+<script>
+    import { Language } from '$lib/core/language';
+    import { breaklines } from '../utils/breaklines';
+    import { truncate } from '../utils/truncate';
+
+    export let name = '';
+    export let value = '';
+    export let rows = 2;
+    export let useDisabledTextareaInViewMode = false;
+    export let seeMoreDisabled = false;
+    export let detailMaxLength = 400;
+    export let detailMaxNewLineCount = 10;
+
+    let seeMoreText = false;
+
+    $: canTruncate = !seeMoreText && !seeMoreDisabled;
+    $: ({ text: displayedText, isCut } = canTruncate
+        ? truncate(value, detailMaxLength, detailMaxNewLineCount)
+        : { text: value || '', isCut: false });
+
+    function handleSeeMore() {
+        seeMoreText = true;
+    }
+</script>
+
+{#if useDisabledTextareaInViewMode}
+    <textarea {name} value={displayedText} {rows} disabled class="form-control"></textarea>
+{:else}
+    {#if displayedText}
+        <!-- svelte-ignore a11y-invalid-attribute -->
+        <span>{@html breaklines(displayedText)}</span>
+        {#if isCut}
+            <a href="javascript:" on:click={handleSeeMore}>
+                {Language.translate('See more') || 'See more'}
+            </a>
+        {/if}
+    {/if}
+{/if}
+
+<style>
+    textarea {
+        width: 100%;
+        resize: vertical;
+    }
+</style>
