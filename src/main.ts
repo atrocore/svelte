@@ -23,6 +23,7 @@ import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/Rebu
 import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
 import { default as ScriptField } from "$lib/components/fields/Script/Script.svelte";
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
+import { default as TextField } from "$lib/components/fields/Text/Text.svelte";
 import Navigation from "$lib/components/layout-configurators/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/layout-configurators/Favorites/Favorites.svelte";
 import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
@@ -77,6 +78,7 @@ window.Tooltip = Tooltip;
 export {
     ScriptField,
     BoolField,
+    TextField,
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,
