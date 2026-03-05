@@ -55,10 +55,39 @@
     let textElement;
     let currentLength = 0;
     let hasError = false;
+    let displayedText = '';
+    let isCut = false;
 
     $: rows = effectiveAutoHeightDisabled ? effectiveRowsMax : effectiveRowsMin;
-    $: showFullText = seeMoreText || effectiveSeeMoreDisabled || (mode !== 'detail' && mode !== 'list');
+    $: canTruncate = !seeMoreText && !effectiveSeeMoreDisabled;
     $: hideSearchInput = mode === 'search' && (searchType === 'isEmpty' || searchType === 'isNotEmpty');
+
+    $: {
+        const raw = currentValue || '';
+        if (raw && ((mode === 'detail' && !effectiveUseDisabledTextareaInViewMode) || mode === 'list') && canTruncate) {
+            let text = raw.toString();
+            let cut = false;
+
+            if (text.length > effectiveDetailMaxLength) {
+                text = text.substr(0, effectiveDetailMaxLength);
+                cut = true;
+            }
+
+            const nlCount = (text.match(/\n/g) || []).length;
+            if (nlCount > detailMaxNewLineCount) {
+                text = text.split('\n').slice(0, detailMaxNewLineCount).join('\n');
+                cut = true;
+            }
+
+            if (cut) text += ' ...';
+
+            displayedText = text;
+            isCut = cut;
+        } else {
+            displayedText = raw;
+            isCut = false;
+        }
+    }
 
     onMount(() => {
         if (mode === 'edit' && !effectiveAutoHeightDisabled && textElement) {
@@ -68,35 +97,6 @@
             updateTextCounter();
         }
     });
-
-    function getValueForDisplay(text) {
-        if (!text) return '';
-
-        if ((mode === 'detail' && !effectiveUseDisabledTextareaInViewMode) || mode === 'list') {
-            if (!showFullText) {
-                text = text.toString();
-                let isCut = false;
-
-                if (text.length > effectiveDetailMaxLength) {
-                    text = text.substr(0, effectiveDetailMaxLength);
-                    isCut = true;
-                }
-
-                const nlCount = (text.match(/\n/g) || []).length;
-                if (nlCount > detailMaxNewLineCount) {
-                    const lines = text.split('\n').slice(0, detailMaxNewLineCount);
-                    text = lines.join('\n');
-                    isCut = true;
-                }
-
-                if (isCut) {
-                    text += ' ...\n[see more]';
-                }
-            }
-        }
-
-        return text;
-    }
 
     function controlTextareaHeight(lastHeight) {
         if (!textElement) return;
@@ -153,6 +153,15 @@
         seeMoreText = true;
     }
 
+    function breaklines(text) {
+        if (!text) return '';
+        return text.toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br>');
+    }
+
     function handleSearchTypeChange(event) {
         searchType = event.target.value;
     }
@@ -202,15 +211,15 @@
                 <textarea
                     bind:this={textElement}
                     {name}
-                    value={getValueForDisplay(currentValue)}
+                    value={displayedText}
                     rows={rows}
                     disabled={true}
                     class="form-control"
                 ></textarea>
             {:else}
-                {#if getValueForDisplay(currentValue)}
-                    <pre>{getValueForDisplay(currentValue)}</pre>
-                    {#if !showFullText}
+                {#if displayedText}
+                    <span>{@html breaklines(displayedText)}</span>
+                    {#if isCut}
                         <!-- svelte-ignore a11y-invalid-attribute -->
                         <a href="javascript:" on:click={handleSeeMore}>
                             {Language.translate('See more') || 'See more'}
@@ -219,7 +228,7 @@
                 {/if}
             {/if}
         {:else if mode === 'list'}
-            <span>{getValueForDisplay(currentValue)}</span>
+            <span>{@html breaklines(displayedText)}</span>
         {:else if mode === 'edit'}
             <textarea
                 bind:this={textElement}
@@ -273,13 +282,6 @@
 
     textarea.error {
         border-color: red;
-    }
-
-    pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        margin: 0;
-        font-family: inherit;
     }
 
     .text-length-counter {
