@@ -8,16 +8,17 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { Language } from '$lib/core/language';
+    import type { FieldMode, FieldFetchResult } from '$lib/types/ui/field';
 
-    export let name = '';
-    export let value = null;
-    export let mode = 'detail';
-    export let notNull = true;
-    export let scope = '';
-    export let params = {};
+    export let name: string = '';
+    export let value: boolean | null = null;
+    export let mode: FieldMode = 'detail';
+    export let notNull: boolean = true;
+    export let scope: string = '';
+    export let params: Record<string, unknown> = {};
 
     const dispatch = createEventDispatcher();
 
@@ -41,7 +42,7 @@
         dispatch('change', { name, value: currentValue });
     }
 
-    export function fetch() {
+    export function fetch(): FieldFetchResult {
         return { [name]: currentValue };
     }
 </script>

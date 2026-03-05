@@ -8,7 +8,7 @@
   -  @license    GPLv3 (https://www.gnu.org/licenses/)
   -->
 
-<script>
+<script lang="ts">
     import * as monaco from 'monaco-editor';
     import { onMount } from 'svelte';
 
@@ -17,6 +17,7 @@
     import { Language } from "$lib/core/language"
 
     import Text from '$lib/components/fields/Text/Text.svelte';
+    import type { FieldMode, FieldFetchResult } from '$lib/types/ui/field';
 
     const jsonTwigLanguageConfig = {
         defaultToken: '',
@@ -74,12 +75,12 @@
     };
 
 
-    export let mode = 'detail';
-    export let name = '';
-    export let scope;
-    export let params = {};
-    export let value = null;
-    export let scriptFieldView = null;
+    export let mode: FieldMode = 'detail';
+    export let name: string = '';
+    export let scope: string = '';
+    export let params: Record<string, unknown> = {};
+    export let value: string | null = null;
+    export let scriptFieldView: unknown = null;
 
     let language = params.language || Metadata.get(['entityDefs', scope, 'fields', name, 'language']) || 'twig';
     let twigVariables = params.twigVariables || Metadata.get(['entityDefs', scope, 'fields', name, 'twigVariables']) || [];
@@ -437,8 +438,8 @@
         return newLanguageId;
     }
 
-    export function fetch() {
-        return {[name]: value};
+    export function fetch(): FieldFetchResult {
+        return { [name]: value };
     }
 
     function initFullScreenIcon(cell, editorComponent) {

@@ -8,13 +8,14 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { Language } from '$lib/core/language';
+    import type { FieldSearchResult } from '$lib/types/ui/field';
 
-    export let name = '';
-    export let searchType = 'startsWith';
-    export let searchValue = '';
-    export let maxLength = null;
+    export let name: string = '';
+    export let searchType: string = 'startsWith';
+    export let searchValue: string = '';
+    export let maxLength: number | null = null;
 
     const searchTypeList = ['contains', 'startsWith', 'equals', 'endsWith', 'like', 'notContains', 'notLike', 'isEmpty', 'isNotEmpty'];
 
@@ -28,7 +29,7 @@
         searchValue = event.target.value;
     }
 
-    export function fetchSearch() {
+    export function fetchSearch(): FieldSearchResult {
         if (searchType === 'isEmpty') {
             return {
                 type: 'or',

@@ -8,14 +8,14 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { breaklines } from '../utils/breaklines';
     import { truncate } from '../utils/truncate';
 
-    export let value = '';
-    export let detailMaxLength = 400;
-    export let detailMaxNewLineCount = 10;
-    export let seeMoreDisabled = false;
+    export let value: string = '';
+    export let detailMaxLength: number = 400;
+    export let detailMaxNewLineCount: number = 10;
+    export let seeMoreDisabled: boolean = false;
 
     $: ({ text: displayedText } = seeMoreDisabled
         ? { text: value || '' }

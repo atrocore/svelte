@@ -8,17 +8,18 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
+    import type { FieldFetchResult } from '$lib/types/ui/field';
 
-    export let name = '';
-    export let value = '';
-    export let rows = 2;
-    export let rowsMin = 2;
-    export let rowsMax = 10;
-    export let maxLength = null;
-    export let countBytesInsteadOfCharacters = false;
-    export let autoHeightDisabled = false;
+    export let name: string = '';
+    export let value: string = '';
+    export let rows: number = 2;
+    export let rowsMin: number = 2;
+    export let rowsMax: number = 10;
+    export let maxLength: number | null = null;
+    export let countBytesInsteadOfCharacters: boolean = false;
+    export let autoHeightDisabled: boolean = false;
 
     const dispatch = createEventDispatcher();
 
@@ -76,7 +77,7 @@
         if (!autoHeightDisabled) controlTextareaHeight();
     }
 
-    export function fetch() {
+    export function fetch(): FieldFetchResult {
         return { [name]: currentValue === '' ? null : currentValue };
     }
 </script>

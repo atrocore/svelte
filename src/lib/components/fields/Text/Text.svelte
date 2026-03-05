@@ -8,66 +8,79 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import TextDetail from './TextDetail/TextDetail.svelte';
     import TextEdit from './TextEdit/TextEdit.svelte';
     import TextList from './TextList/TextList.svelte';
     import TextSearch from './TextSearch/TextSearch.svelte';
+    import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
-    export let name = '';
-    export let value = '';
-    export let mode = 'detail';
-    export let scope = '';
-    export let params = {};
+    type TextParams = {
+        rowsMin?: number;
+        rowsMax?: number;
+        lengthOfCut?: number;
+        maxLength?: number | null;
+        countBytesInsteadOfCharacters?: boolean;
+        autoHeightDisabled?: boolean;
+        useDisabledTextareaInViewMode?: boolean;
+        seeMoreDisabled?: boolean;
+    };
+
+    export let name: string = '';
+    export let value: string = '';
+    export let mode: FieldMode = 'detail';
+    export let params: TextParams = {};
 
     // Individual props — fallback when used directly without a params object
-    export let rowsMin = 2;
-    export let rowsMax = 10;
-    export let detailMaxLength = 400;
-    export let detailMaxNewLineCount = 10;
-    export let maxLength = null;
-    export let countBytesInsteadOfCharacters = false;
-    export let autoHeightDisabled = false;
-    export let useDisabledTextareaInViewMode = false;
-    export let seeMoreDisabled = false;
-    export let searchType = 'startsWith';
-    export let searchValue = '';
+    export let rowsMin: number = 2;
+    export let rowsMax: number = 10;
+    export let detailMaxLength: number = 400;
+    export let detailMaxNewLineCount: number = 10;
+    export let maxLength: number | null = null;
+    export let countBytesInsteadOfCharacters: boolean = false;
+    export let autoHeightDisabled: boolean = false;
+    export let useDisabledTextareaInViewMode: boolean = false;
+    export let seeMoreDisabled: boolean = false;
+    export let searchType: string = 'startsWith';
+    export let searchValue: string = '';
 
     const dispatch = createEventDispatcher();
 
     // Resolved effective params (params object takes precedence over individual props)
-    $: p = {
-        rowsMin: params.rowsMin || rowsMin,
-        rowsMax: params.rowsMax || rowsMax,
-        detailMaxLength: params.lengthOfCut || detailMaxLength,
-        detailMaxNewLineCount,
-        maxLength: params.maxLength || maxLength,
-        countBytesInsteadOfCharacters: params.countBytesInsteadOfCharacters || countBytesInsteadOfCharacters,
-        autoHeightDisabled: params.autoHeightDisabled || autoHeightDisabled,
-        useDisabledTextareaInViewMode: params.useDisabledTextareaInViewMode || useDisabledTextareaInViewMode,
-        seeMoreDisabled: params.seeMoreDisabled || seeMoreDisabled,
-    };
+    function resolveParams() {
+        return {
+            rowsMin: params.rowsMin ?? rowsMin,
+            rowsMax: params.rowsMax ?? rowsMax,
+            detailMaxLength: params.lengthOfCut ?? detailMaxLength,
+            detailMaxNewLineCount,
+            maxLength: params.maxLength ?? maxLength,
+            countBytesInsteadOfCharacters: params.countBytesInsteadOfCharacters ?? countBytesInsteadOfCharacters,
+            autoHeightDisabled: params.autoHeightDisabled ?? autoHeightDisabled,
+            useDisabledTextareaInViewMode: params.useDisabledTextareaInViewMode ?? useDisabledTextareaInViewMode,
+            seeMoreDisabled: params.seeMoreDisabled ?? seeMoreDisabled,
+        };
+    }
+    $: p = resolveParams();
 
     $: rows = p.autoHeightDisabled ? p.rowsMax : p.rowsMin;
 
-    let currentValue = value;
     $: currentValue = value;
 
-    let editComponent;
-    let searchComponent;
+    let editComponent: TextEdit | undefined;
+    let searchComponent: TextSearch | undefined;
 
-    function handleChange(event) {
+    function handleChange(event: CustomEvent<{ name: string; value: string }>) {
         currentValue = event.detail.value;
         dispatch('change', event.detail);
     }
 
-    export function fetch() {
+    export function fetch(): FieldFetchResult {
         if (editComponent) return editComponent.fetch();
         return { [name]: currentValue === '' ? null : currentValue };
     }
 
-    export function fetchSearch() {
+    export function fetchSearch(): FieldSearchResult {
         if (searchComponent) return searchComponent.fetchSearch();
         return false;
     }

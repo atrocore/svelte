@@ -8,18 +8,18 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
-<script>
+<script lang="ts">
     import { Language } from '$lib/core/language';
     import { breaklines } from '../utils/breaklines';
     import { truncate } from '../utils/truncate';
 
-    export let name = '';
-    export let value = '';
-    export let rows = 2;
-    export let useDisabledTextareaInViewMode = false;
-    export let seeMoreDisabled = false;
-    export let detailMaxLength = 400;
-    export let detailMaxNewLineCount = 10;
+    export let name: string = '';
+    export let value: string = '';
+    export let rows: number = 2;
+    export let useDisabledTextareaInViewMode: boolean = false;
+    export let seeMoreDisabled: boolean = false;
+    export let detailMaxLength: number = 400;
+    export let detailMaxNewLineCount: number = 10;
 
     let seeMoreText = false;
 
