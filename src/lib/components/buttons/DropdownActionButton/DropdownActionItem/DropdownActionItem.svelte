@@ -1,11 +1,11 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
     import { createEventDispatcher } from "svelte";
-    import type ActionParams from "$lib/types/ui/action-params";
+    import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
 
     const dispatch = createEventDispatcher();
 
-    export let params: ActionParams;
+    export let params: ActionButtonParams;
     export let className: string = '';
 
     function runAction(e: Event) {
@@ -21,5 +21,5 @@
 
 <a href="javascript:" class="action {className}" data-name={params.name} data-action={params.action || params.name}
    data-id={params.id} title={params.tooltip} on:click={runAction}>
-    {#if params.html}{@html params.html}{:else}{Language.translate(params.label)}{/if}
+    {#if params.html}{@html params.html}{:else}{Language.translate(params.label ?? '')}{/if}
 </a>
