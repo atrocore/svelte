@@ -1,11 +1,19 @@
-import { Utils } from "$lib/core/utils";
+import { ApiClient } from '$lib/core/api-client';
 
 export async function followEntity(entity: string, id: string): Promise<boolean> {
-    const response = await Utils.request('PUT', `${entity}/${id}/subscription`, null);
-    return response.ok;
+    try {
+        await ApiClient.put(`${entity}/${id}/subscription`);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function unfollowEntity(entity: string, id: string): Promise<boolean> {
-    const response = await Utils.request('DELETE', `${entity}/${id}/subscription`, null);
-    return response.ok;
+    try {
+        await ApiClient.delete(`${entity}/${id}/subscription`);
+        return true;
+    } catch {
+        return false;
+    }
 }

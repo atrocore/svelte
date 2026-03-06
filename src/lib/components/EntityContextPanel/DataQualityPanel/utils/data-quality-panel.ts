@@ -1,4 +1,4 @@
-import { Utils } from "$lib/core/utils";
+import { getBorder, getFontColor } from '$lib/helpers/color';
 
 export function getValueStyle(value: number) {
     let backgroundColor = '#FFD6C9';
@@ -25,8 +25,8 @@ export function getValueStyle(value: number) {
         cursor: 'pointer',
         'font-weight': 'normal',
         'background-color': backgroundColor,
-        color: Utils.getFontColor(backgroundColor),
-        border: Utils.getBorder(backgroundColor),
+        color: getFontColor(backgroundColor),
+        border: getBorder(backgroundColor),
         padding: '4px 10px',
         fontSize: '100%'
     };

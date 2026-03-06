@@ -8,7 +8,7 @@
     import { LayoutManager } from "$lib/core/layout-manager";
     import { Metadata } from '$lib/core/metadata';
     import Group from "./interfaces/Group";
-    import { Utils } from "$lib/core/utils";
+    import { upperCaseFirst } from '$lib/helpers/string';
     import { UserData } from "$lib/core/user-data";
 
     export let params: Params;
@@ -226,9 +226,9 @@
             return false
         }
 
-        const disabledParameters = ['disabled', `layout${Utils.upperCaseFirst(params.type)}Disabled`, ...(params.disabledParameters || [])];
+        const disabledParameters = ['disabled', `layout${upperCaseFirst(params.type)}Disabled`, ...(params.disabledParameters || [])];
         if (params.reelType) {
-            disabledParameters.push(`layout${Utils.upperCaseFirst(params.reelType)}Disabled`)
+            disabledParameters.push(`layout${upperCaseFirst(params.reelType)}Disabled`)
         }
         for (let param of disabledParameters) {
             if (Metadata.get(['entityDefs', scope, 'fields', name, param])) {

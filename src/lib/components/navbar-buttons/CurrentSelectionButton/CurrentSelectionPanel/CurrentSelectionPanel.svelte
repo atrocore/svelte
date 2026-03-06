@@ -81,13 +81,7 @@
         }
 
         try {
-            const response = await fetchSelectionItemsApi(currentSelectionId, offset);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch selection items');
-            }
-
-            const data = await response.json();
+            const data = await fetchSelectionItemsApi(currentSelectionId, offset);
 
             const parsedGroups = parseSelectionItemsResponse(data);
 
@@ -114,11 +108,7 @@
         try {
             Notifier.notify(Language.translate('removing'));
 
-            const response = await deleteSelectionItem(selectionItemId);
-
-            if (!response.ok) {
-                throw new Error('Failed to remove item');
-            }
+            await deleteSelectionItem(selectionItemId);
 
             groups = removeItemFromGroups(groups, selectionItemId);
             currentOffset = calculateTotalItems(groups);

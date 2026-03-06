@@ -1,7 +1,7 @@
 import { get, type Writable, writable } from 'svelte/store';
 import type SavedSearch from '$lib/components/filters/SavedSearch/types/saved-search'
 import type Collection from '$lib/types/entity/collection'
-import { Utils } from "$lib/core/utils";
+import { ApiClient } from '$lib/core/api-client';
 
 type SavedSearchStore = {
     savedSearchItems: Writable<SavedSearch[]>;
@@ -41,42 +41,42 @@ function createStore(): SavedSearchStore {
             maxSize: 20,
             where
         });
-        const response = await Utils.request('GET', `SavedSearch?${queryString}`, null);
-
         savedSearchFetched = true;
 
-        if (response.ok) {
-            let data = await response.json();
+        try {
+            const data = await ApiClient.get<any>(`SavedSearch?${queryString}`);
             savedSearchItems.set(data.list);
             loading.set(false);
             return data.list;
+        } catch {
+            loading.set(false);
         }
     }
 
     async function saveSavedSearch(item: Record<string, any>, id: string | null = null): Promise<SavedSearch | undefined> {
-        const response = id
-            ? await Utils.patchRequest(`SavedSearch/${id}`, item)
-            : await Utils.postRequest('SavedSearch', item);
+        try {
+            const data = id
+                ? await ApiClient.patch<SavedSearch>(`SavedSearch/${id}`, item)
+                : await ApiClient.post<SavedSearch>('SavedSearch', item);
 
-        if (response.ok) {
-            const data = await response.json();
             savedSearchItems.update((list) => {
                 if (id !== null) {
                     return list.map(item => item.id === id ? data : item);
                 }
                 return [data, ...list];
-            })
+            });
             return data;
+        } catch {
+            return undefined;
         }
     }
 
     async function removeSavedSearch(itemId: string): Promise<void> {
-        const response = await Utils.request('DELETE', `SavedSearch/${itemId}`, null);
-
-        if (response.ok) {
-            savedSearchItems.update((list) => {
-                return list.filter(v => v.id !== itemId)
-            })
+        try {
+            await ApiClient.delete(`SavedSearch/${itemId}`);
+            savedSearchItems.update((list) => list.filter(v => v.id !== itemId));
+        } catch {
+            // ignore
         }
     }
 

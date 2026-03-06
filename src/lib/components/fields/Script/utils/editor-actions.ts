@@ -2,6 +2,7 @@ import type * as monaco from 'monaco-editor';
 import { Language } from '$lib/core/language';
 import { Metadata } from '$lib/core/metadata';
 import { Notifier } from '$lib/core/notifier';
+import { ApiClient } from '$lib/core/api-client';
 
 export type EditorActionsConfig = {
     addFields?: { entityName?: string; entityNameField?: string };
@@ -25,10 +26,6 @@ interface ScriptFieldView {
         options: Record<string, unknown>,
         callback: (dialog: BackboneDialog) => void
     ): void;
-    ajaxPostRequest(
-        url: string,
-        data: Record<string, unknown>
-    ): { success(cb: (res: { text: string }) => void): void };
 }
 
 export function registerEditorActions(
@@ -61,8 +58,8 @@ export function registerEditorActions(
                     Notifier.notify(false);
                     dialog.once('select', (models) => {
                         const fields = models.map((m) => m.get('code') as string);
-                        view.ajaxPostRequest('App/action/prepareScriptFields', { entityName, fields })
-                            .success((res) => {
+                        ApiClient.post<{ text: string }>('App/action/prepareScriptFields', { entityName, fields })
+                            .then((res) => {
                                 ed.executeEdits('add-entity-fields', [{
                                     range: ed.getSelection() ?? ed.getModel()!.getFullModelRange(),
                                     text: res.text,
@@ -104,8 +101,8 @@ export function registerEditorActions(
                             Notifier.notify(false);
                             dialog.once('select', (models) => {
                                 const attributesIds = models.map((m) => m.get('id') as string);
-                                view.ajaxPostRequest('App/action/prepareScriptAttributes', { entityName, attributesIds })
-                                    .success((res) => {
+                                ApiClient.post<{ text: string }>('App/action/prepareScriptAttributes', { entityName, attributesIds })
+                                    .then((res) => {
                                         ed.executeEdits('add-entity-attributes', [{
                                             range: ed.getSelection() ?? ed.getModel()!.getFullModelRange(),
                                             text: res.text,

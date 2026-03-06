@@ -2,7 +2,7 @@
     import { createEventDispatcher, onMount, tick } from "svelte";
     import { Metadata } from '$lib/core/metadata';
     import { Config } from '$lib/core/config';
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
     import { Notifier } from "$lib/core/notifier";
@@ -42,17 +42,15 @@
             data = null
         }
 
-        const resp = await Utils.getRequest('/QualityCheck/action/getEntityData', {
-            entityName: scope,
-            entityId: id,
-            qualityCheckId: activeItem
-        })
-
-        if (resp.status === 200) {
-            data = await resp.json()
-        } else {
-            data = null
-            Notifier.notify('Error occurred', 'error')
+        try {
+            data = await ApiClient.get('/QualityCheck/action/getEntityData', {
+                entityName: scope,
+                entityId: id,
+                qualityCheckId: activeItem
+            });
+        } catch {
+            data = null;
+            Notifier.notify('Error occurred', 'error');
         }
 
         loading = false
@@ -68,17 +66,16 @@
         }
 
         Notifier.notify('Please wait...')
-        const resp = await Utils.postRequest('/QualityCheck/action/recalculate', {
-            entityName: scope,
-            entityId: id,
-            fieldName: qualityChecksList.find(item => item.value === activeItem)?.field,
-        })
-
-        if (resp.status === 200) {
+        try {
+            await ApiClient.post('/QualityCheck/action/recalculate', {
+                entityName: scope,
+                entityId: id,
+                fieldName: qualityChecksList.find(item => item.value === activeItem)?.field,
+            });
             Notifier.notify('Done', 'success')
             fetchModel()
             await loadQualityCheckData(true)
-        } else {
+        } catch {
             Notifier.notify('Error occurred', 'error')
         }
     }

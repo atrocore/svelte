@@ -7,7 +7,7 @@
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
     import { UserData } from "$lib/core/user-data";
-    import { Utils } from "$lib/core/utils";
+    import { ApiClient } from '$lib/core/api-client';
     import SavedSearch from "$lib/components/filters/SavedSearch/SavedSearch.svelte";
     import GeneralFilter from "$lib/components/filters/GeneralFilter/GeneralFilter.svelte";
     import { getSavedSearchStore } from "$lib/stores/saved-search.store";
@@ -542,8 +542,7 @@
                 if (attributesIds.length > 0) {
                     const where = [{attribute: 'id', type: 'in', value: attributesIds}];
                     const queryString = window.$.param({where});
-                    Utils.request('GET', `Attribute?${queryString}`, null).then((response: any) => {
-                        return response.json().then((attrs: any) => {
+                    ApiClient.get<any>(`Attribute?${queryString}`).then((attrs: any) => {
                             // we clean up the rules to remove attribute rule if attribute does not exist anymore
 
                             cleanUpSavedRule((fieldId: string) => {
@@ -567,7 +566,6 @@
                             } else {
                                 resolve();
                             }
-                        });
                     });
                 } else {
                     resolve();
