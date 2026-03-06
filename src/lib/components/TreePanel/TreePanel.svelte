@@ -206,7 +206,7 @@
             if (searchValue) {
                 whereData.push({"type": "textFilter", "value": searchValue});
             }
-            Espo.ajax.getRequest(`${treeScope}/action/TreeData`, {
+            ApiClient.get(`${treeScope}/action/TreeData`, {
                 "where": whereData,
                 "foreignWhere": foreignWhereData,
                 "scope": scope,
@@ -391,7 +391,7 @@
                 data[parentName + 'Name'] = moveInfo.target_node.parent.name;
             }
 
-            Espo.ajax.patchRequest(`${treeScope}/${moveInfo.moved_node.id}`, data).success(response => {
+            ApiClient.patch(`${treeScope}/${moveInfo.moved_node.id}`, data).then(() => {
                 moveInfo.do_move();
             });
         })
@@ -524,7 +524,7 @@
 
     function loadMore(node) {
         Notifier.notify('Loading...')
-        Espo.ajax.getRequest(generateUrl(node)).then(response => {
+        ApiClient.get<Record<string, any>>(generateUrl(node)).then(response => {
             if (response['list']) {
                 const $tree = window.$(treeElement);
                 const parentNode = node.getParent();
