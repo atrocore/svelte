@@ -8,6 +8,16 @@
   @license    GPLv3 (https://www.gnu.org/licenses/)
 -->
 
+<!--
+  TODO (technical debt): This component cannot be used in isolation — it requires a Backbone proxy view.
+  Two hard dependencies on the proxy:
+  1. `window.EasyMDE` must be pre-loaded via `lib!EasyMDE` in the Backbone AMD define() before
+     this component mounts, otherwise the EasyMDE editor will not initialize.
+  2. `markdownView` prop must be a live Backbone view instance to enable image modal dialogs
+     (selectImage / uploadImage toolbar buttons call `markdownView.createView()` and `markdownView.listenTo()`).
+  Goal: decouple from Backbone so this component works standalone.
+-->
+
 <script lang="ts">
     import MarkdownDetail from './MarkdownDetail/MarkdownDetail.svelte';
     import MarkdownEdit from './MarkdownEdit/MarkdownEdit.svelte';

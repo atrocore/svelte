@@ -25,6 +25,7 @@ import { default as ScriptField } from "$lib/components/fields/Script/Script.sve
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
 import { default as TextField } from "$lib/components/fields/Text/Text.svelte";
 import { default as MarkdownField } from "$lib/components/fields/Markdown/Markdown.svelte";
+import { default as WysiwygField } from "$lib/components/fields/Wysiwyg/Wysiwyg.svelte";
 import Navigation from "$lib/components/layout-configurators/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/layout-configurators/Favorites/Favorites.svelte";
 import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
@@ -81,6 +82,7 @@ export {
     BoolField,
     TextField,
     MarkdownField,
+    WysiwygField,
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,

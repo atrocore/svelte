@@ -3,11 +3,12 @@ import { Config } from '$lib/core/config';
 import { Metadata } from '$lib/core/metadata';
 import { Notifier } from '$lib/core/notifier';
 import { Language } from '$lib/core/language';
+import { ApiClient } from '$lib/core/api-client';
 
 export type ToolbarOptions = {
     maxHeight: number;
     markdownView: any;
-    editor: any;
+    editor: () => any;
     onPreviewToggle: (ed: any) => void;
     uploadImage: (file: any, onSuccess: any, onError: any) => void;
 };
@@ -43,7 +44,7 @@ export function buildToolbar(EasyMDE: any, options: ToolbarOptions): any[] {
                 Notifier.notify(Language.translate('Loading...'));
                 markdownView.createView(
                     'selectFileDialog',
-                    Metadata.get('clientDefs.File.modalViews.select') || 'views/modals/select-records',
+                    Metadata.get(['clientDefs', 'File', 'modalViews', 'select']) || 'views/modals/select-records',
                     {
                         scope: 'File',
                         filters: {
@@ -68,21 +69,18 @@ export function buildToolbar(EasyMDE: any, options: ToolbarOptions): any[] {
                         Notifier.notify(false);
                         markdownView.listenTo(view, 'select', (model: any) => {
                             Notifier.notify(Language.translate('Loading...'));
-                            (window as any).$.ajax({
-                                type: 'POST',
-                                url: 'File/action/prepareForRichEditor',
-                                contentType: 'application/json',
-                                data: JSON.stringify({ fileId: model.get('id') }),
-                            }).done((response: any) => {
-                                Notifier.notify(false);
-                                const file = new File([], model.get('name'));
-                                (file as any).url = response.sharedUrl;
-                                editor().uploadImageUsingCustomFunction(uploadImage, file);
-                            }).error((response: any) => {
-                                Notifier.notify(false);
-                                console.error(response);
-                                (window as any).Espo.ui.error('Error while selecting file');
-                            });
+                            ApiClient.post<{ sharedUrl: string }>('File/action/prepareForRichEditor', { fileId: model.get('id') })
+                                .then(response => {
+                                    Notifier.notify(false);
+                                    const file = new File([], model.get('name'));
+                                    (file as any).url = response.sharedUrl;
+                                    editor().uploadImageUsingCustomFunction(uploadImage, file);
+                                })
+                                .catch(err => {
+                                    Notifier.notify(false);
+                                    console.error(err);
+                                    (window as any).Espo.ui.error('Error while selecting file');
+                                });
                         });
                     }
                 );
@@ -176,25 +174,22 @@ export function buildImageUploadFunction(
         const reader = new FileReader();
         Notifier.notify('Uploading...');
         reader.onload = (e: any) => {
-            (window as any).$.ajax({
-                type: 'POST',
-                url: 'File?silent=true',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    name: file.name,
-                    fileSize: file.size,
-                    fileContents: e.target.result,
-                    share: true,
-                }),
-            }).done((response: any) => {
-                Notifier.notify(false);
-                (file as any).url = response.sharedUrl;
-                uploadImage(file, onSuccess, onError);
-            }).error((response: any) => {
-                Notifier.notify(false);
-                console.error(response);
-                (window as any).Espo.ui.error('Error while uploading file');
-            });
+            ApiClient.post<{ sharedUrl: string }>('File?silent=true', {
+                name: file.name,
+                fileSize: file.size,
+                fileContents: e.target.result,
+                share: true,
+            })
+                .then(response => {
+                    Notifier.notify(false);
+                    (file as any).url = response.sharedUrl;
+                    uploadImage(file, onSuccess, onError);
+                })
+                .catch(err => {
+                    Notifier.notify(false);
+                    console.error(err);
+                    (window as any).Espo.ui.error('Error while uploading file');
+                });
         };
         reader.readAsDataURL(file);
     };
