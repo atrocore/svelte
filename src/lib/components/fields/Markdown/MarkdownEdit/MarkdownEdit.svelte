@@ -93,6 +93,9 @@
 
         editor.codemirror.on('change', () => {
             value = editor.value();
+            if (markdownView && markdownView.model) {
+                markdownView.model.set(name, value, { silent: true });
+            }
         });
 
         return () => {
