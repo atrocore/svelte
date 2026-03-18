@@ -21,6 +21,7 @@ import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePan
 import LayoutComponent from "./components/admin/layouts/LayoutComponent.svelte";
 import RebuildDatabaseModal from "./routes/admin/Admin/RebuildDatabaseModal/RebuildDatabaseModal.svelte";
 import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
+import FuzzySearchComponent from "./routes/admin/fuzzy-search/FuzzySearch/FuzzySearchComponent.svelte";
 import { default as ScriptField } from "$lib/components/fields/Script/Script.svelte";
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
 import { default as TextField } from "$lib/components/fields/Text/Text.svelte";
@@ -89,6 +90,7 @@ export {
     EntityContextPanel,
     TreePanel,
     ApiRequestComponent,
+    FuzzySearchComponent,
     Navigation,
     Favorites,
     BaseHeader,

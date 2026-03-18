@@ -247,7 +247,9 @@
                 {type: 'last_year', nb_inputs: 0, apply_to: ['date', 'datetime']},
                 {type: 'future', nb_inputs: 0, apply_to: ['date', 'datetime']},
                 {type: 'past', nb_inputs: 0, apply_to: ['date', 'datetime']},
-                {type: 'today', nb_inputs: 0, apply_to: ['date', 'datetime']}
+                {type: 'today', nb_inputs: 0, apply_to: ['date', 'datetime']},
+                {type: 'similar', nb_inputs: 1, apply_to: ['string']},
+                {type: 'word_similar', nb_inputs: 1, apply_to: ['string']},
             ],
             rules: rules,
             filters: filters,
@@ -543,29 +545,29 @@
                     const where = [{attribute: 'id', type: 'in', value: attributesIds}];
                     const queryString = window.$.param({where});
                     ApiClient.get<any>(`Attribute?${queryString}`).then((attrs: any) => {
-                            // we clean up the rules to remove attribute rule if attribute does not exist anymore
+                        // we clean up the rules to remove attribute rule if attribute does not exist anymore
 
-                            cleanUpSavedRule((fieldId: string) => {
-                                if (fieldId.includes('attr_')) {
-                                    return !!attrs.list.find((v: any) => v.id === getFieldOrAttributeId(fieldId))
-                                } else {
-                                    return true;
-                                }
-                            });
-
-                            if (attrs.list.length) {
-                                let resolved: string[] = []
-                                attrs.list.forEach((attribute: any) => {
-                                    pushAttributeFilter(attribute, (pushed, filter) => {
-                                        resolved.push(attribute.id);
-                                        if (resolved.length === attrs.list.length) {
-                                            resolve();
-                                        }
-                                    })
-                                });
+                        cleanUpSavedRule((fieldId: string) => {
+                            if (fieldId.includes('attr_')) {
+                                return !!attrs.list.find((v: any) => v.id === getFieldOrAttributeId(fieldId))
                             } else {
-                                resolve();
+                                return true;
                             }
+                        });
+
+                        if (attrs.list.length) {
+                            let resolved: string[] = []
+                            attrs.list.forEach((attribute: any) => {
+                                pushAttributeFilter(attribute, (pushed, filter) => {
+                                    resolved.push(attribute.id);
+                                    if (resolved.length === attrs.list.length) {
+                                        resolve();
+                                    }
+                                })
+                            });
+                        } else {
+                            resolve();
+                        }
                     });
                 } else {
                     resolve();
@@ -671,11 +673,11 @@
             let type = attribute.type === 'rangeInt' ? 'int' : 'float';
             ['From', 'To'].forEach((v, key) => {
                 let customLabel = label + ' ' + Language.translate(v);
-                if(attribute.measureId) {
-                    promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`) , params, key));
-                    promises.push(createFieldView('unit' + name + v, `unit-${type}`, customLabel , params, key - 10));
-                }else{
-                    promises.push(createFieldView(name + v, type, customLabel , params, key+10));
+                if (attribute.measureId) {
+                    promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`), params, key));
+                    promises.push(createFieldView('unit' + name + v, `unit-${type}`, customLabel, params, key - 10));
+                } else {
+                    promises.push(createFieldView(name + v, type, customLabel, params, key + 10));
                 }
             })
         } else if (attribute.isMultilang && (Config.get('inputLanguageList') ?? []).length > 0) {
@@ -694,10 +696,10 @@
                 });
             }
         } else {
-            if(['int', 'float'].includes(attribute.type) && attribute.measureId) {
-                promises.push(createFieldView('unit' + name, `unit-${fieldType}`, label , params, 0));
-                promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`) , params, 1));
-            }else{
+            if (['int', 'float'].includes(attribute.type) && attribute.measureId) {
+                promises.push(createFieldView('unit' + name, `unit-${fieldType}`, label, params, 0));
+                promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`), params, 1));
+            } else {
                 promises.push(createFieldView(name, fieldType, label, params));
             }
         }
@@ -1188,7 +1190,7 @@
 
     <div class="advanced-filters">
         <Collapser title={editingSavedSearch ? editingSavedSearch.name : Language.translate('Advanced Filter')}
-                     bind:opened={queryBuilderOpened}>
+                   bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
                 <span class="toggle" class:disabled={advancedFilterDisabled} class:active={advancedFilterChecked}
