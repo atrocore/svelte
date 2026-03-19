@@ -12,7 +12,7 @@
     import { UserData } from "$lib/core/user-data";
     import type GridCell from './types/grid-cell';
     import type GridPanel from './types/grid-panel';
-    import Field from "$lib/components/layout-manager/SortableFieldList/types/field";
+    import type Field from "$lib/components/layout-manager/SortableFieldList/types/field";
 
     export let params: Params;
     export let columnCount: number = 2;
