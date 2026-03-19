@@ -10,17 +10,13 @@
 
 import { writable } from 'svelte/store';
 
+import User from "$lib/types/entity/user";
+
 type UserDataType = {
     preferences: {
         language: string | null;
     };
-    user: {
-        id: string;
-        name: string;
-        userName: string;
-        localeId?: string;
-        disabledLanguages?: string[];
-    };
+    user: User;
     token: string;
 };
 
