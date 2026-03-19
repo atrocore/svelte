@@ -3,7 +3,7 @@
     import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
     import { Metadata } from '$lib/core/metadata';
     import { UserData } from "$lib/core/user-data";
-    import { driver, Driver, DriveStep } from "driver.js";
+    import { driver, type Driver, type DriveStep } from "driver.js";
     import { onMount } from "svelte";
 
     export let scope: string;

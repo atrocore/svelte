@@ -5,7 +5,7 @@
         getLastEntities
     } from "$lib/components/headers/BaseHeader/NavigationHistory/utils/entity-history-utils";
 
-    import NavigationHistoryItem
+    import type NavigationHistoryItem
         from "$lib/components/headers/BaseHeader/NavigationHistory/types/navigation-history-item";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
 
