@@ -8,25 +8,27 @@
     import { Language } from "$lib/core/language"
     import { UserData } from "$lib/core/user-data";
     import ButtonBar from '$lib/components/buttons/ButtonBar/ButtonBar.svelte';
+    import type LayoutData from './types/layout-data';
 
     const dispatch = createEventDispatcher();
     export let params: Params;
-    export let fetch: any
 
-    let layoutData;
+    export let fetch: () => any
 
-    export let loadLayout = (callback) => {
+    let layoutData: LayoutData | undefined;
+
+    export let loadLayout = (callback: (data: any) => void): void => {
         LayoutManager.get(scope, type, layoutProfileId, callback, false);
     }
 
-    export let validate = () => {
+    export let validate = (_layout?: any): boolean => {
         return true;
     }
 
     let disabled = false;
 
     let buttonList: Button[] = [];
-    let buttonContainer;
+    let buttonContainer: HTMLElement | undefined;
 
     const profiles = params.layoutProfiles ?? []
 
@@ -77,7 +79,7 @@
 
     async function loadData() {
         Notifier.notify('Loading...')
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             loadLayout((data) => {
                 layoutData = data
                 Notifier.notify(false)
@@ -98,7 +100,7 @@
         Notifier.notify('Saving...');
 
         if (params.inModal) {
-            if (!params.getActiveLayoutProfileId()) {
+            if (!params.getActiveLayoutProfileId?.()) {
                 emitUpdate(true)
                 return;
             }
@@ -116,7 +118,7 @@
         });
     }
 
-    function emitUpdate(reset) {
+    function emitUpdate(reset: boolean): void {
         if (params.onUpdate) {
             params.onUpdate(reset)
         }

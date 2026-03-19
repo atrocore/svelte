@@ -8,16 +8,18 @@
     import type Item from "$lib/components/layout-manager/SortableColumns/types/item";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/core/notifier";
+    import type NavItem from './types/nav-item';
+    import type FetchResult from './types/fetch-result';
 
     export let params: Params;
     export let enabledItems: Item[] = [];
     export let disabledItems: Item[] = [];
 
     export let buttonList: Button[]
-    export let refresh: Function = () => {};
-    export let editItem: Function = () => {};
-    export let getGroupId: Function = () => 'id';
-    export let fieldsInGroup: Record<string, any>;
+    export let refresh: () => void = () => {};
+    export let editItem: (item: Item) => void = () => {};
+    export let getGroupId: () => string = () => 'id';
+    export let fieldsInGroup: Record<string, boolean> = {};
 
     let sortableColumns: SortableColumns;
     let disabled = false;
@@ -81,8 +83,8 @@
         refresh();
     }
 
-    export let fetch = () => {
-        let data: Array<any> = [];
+    export let fetch = (): FetchResult => {
+        let data: NavItem[] = [];
         let inGroup = false;
         let adjusted = false;
         for (let i = 0; i < enabledItems.length; i++) {
@@ -134,7 +136,7 @@
 
         data = filteredData;
 
-        let dataWithNormalizeGroupEnd = [];
+        let dataWithNormalizeGroupEnd: NavItem[] = [];
 
         for (let i = 0; i < data.length; i++) {
             let item = data[i];
@@ -157,8 +159,8 @@
         };
     }
 
-    export let validate = (itemsToSave: Array<any>): boolean => {
-        if (itemsToSave.length === 0) {
+    export let validate = (_itemsToSave: FetchResult): boolean => {
+        if (_itemsToSave.navigation.length === 0) {
             Notifier.notify('Menu cannot be empty', 'error');
             return false;
         }
@@ -171,6 +173,7 @@
 <SortableColumns
             bind:this={sortableColumns}
             bind:enabledItems
+            enabledSortFn={(_a, _b) => 0}
             bind:disabledGroups={_disabledGroups}
             {getEnabledItemClass}
             on:change={handleChange}

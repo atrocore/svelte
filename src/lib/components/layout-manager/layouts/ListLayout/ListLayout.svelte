@@ -53,7 +53,7 @@
     const ignoreList: string[] = [];
     const ignoreTypeList: string[] = [];
 
-    function loadLayout(callback): void {
+    function loadLayout(callback: (data: any) => void): void {
         LayoutManager.get(params.scope, params.type, params.relatedScope, params.layoutProfileId, (layout) => {
             if (callback) {
                 readDataFromLayout(layout.layout);
@@ -80,8 +80,8 @@
         return Language.translate(field, 'fields', scope)
     }
 
-    function getAdditionalFields() {
-        const fields = []
+    function getAdditionalFields(): string[] {
+        const fields: string[] = []
         if (params.type === 'navigation') {
             if (!Metadata.get(['scopes', params.scope, 'bookmarkDisabled'])) {
                 fields.push('_bookmark')
@@ -114,7 +114,7 @@
     }
 
     function readDataFromLayout(layout: LayoutItem[]): void {
-        const groups = []
+        const groups: any[] = []
         let relationScope = ''
 
         if (params.relatedScope && params.type === 'list') {

@@ -31,7 +31,7 @@
         key++;
     }
 
-    function validate(itemsToSave: Array<any>): boolean {
+    function validate(_itemsToSave: any): boolean {
         return true;
     }
 

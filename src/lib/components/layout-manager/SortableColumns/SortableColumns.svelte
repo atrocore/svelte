@@ -4,8 +4,7 @@
     import LayoutWell from '$lib/components/layout-manager/LayoutWell/LayoutWell.svelte';
     import { SortableList } from '$lib/dom/sortable';
     import type Item from './types/item';
-
-    type Group = { name: string; prefix?: string; fields: Item[] };
+    import type Group from './types/group';
 
     export let enabledItems: Item[] = [];
     export let disabledGroups: Group[] = [];
@@ -30,7 +29,7 @@
         sortableDisabled.forEach(s => s.destroy());
     });
 
-    function cancelDrop(evt: any): void {
+    function cancelDrop(evt: Sortable.SortableEvent): void {
         if (evt.oldIndex >= evt.from.children.length) {
             evt.from.appendChild(evt.item);
         } else {

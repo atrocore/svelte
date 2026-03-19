@@ -10,6 +10,9 @@
     import type Group from "$lib/components/layout-manager/SortableFieldList/types/group";
     import { upperCaseFirst } from '$lib/helpers/string';
     import { UserData } from "$lib/core/user-data";
+    import type GridCell from './types/grid-cell';
+    import type GridPanel from './types/grid-panel';
+    import Field from "$lib/components/layout-manager/SortableFieldList/types/field";
 
     export let params: Params;
     export let columnCount: number = 2;
@@ -26,18 +29,18 @@
         }
     };
 
-    let defaultPanelFieldList = [];
+    let defaultPanelFieldList: string[] = [];
 
-    let panels: [] = [];
+    let panels: any[] = [];
     let availableGroups: Group[] = [];
     let lastPanelNumber = -1;
     let lastRowNumber = -1;
-    let sidePanelsLayout: any;
+    let sidePanelsLayout: Record<string, { disabled?: boolean }> | undefined;
 
     const dispatch = createEventDispatcher();
 
-    function loadLayout(callback) {
-        let layoutData;
+    function loadLayout(callback: (data: any) => void): void {
+        let layoutData: { layout: any[] } | undefined;
 
         const promiseList = [];
 
@@ -45,7 +48,7 @@
             new Promise(resolve => {
                 LayoutManager.get(params.scope, params.type, params.relatedScope, params.layoutProfileId, layoutLoaded => {
                     layoutData = layoutLoaded;
-                    resolve();
+                    resolve(layoutLoaded);
                 }, false, true);
             })
         );
@@ -55,7 +58,7 @@
                 new Promise(resolve => {
                     LayoutManager.get(params.scope, 'sidePanelsDetail', null, params.layoutProfileId, layoutLoaded => {
                         sidePanelsLayout = layoutLoaded.layout;
-                        resolve();
+                        resolve(layoutLoaded.layout);
                     }, false, true);
                 })
             );
@@ -63,7 +66,7 @@
 
         Promise.all(promiseList).then(() => {
             if (callback) {
-                readDataFromLayout(layoutData.layout);
+                readDataFromLayout(layoutData!.layout);
                 setupPanels();
                 tick().then(() => {
                     initializeSortable();
@@ -97,8 +100,8 @@
         return true;
     }
 
-    function readDataFromLayout(layout) {
-        const groups = []
+    function readDataFromLayout(layout: any[]): void {
+        const groups: any[] = []
         let relationScope = ''
 
         if (params.relatedScope) {
@@ -108,7 +111,8 @@
                 const group = {
                     name: relationScope,
                     scope: relationScope,
-                    prefix: relationScope + '__'
+                    prefix: relationScope + '__',
+                    fields: [] as string[]
                 }
                 let allFields = Object.keys(Metadata.get(['entityDefs', relationScope, 'fields']) || {}).filter(field =>
                     checkFieldType(getFieldType(relationScope, field)) && isFieldEnabled(relationScope, field)
@@ -126,8 +130,8 @@
             }
         }
 
-        let allFields = [];
-        const labels = [];
+        let allFields: string[] = [];
+        const labels: string[] = [];
         for (const field in Metadata.get(['entityDefs', params.scope, 'fields']) || {}) {
             if (isFieldEnabled(params.scope, field)) {
                 labels.push(Language.translate(field, 'fields', params.scope));
@@ -146,7 +150,7 @@
 
         for (const group of groups) {
             group.fields = group.fields
-                .map(field => {
+                .map((field: string) => {
                     const label = getTranslation(group.scope, group.prefix ? field.replace(group.prefix, '') : field);
                     if (!group.prefix) {
                         if (labelList.includes(label)) {
@@ -161,7 +165,7 @@
 
         panels = layout;
 
-        let enabledFields = [];
+        let enabledFields: string[] = [];
 
         layout.forEach((panel, panelNum) => {
             panel.rows.forEach((row, rowNum) => {
@@ -203,7 +207,7 @@
         availableGroups = groups.reverse()
     }
 
-    function getCell(name) {
+    function getCell(name: string): GridCell | null {
         for (const panel of panels) {
             for (const row of panel.rows) {
                 for (const cell of row) {
@@ -251,7 +255,7 @@
         return true;
     }
 
-    function fetch(): [] {
+    function fetch(): any[] {
         return panels.map(panel => {
             return {
                 ...panel,
@@ -289,14 +293,14 @@
         });
     }
 
-    function initPanel(el) {
+    function initPanel(el: HTMLElement): void {
         Sortable.create(el, {
             animation: 150,
             group: 'rows',
             draggable: 'li.row',
             onEnd: function (evt) {
-                const panelToNumber = parseInt(evt.to.closest('.panel-layout').getAttribute('data-number'));
-                const panelFromNumber = parseInt(evt.from.closest('.panel-layout').getAttribute('data-number'));
+                const panelToNumber = parseInt(evt.to.closest('.panel-layout')?.getAttribute('data-number')!);
+                const panelFromNumber = parseInt(evt.from.closest('.panel-layout')?.getAttribute('data-number')!);
                 if (panelFromNumber === panelToNumber) {
                     panels = panels.map(panel => {
                         if (panel.number === panelToNumber) {
@@ -308,7 +312,7 @@
                     });
                 } else {
                     const panelFrom = panels.find(p => p.number === panelFromNumber)
-                    const movedItem = panelFrom.rows[evt.oldIndex]
+                    const movedItem = panelFrom.rows[evt.oldIndex || 0]
                     panels = panels.map(panel => {
                         if (panel.number === panelFromNumber) {
                             panel.rows.splice(evt.oldIndex, 1)
@@ -324,7 +328,7 @@
     }
 
     function initializeSortable() {
-        const panelsList = document.querySelector('ul.panels');
+        const panelsList = document.querySelector<HTMLElement>('ul.panels');
         if (panelsList) {
             Sortable.create(panelsList, {
                 animation: 150,
@@ -333,16 +337,16 @@
                 onEnd: function (evt) {
                     const panelElements = Array.from(evt.to.children);
                     panels = panelElements.map(panelElement => {
-                        const panelNumber = parseInt(panelElement.getAttribute('data-number'));
+                        const panelNumber = parseInt(panelElement.getAttribute('data-number')!);
                         return panels.find(panel => panel.number === panelNumber);
                     });
                 }
             });
         }
-        document.querySelectorAll('ul.rows').forEach(el => {
+        document.querySelectorAll<HTMLElement>('ul.rows').forEach(el => {
             initPanel(el)
         });
-        document.querySelectorAll('ul.cells.disabled').forEach(ul => {
+        document.querySelectorAll<HTMLElement>('ul.cells.disabled').forEach(ul => {
             Sortable.create(ul, {
                 animation: 150,
                 group: 'cells',
@@ -353,10 +357,10 @@
                     if (toUl) {
                         if (toUl !== ul) {
                             // cancel drop
-                            if (evt.oldIndex >= evt.from.children.length) {
+                            if (evt.oldIndex! >= evt.from.children.length) {
                                 evt.from.appendChild(evt.item);
                             } else {
-                                evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+                                evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex!]);
                             }
                             return
                         }
@@ -369,7 +373,7 @@
 
     function addPanel() {
         lastPanelNumber++;
-        const newPanel: Panel = {
+        const newPanel: GridPanel = {
             label: 'New panel',
             rows: [{
                 number: lastRowNumber++,
@@ -381,16 +385,18 @@
         };
         panels = [...panels, newPanel];
         tick().then(() => {
-            const el = document.querySelector(`.panel-layout[data-number="${newPanel.number}"] > .rows`);
-            initPanel(el);
-            el.scrollIntoView();
+            const el = document.querySelector<HTMLElement>(`.panel-layout[data-number="${newPanel.number}"] > .rows`);
+            if (el) {
+                initPanel(el);
+                el.scrollIntoView();
+            }
         })
     }
 
     function removePanel(number: number) {
         const panel = panels.find(p => p.number === number)
         panels = panels.filter(p => p !== panel);
-        let fields = []
+        let fields: GridCell[] = []
         panel.rows.forEach(row => {
             row.cells.forEach(cell => {
                 if (cell) {
@@ -409,10 +415,10 @@
         return !field.includes('__')
     }
 
-    function addToGroups(fields: []): void {
+    function addToGroups(fields: GridCell[]): void {
         availableGroups = availableGroups.map(group => {
             group.fields = [
-                ...fields.filter(field => !!field && checkGroup(field.name, group)),
+                ...fields.filter(field => !!field && checkGroup(field.name, group)) as Field[],
                 ...group.fields
             ]
             return group
@@ -443,7 +449,7 @@
     function removeField(panelNumber: number, rowNumber: number, cellIndex: number) {
         panels = panels.map(panel => {
             if (panel.number === panelNumber) {
-                panel.rows = panel.rows.map((row, rIndex) => {
+                panel.rows = panel.rows.map((row: Record<string, any>, rIndex: number) => {
                     if (row.number === rowNumber) {
                         const removedCell = row.cells[cellIndex];
                         if (removedCell) {
@@ -458,8 +464,8 @@
         });
     }
 
-    function openLabelDialog(field: string, rowNumber: number, cellIndex: number) {
-        params.openEditLabelDialog(params.scope, field, (label) => {
+    function openLabelDialog(field: string, rowNumber: number, cellIndex: number): void {
+        params.openEditLabelDialog?.(params.scope, field, (label) => {
             panels = panels.map(panel => {
                 panel.rows = panel.rows.map((row, rIndex) => {
                     if (row.number === rowNumber) {
@@ -472,8 +478,8 @@
         });
     }
 
-    function openPanelLabelDialog(panel: Record<string, string>) {
-        params.openEditLabelDialog(params.scope, panel.label, null, `${params.scope}.labels.${panel.label}`);
+    function openPanelLabelDialog(panel: GridPanel): void {
+        params.openEditLabelDialog?.(params.scope, panel.label, null, `${params.scope}.labels.${panel.label}`);
     }
 
     function isAdmin() {
@@ -482,22 +488,22 @@
         return !!(data && data.user && data.user.isAdmin);
     }
 
-    function handleDrop(event, panelNumber, rowNumber, cellIndex) {
+    function handleDrop(event: DragEvent, panelNumber: number, rowNumber: number, cellIndex: number): void {
         // get properties of dragged object
-        const name = event.dataTransfer.getData('name')
-        let field = null
+        const name = event.dataTransfer?.getData('name') ?? ''
+        let field: any = null
         for (const group of availableGroups) {
             field = group.fields.find(f => f.name === name)
             if (field) break
         }
 
-        let oldRowNumber = null
-        let oldPanelNumber = null
+        let oldRowNumber: number | null = null
+        let oldPanelNumber: number | null = null
         if (!field) {
             // search in layout
             panels.forEach(panel => {
-                panel.rows.forEach((row, rowIndex) => {
-                    row.cells.forEach(cell => {
+                panel.rows.forEach((row: Record<string, any>, rowIndex: number) => {
+                    row.cells.forEach((cell: Record<string, any>) => {
                         if (cell && cell.name === name) {
                             field = cell
                             oldRowNumber = row.number
@@ -553,8 +559,8 @@
         });
     }
 
-    function editPanelLabel(panel: any) {
-        params.onEditPanel(panel, panelDataAttributeList, panelDataAttributesDefs, (attributes) => {
+    function editPanelLabel(panel: GridPanel): void {
+        params.onEditPanel?.(panel, panelDataAttributeList, panelDataAttributesDefs, (attributes) => {
             panels = panels.map(p => {
                 if (p.number === panel.number) {
                     panelDataAttributeList.forEach(item => {
@@ -584,11 +590,11 @@
         });
     }
 
-    function validate(layout: Panel[]): boolean {
+    function validate(layout: any[]): boolean {
         let fieldCount = 0;
         layout.forEach(panel => {
-            panel.rows.forEach(row => {
-                row.forEach(cell => {
+            panel.rows.forEach((row: any) => {
+                row.forEach((cell: any) => {
                     if (cell) {
                         fieldCount++;
                     }

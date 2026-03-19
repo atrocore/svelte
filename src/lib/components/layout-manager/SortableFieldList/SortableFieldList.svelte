@@ -14,7 +14,7 @@
     export let selectedFields: Field[] = [];
     export let nonRemovableFields: string[] = [];
     export let availableGroups: Group[] = [];
-    export let loadLayout: Function;
+    export let loadLayout: (callback: (data: any) => void) => void;
 
     let sortableColumns: SortableColumns;
     let hasAttributes = Metadata.get(['scopes', params.scope, 'hasAttribute']);
@@ -26,7 +26,7 @@
     }
 
     function editField(field: Field): void {
-        params.openEditDialog(field, params.scope, params.dataAttributeList, params.dataAttributesDefs, (attributes) => {
+        params.openEditDialog?.(field, params.scope, params.dataAttributeList ?? [], params.dataAttributesDefs ?? {}, (attributes) => {
             selectedFields = selectedFields.map(item => {
                 if (item.name === field.name) {
                     for (let key in attributes) {
@@ -39,7 +39,7 @@
     }
 
     function openLabelDialog(field: Field): void {
-        params.openEditLabelDialog(params.scope, field.name, (label) => {
+        params.openEditLabelDialog?.(params.scope, field.name, (label) => {
             selectedFields = selectedFields.map(item => {
                 if (item.name === field.name) {
                     item.label = label
@@ -80,7 +80,7 @@
     }
 
     function addAttribute(): void {
-        params.openAddAttributesDialog(params.scope, fields => {
+        params.openAddAttributesDialog?.(params.scope, fields => {
             fields.forEach(field => {
                 let attribute = {
                     id: field.name,

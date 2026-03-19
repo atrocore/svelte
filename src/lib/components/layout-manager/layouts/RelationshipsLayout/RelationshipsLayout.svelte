@@ -7,6 +7,7 @@
     import { LayoutManager } from "$lib/core/layout-manager";
     import { ModelFactory } from "$lib/core/model-factory";
     import type Group from "$lib/components/layout-manager/SortableFieldList/types/group";
+    import type RelationshipLayoutItem from './types/layout-item';
 
     export let params: Params;
 
@@ -34,8 +35,8 @@
     let availableGroups: Group[] = [];
     let editable: boolean = true;
 
-    function loadLayout(callback): void {
-        ModelFactory.create(params.scope, function (model) {
+    function loadLayout(callback: (data: any) => void): void {
+        ModelFactory.create(params.scope, function (model: any) {
             LayoutManager.get(params.scope, params.type, null, params.layoutProfileId, (layoutData) => {
                 if (callback) {
                     readDataFromLayout(model, layoutData.layout);
@@ -46,14 +47,14 @@
 
     }
 
-    function isLinkEnabled(model, name) {
+    function isLinkEnabled(model: any, name: string): boolean {
         return !model.getLinkParam(name, 'disabled') && !model.getLinkParam(name, 'layoutRelationshipsDisabled');
     }
 
-    function readDataFromLayout(model, layout: Layout) {
+    function readDataFromLayout(model: any, layout: RelationshipLayoutItem[]): void {
         let allFields: string[] = [];
 
-        let linkTypes = [];
+        let linkTypes: string[] = [];
         if (params.onlyManyToMany) {
             linkTypes = ['hasMany']
         } else {
@@ -79,7 +80,7 @@
             }
         }
 
-        allFields.sort(function (v1, v2) {
+        allFields.sort(function (v1: string, v2: string) {
             let v1Name, v2Name;
             let v1Options = bottomPanels.find(panel => panel.name === v1);
             let v2Options = bottomPanels.find(panel => panel.name === v2);
@@ -98,9 +99,9 @@
             return v1Name.localeCompare(v2Name);
         });
 
-        let enabledFieldsList = [];
+        let enabledFieldsList: string[] = [];
         selectedFields = [];
-        const group = {
+        const group: { name: string; fields: Field[] } = {
             name: params.scope,
             fields: []
         }

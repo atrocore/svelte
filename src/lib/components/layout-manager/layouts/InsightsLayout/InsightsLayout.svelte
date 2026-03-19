@@ -27,7 +27,7 @@
     let availableGroups: Group[] = []
     let editable: boolean = true;
 
-    function loadLayout(callback): void {
+    function loadLayout(callback: (data: any) => void): void {
         LayoutManager.get(params.scope, params.type, params.relatedScope, params.layoutProfileId, (layout) => {
             if (callback) {
                 readDataFromLayout(layout.layout);
