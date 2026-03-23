@@ -773,8 +773,10 @@
             id: field,
             field,
             value: [node.id],
-            data: {nameHash: {[node.id]: node.name}},
-            _treeNode: true
+            data: {
+                nameHash: {[node.id]: node.name},
+                _treeNodeKey: `${node.link}__${node.id}`
+            }
         };
     }
 
@@ -1308,6 +1310,14 @@
         if (callbacks?.afterMounted) {
             callbacks.afterMounted();
         }
+
+        const onClearTreeNodes = (e: CustomEvent) => {
+            if (e.detail.scope === scope) {
+                selectedNodes = [];
+            }
+        };
+        window.addEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
+        return () => window.removeEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
     });
 
     function onSidebarResize(e: CustomEvent): void {

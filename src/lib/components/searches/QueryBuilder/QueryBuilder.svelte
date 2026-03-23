@@ -28,7 +28,6 @@
     let model = new searchManager.collection.model();
 
     let advancedFilterChecked = false;
-    let treeNodeRules: any[] = [];
 
     let generalFilterOpened: boolean = false;
 
@@ -471,6 +470,7 @@
                         }
                     }
                 });
+
             }
 
             model.trigger('afterAddRule', rule);
@@ -610,6 +610,7 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
+        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
     function updateCollection() {
@@ -786,6 +787,7 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
+        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
@@ -911,13 +913,7 @@
     }
 
     function isTreeNodeRule(rule: any): boolean {
-        return treeNodeRules.some(tr =>
-            tr.id === rule.id &&
-            tr.operator === rule.operator &&
-            Array.isArray(rule.value) &&
-            rule.value.length === 1 &&
-            tr.value[0] === rule.value[0]
-        );
+        return !!rule.data?._treeNodeKey;
     }
 
     function syncTreeNodesFilter(event: CustomEvent) {
@@ -926,14 +922,15 @@
         let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
 
         if (Array.isArray(rules.rules)) {
+            if (rules.condition !== 'AND') {
+                rules = {condition: 'AND', rules: [rules], valid: true};
+            }
             rules.rules = rules.rules.filter((r: any) => !isTreeNodeRule(r));
         } else {
             rules = {condition: 'AND', rules: []};
         }
 
-        treeNodeRules = event.detail.rules;
-
-        for (const rule of treeNodeRules) {
+        for (const rule of event.detail.rules) {
             rules.rules.push(rule);
         }
 
