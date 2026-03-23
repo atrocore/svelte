@@ -930,9 +930,7 @@
             rules = {condition: 'AND', rules: []};
         }
 
-        for (const rule of event.detail.rules) {
-            rules.rules.push(rule);
-        }
+        rules.rules.unshift(...event.detail.rules);
 
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
         applyFilter();
