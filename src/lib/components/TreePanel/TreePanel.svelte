@@ -290,7 +290,6 @@
                 if (!['_self', '_bookmark', '_admin'].includes(activeItem.name) && selectNodeId === node.id) {
                     $tree.tree('addToSelection', node);
                     $li.addClass('jqtree-selected');
-                    appendUnsetButton($li)
                 }
 
                 if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
@@ -431,7 +430,7 @@
                     return loadMore(node);
                 }
 
-                // For linked relationship tabs — add to selectedNodes instead of standard selection
+                // For linked relationship tabs — add to selectedNodes + notify backbone
                 if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) {
                     toggleSelectedNode({
                         id: node.id,
@@ -439,11 +438,21 @@
                         scope: node.scope || treeScope,
                         link: activeItem.name
                     });
-                    return;
-                }
 
-                if (node.element && !isNodeInSubTree(node)) {
-                    appendUnsetButton(window.$(node.element));
+                    let route = [];
+                    let n = node;
+                    while (n.parent.id) {
+                        route.push(n.parent.id);
+                        n = n.parent;
+                    }
+                    const data: any = {id: node.id, route: '', scope: node.scope, click: true};
+                    if (route.length > 0) {
+                        data.route = '|' + route.reverse().join('|') + '|';
+                    }
+                    if (callbacks?.selectNode) {
+                        callbacks.selectNode(data);
+                    }
+                    return;
                 }
 
                 let route = [];
@@ -498,44 +507,6 @@
 
     function getDataWithoutSubTree(node) {
         return node.getData().filter(item => !node.subTreeData.find(i => i.id === item.id))
-    }
-
-    function appendUnsetButton($el): void {
-        if (['_admin', '_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-            return
-        }
-
-        if ($el && $el.length) {
-            removeUnsetButton($el);
-
-            if (selectNodeId && isSelectionEnabled) {
-                let button = document.createElement('span');
-                button.classList.add('reset-button', 'tree-button', 'ph', 'ph-x', 'pull-right');
-                button.addEventListener('click', () => {
-                    removeUnsetButton($el);
-                    callUnselectNode();
-                });
-                $el.append(button);
-
-                button = document.createElement('span');
-                button.classList.add('add-to-filter-button', 'tree-button', 'ph', 'ph-funnel', 'pull-right');
-                button.addEventListener('click', () => {
-                    removeUnsetButton($el);
-                    callAddNodeToFilter();
-                    selectNodeId = null;
-                    Storage.clear('selectedNodeId', scope);
-                    Storage.clear('selectedNodeRoute', scope);
-                });
-                $el.append(button);
-            }
-        }
-    }
-
-    function removeUnsetButton($el): void {
-        if ($el && $el.length) {
-            $el.find('.reset-button').remove();
-            $el.find('.add-to-filter-button').remove();
-        }
     }
 
     function parseRoute(routeStr) {
@@ -709,56 +680,14 @@
                 if (elId !== id && $tree.tree('getNodeById', elId)) {
                     $tree.tree('removeFromSelection', $tree.tree('getNodeById', elId));
                     li.removeClass('jqtree-selected');
-                    removeUnsetButton(li);
                     return;
                 } else if (!li.hasClass('jqtree-selected')) {
                     li.addClass('jqtree-selected');
-                }
-
-                if (li.hasClass('jqtree-selected')) {
-                    appendUnsetButton(li);
                 }
             });
         }
 
         openNodes($tree, ids, onFinished);
-    }
-
-    function callUnselectNode() {
-        if (callbacks?.selectNode) {
-            callbacks.selectNode({id: selectNodeId})
-        }
-    }
-
-    function callAddNodeToFilter() {
-        if (callbacks?.addNodeToFilter) {
-            const $tree = window.$(treeElement);
-            let node = $tree.tree('getNodeById', selectNodeId);
-            let name = ''
-            if (node) {
-                name = node.name;
-            }
-
-            let field = activeItem.name
-            let operator = 'linked_with'
-
-            if (Metadata.get(['entityDefs', scope, 'fields', field, 'type']) === 'link') {
-                field = field + 'Id';
-                operator = 'in'
-            }
-
-            callbacks.addNodeToFilter({
-                operator: operator,
-                id: field,
-                field: field,
-                value: [selectNodeId],
-                data: {
-                    nameHash: {
-                        [selectNodeId]: name
-                    }
-                }
-            })
-        }
     }
 
     function buildRuleForNode(node: { id: string; name: string; scope: string; link: string }) {
@@ -842,10 +771,6 @@
         selectNodeId = null;
 
         if (node) {
-            if (node.element) {
-                removeUnsetButton(window.$(node.element));
-            }
-
             $tree.tree('removeFromSelection', node);
         }
     }
@@ -1539,30 +1464,6 @@
 
     :global(ul.jqtree-tree li.jqtree_common) {
         position: relative;
-    }
-
-    :global(ul.jqtree-tree li.jqtree_common .tree-button) {
-        background-color: rgba(255, 255, 255, .9);
-        border-radius: 5px;
-        padding: 3px 4px;
-        font-size: 16px;
-        border: 1px solid var(--primary-border-color);
-    }
-
-    :global(ul.jqtree-tree li.jqtree_common .reset-button) {
-        margin-top: 4px;
-        position: absolute;
-        top: 0;
-        right: 0;
-        cursor: pointer;
-    }
-
-    :global(ul.jqtree-tree li.jqtree_common .add-to-filter-button) {
-        margin-top: 4px;
-        position: absolute;
-        top: 0;
-        right: 30px;
-        cursor: pointer;
     }
 
     :global(.tree-_admin ul.jqtree-tree .jqtree_common.disabled > div > span) {
