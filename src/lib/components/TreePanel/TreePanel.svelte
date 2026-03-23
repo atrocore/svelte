@@ -275,6 +275,10 @@
                     appendUnsetButton($li)
                 }
 
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
+                    $li.addClass('jqtree-selected');
+                }
+
                 if (callbacks?.shouldBeSelected && callbacks.shouldBeSelected(activeItem.name, node.id)) {
                     $tree.tree('addToSelection', node);
                     $li.addClass('jqtree-selected');
@@ -771,6 +775,19 @@
         window.dispatchEvent(new CustomEvent('sync-tree-nodes-filter', {
             detail: {scope, rules: nodes.map(buildRuleForNode)}
         }));
+        refreshTreeSelection();
+    }
+
+    function refreshTreeSelection(): void {
+        if (!treeElement || !activeItem || ['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) return;
+
+        const $tree = window.$(treeElement);
+        $tree.find('li.jqtree_common').each((_, el) => {
+            const $li = window.$(el);
+            const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
+            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
+            $li.toggleClass('jqtree-selected', isSelected);
+        });
     }
 
     function toggleSelectedNode(node: { id: string; name: string; scope: string; link: string }): void {
