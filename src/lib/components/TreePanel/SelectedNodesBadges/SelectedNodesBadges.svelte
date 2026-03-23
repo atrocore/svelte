@@ -24,6 +24,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
+        border-top: 1px solid #efefef;
     }
 
     .tree-badge {
