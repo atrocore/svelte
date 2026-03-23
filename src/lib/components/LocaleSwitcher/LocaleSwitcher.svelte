@@ -5,19 +5,23 @@
     import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
+    import { Acl } from "$lib/core/acl";
 
     export let checkConfirmLeaveOut: Function;
     let mainLanguageCode = ''
 
-    for (const [code, language]  of Object.entries(Config.get('referenceData').Language || {}) as [string, any][]) {
+    for (const [code, language] of Object.entries(Config.get('referenceData').Language || {}) as [string, any][]) {
         if (language.role === 'main') {
             mainLanguageCode = code
         }
     }
 
-    let locales: Record<string, any>  = Config.get('locales') || {}
+    let locales: Record<string, any> = Config.get('locales') || {}
+    const forbiddenLanguages: string[] = Acl.getForbiddenLanguageList('read') || []
     let languages: Record<string, any> = [mainLanguageCode, ...(Config.get('inputLanguageList') || [])].reduce((res, item) => {
-        res[item] = Config.get('referenceData').Language?.[item]
+        if (!forbiddenLanguages.includes(item)) {
+            res[item] = Config.get('referenceData').Language?.[item]
+        }
         return res
     }, {})
 
@@ -33,7 +37,10 @@
     }
 
     let disabledLanguages = UserData.get()?.user?.disabledLanguages || []
-    let defaultLanguageCode = mainLanguageCode
+    let defaultLanguageCode: string | null = null
+    if (languages[mainLanguageCode]) {
+        defaultLanguageCode = mainLanguageCode
+    }
 
     if (locale && locales[locale]?.language && languages[locales[locale].language]) {
         defaultLanguageCode = locales[locale].language
