@@ -734,7 +734,8 @@
         if (existing?.id === node.id) {
             selectedNodes = selectedNodes.filter(n => n.link !== node.link);
         } else {
-            selectedNodes = [...selectedNodes.filter(n => n.link !== node.link), node];
+            const icon = node.scope ? getTabIcon(node.scope) : null;
+            selectedNodes = [...selectedNodes.filter(n => n.link !== node.link), {...node, icon}];
         }
     }
 
