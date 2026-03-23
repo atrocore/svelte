@@ -57,7 +57,7 @@
     let treeScope: string | null;
     let treeIcon: string | null;
     let layoutData: any;
-    let selectNodeId: string | null = null;
+
     let isHidden: boolean = false;
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
@@ -283,11 +283,6 @@
                 }
 
                 if (model && model.get('id') === node.id && (['_self', '_bookmark', '_lastViewed'].includes(activeItem.name) || node.scope === model.name)) {
-                    $tree.tree('addToSelection', node);
-                    $li.addClass('jqtree-selected');
-                }
-
-                if (!['_self', '_bookmark', '_admin'].includes(activeItem.name) && selectNodeId === node.id) {
                     $tree.tree('addToSelection', node);
                     $li.addClass('jqtree-selected');
                 }
@@ -669,7 +664,6 @@
             let node = $tree.tree('getNodeById', id);
             if (node) {
                 $tree.tree('addToSelection', node);
-                selectNodeId = id
             }
 
             $tree.find(`.jqtree-title`).each((k, el) => {
@@ -769,7 +763,6 @@
     export function unSelectTreeNode(id) {
         const $tree = getTreeEl();
         const node = $tree.tree('getNodeById', id);
-        selectNodeId = null;
 
         if (node) {
             $tree.tree('removeFromSelection', node);
@@ -936,16 +929,6 @@
             Storage.clear('treeSearchValue', treeScope)
             Storage.clear('treeSearchValue', '_admin')
 
-            if (mode === 'list') {
-                if (selectNodeId) {
-                    if (callbacks?.selectNode) {
-                        callbacks.selectNode({id: selectNodeId});
-                    }
-                    selectNodeId = null
-                }
-            } else {
-                selectNodeId = null
-            }
             initSorting(false)
             rebuildTree()
         })
@@ -1242,8 +1225,22 @@
                 selectedNodes = [];
             }
         };
+
+        const onTreeNodesRulesChanged = (e: CustomEvent) => {
+            if (e.detail.scope !== scope) return;
+            const treeKeys: string[] = e.detail.treeKeys;
+            const next = selectedNodes.filter(n => treeKeys.includes(`${n.link}__${n.id}`));
+            if (next.length !== selectedNodes.length) {
+                selectedNodes = next;
+            }
+        };
+
         window.addEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
-        return () => window.removeEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
+        window.addEventListener('tree-nodes-rules-changed', onTreeNodesRulesChanged as EventListener);
+        return () => {
+            window.removeEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
+            window.removeEventListener('tree-nodes-rules-changed', onTreeNodesRulesChanged as EventListener);
+        };
     });
 
     function onSidebarResize(e: CustomEvent): void {

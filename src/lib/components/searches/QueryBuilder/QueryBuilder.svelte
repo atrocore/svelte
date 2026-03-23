@@ -1067,7 +1067,7 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-
+            window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
             handleAdvancedFilterChecked();
             return;
         }
@@ -1102,6 +1102,11 @@
                 if (rules.rules.length === 0) {
                     updateCollection();
                 }
+
+                const treeKeys = (rules.rules || [])
+                    .filter((r: any) => isTreeNodeRule(r))
+                    .map((r: any) => r.data._treeNodeKey as string);
+                window.dispatchEvent(new CustomEvent('tree-nodes-rules-changed', {detail: {scope, treeKeys}}));
             }
             queryBuilderRulesChanged = false;
         } catch (err) {
