@@ -33,8 +33,6 @@
 
     export let isAdminPage: boolean = false;
 
-    export let showApplyQuery: boolean = true;
-
     export let showApplySortOrder: boolean = true
 
     export function setShowItems(value: string[]) {
@@ -63,7 +61,6 @@
     let isHidden: boolean = false;
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
-    let applyAdvancedFilter: boolean = false;
     let showEmptyPlaceholder: boolean = false;
     let selectedNodes: Array<{ id: string; name: string; scope: string; link: string }> = [];
     let mounted = false;
@@ -124,7 +121,7 @@
 
     function getWhereData(): [] {
         let whereData = Storage.get('treeWhereData', scope) || [];
-        if (!['_self', '_bookmark'].includes(activeItem.name) || !applyAdvancedFilter) {
+        if (!['_self', '_bookmark'].includes(activeItem.name)) {
             whereData = [];
         }
 
@@ -133,15 +130,36 @@
 
     function getForeignWhereData() {
         let whereData = Storage.get('treeWhereData', scope) || [];
-        if (['_self', '_bookmark'].includes(activeItem.name) || !applyAdvancedFilter) {
+        if (['_self', '_bookmark'].includes(activeItem.name)) {
             whereData = [];
+        }
+
+        // When a node is selected in the current linked tab — exclude its rule from tree filtering
+        // (the node is highlighted but the tree shows all items unfiltered)
+        const activeNode = selectedNodes.find(n => n.link === activeItem.name);
+        if (activeNode && Array.isArray(whereData)) {
+            const rule = buildRuleForNode(activeNode);
+            whereData = whereData.map((item: any) => {
+                if (item.condition && Array.isArray(item.rules)) {
+                    return {
+                        ...item,
+                        rules: item.rules.filter((r: any) =>
+                            !(r.id === rule.id &&
+                              r.operator === rule.operator &&
+                              Array.isArray(r.value) &&
+                              r.value[0] === rule.value[0])
+                        )
+                    };
+                }
+                return item;
+            }).filter((item: any) => !(item.condition && item.rules?.length === 0));
         }
 
         return JSON.parse(JSON.stringify(whereData))
     }
 
     function canUseDataRequest() {
-        if (!['_self', '_bookmark'].includes(activeItem.name) || (applyAdvancedFilter && getWhereData().length > 0)) {
+        if (!['_self', '_bookmark'].includes(activeItem.name) || getWhereData().length > 0) {
             return true
         }
         return false
@@ -362,19 +380,8 @@
                 return;
             }
 
-            if (Storage.get('selectedNodeId', scope) && mode === 'list') {
-                const id = Storage.get('selectedNodeId', scope);
-                const route = Storage.get('selectedNodeRoute', scope);
-                if (callbacks?.selectNode) {
-                    callbacks.selectNode({id, route}, true);
-                }
-            }
-            if (mode === 'detail') {
-                if (model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-                    selectTreeNode(model.get('id'), (model.get('routesNames')?.[0]?.map(item => item.id) || []).reverse())
-                } else if (Storage.get('selectedNodeId', scope)) {
-                    selectTreeNode(Storage.get('selectedNodeId', scope), parseRoute(Storage.get('selectedNodeRoute', scope)))
-                }
+            if (mode === 'detail' && model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
+                selectTreeNode(model.get('id'), (model.get('routesNames')?.[0]?.map(item => item.id) || []).reverse())
             }
         })
         $tree.on('tree.move', e => {
@@ -772,6 +779,7 @@
     }
 
     function syncSelectedNodesToFilter(nodes: typeof selectedNodes): void {
+        Storage.set('treeSelectedNodes', scope, nodes);
         window.dispatchEvent(new CustomEvent('sync-tree-nodes-filter', {
             detail: {scope, rules: nodes.map(buildRuleForNode)}
         }));
@@ -1245,6 +1253,12 @@
 
     onMount(() => {
         mounted = true;
+
+        const storedNodes = Storage.get('treeSelectedNodes', scope);
+        if (Array.isArray(storedNodes) && storedNodes.length > 0) {
+            selectedNodes = storedNodes;
+        }
+
         const savedWidth = Storage.get('panelWidth', scope);
         if (savedWidth) {
             currentWidth = parseInt(savedWidth) || minWidth;
@@ -1255,15 +1269,6 @@
         }
 
         isPinned = Storage.get('catalog-tree-panel-pin', scope) !== 'not-pinned';
-
-        let treeApplyAdvanced = Storage.get('treeApplyAdvancedFilter', scope);
-        if (treeApplyAdvanced) {
-            applyAdvancedFilter = treeApplyAdvanced === 'on';
-        } else {
-            applyAdvancedFilter = true;
-        }
-
-        applyAdvancedFilter = showApplyQuery && applyAdvancedFilter;
 
         if (collection) {
             Storage.set('treeWhereData', scope, collection.where)
@@ -1325,12 +1330,7 @@
         Storage.set('catalog-tree-panel-pin', scope, isPinned ? 'pin' : 'not-pinned');
     }
 
-    function handleFilterToggle(e: MouseEvent): void {
-        applyAdvancedFilter = !applyAdvancedFilter;
-        Storage.set('treeApplyAdvancedFilter', scope, applyAdvancedFilter ? 'on' : 'off');
-        Notifier.notify('Loading...')
-        rebuildTree()
-    }
+
 </script>
 
 <CollapsibleSidebar className="catalog-tree-panel" position="left" bind:width={currentWidth} bind:isCollapsed={isCollapsed}
@@ -1401,23 +1401,6 @@
                                     </div>
                                 </div>
                             {/if}
-                            {#if showApplyQuery && !(activeItem.name === '_items') && !['_lastViewed', '_admin'].includes(activeItem.name) }
-                                <div class="main-filter-container">
-                                     <span class="icons-wrapper">
-                                        <span class="toggle" class:active={applyAdvancedFilter}
-                                              on:click|stopPropagation|preventDefault={handleFilterToggle}
-                                        >
-                                            {#if applyAdvancedFilter}
-                                                <i class="ph-fill ph-toggle-right"></i>
-                                            {:else}
-                                                <i class="ph-fill ph-toggle-left"></i>
-                                            {/if}
-                                        </span>
-                                         {Language.translate('applyMainSearchAndFilter')}
-                                    </span>
-                                </div>
-                            {/if}
-
                         </div>
                     </div>
 
@@ -1426,7 +1409,7 @@
                     </div>
 
                     {#if showEmptyPlaceholder}
-                        <p>{Language.translate('No Data')}</p>
+                        <div class="no-data-container"><p>{Language.translate('No Data')}</p></div>
                     {/if}
 
                     <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
@@ -1593,7 +1576,7 @@
         align-items: center;
     }
 
-    .sort-container, .main-filter-container {
+    .sort-container {
         margin-top: 5px;
     }
 
@@ -1633,13 +1616,7 @@
         border-color: var(--primary-border-color);
     }
 
-    .main-filter-container {
-        font-size: 12px;
-        margin-left: auto;
-        margin-right: 0;
-    }
-
-    .main-filter-container i {
-        font-size: 16px;
+    .no-data-container {
+        padding: 0 10px;
     }
 </style>
