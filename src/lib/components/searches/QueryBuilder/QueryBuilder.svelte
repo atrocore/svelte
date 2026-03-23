@@ -28,6 +28,7 @@
     let model = new searchManager.collection.model();
 
     let advancedFilterChecked = false;
+    let treeNodeRules: any[] = [];
 
     let generalFilterOpened: boolean = false;
 
@@ -909,6 +910,37 @@
         applyFilter()
     }
 
+    function isTreeNodeRule(rule: any): boolean {
+        return treeNodeRules.some(tr =>
+            tr.id === rule.id &&
+            tr.operator === rule.operator &&
+            Array.isArray(rule.value) &&
+            rule.value.length === 1 &&
+            tr.value[0] === rule.value[0]
+        );
+    }
+
+    function syncTreeNodesFilter(event: CustomEvent) {
+        if (event.detail.scope !== scope) return;
+
+        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
+
+        if (Array.isArray(rules.rules)) {
+            rules.rules = rules.rules.filter((r: any) => !isTreeNodeRule(r));
+        } else {
+            rules = {condition: 'AND', rules: []};
+        }
+
+        treeNodeRules = event.detail.rules;
+
+        for (const rule of treeNodeRules) {
+            rules.rules.push(rule);
+        }
+
+        window.$(queryBuilderElement).queryBuilder('setRules', rules);
+        applyFilter();
+    }
+
     function copySaveSearch(item: any): void {
         searchManager.update({queryBuilder: item.data, queryBuilderApplied: false});
         prepareFilters(() => {
@@ -1141,6 +1173,7 @@
         });
 
         window.addEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
+        window.addEventListener('sync-tree-nodes-filter', syncTreeNodesFilter as EventListener);
 
         return () => {
             searchManager.collection.off('filter-state:changed');
@@ -1148,6 +1181,7 @@
             selectSavedSub();
             advancedFilterCheckedSub();
             window.removeEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
+            window.removeEventListener('sync-tree-nodes-filter', syncTreeNodesFilter as EventListener);
         }
     })
 </script>

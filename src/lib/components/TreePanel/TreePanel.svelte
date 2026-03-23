@@ -12,6 +12,7 @@
     import { ApiClient } from '$lib/core/api-client';
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
+    import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
 
     export let scope: string;
     export let model: any = null;
@@ -64,6 +65,10 @@
     let sortBy: string | null = null;
     let applyAdvancedFilter: boolean = false;
     let showEmptyPlaceholder: boolean = false;
+    let selectedNodes: Array<{ id: string; name: string; scope: string; link: string }> = [];
+    let mounted = false;
+
+    $: if (mounted) syncSelectedNodesToFilter(selectedNodes);
 
     $: {
         treeScope = activeItem ? getLinkScope(activeItem.name) : null;
@@ -415,6 +420,17 @@
                     return loadMore(node);
                 }
 
+                // For linked relationship tabs — add to selectedNodes instead of standard selection
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) {
+                    toggleSelectedNode({
+                        id: node.id,
+                        name: node.name,
+                        scope: node.scope || treeScope,
+                        link: activeItem.name
+                    });
+                    return;
+                }
+
                 if (node.element && !isNodeInSubTree(node)) {
                     appendUnsetButton(window.$(node.element));
                 }
@@ -732,6 +748,42 @@
                 }
             })
         }
+    }
+
+    function buildRuleForNode(node: { id: string; name: string; scope: string; link: string }) {
+        let field = node.link;
+        let operator = 'linked_with';
+        if (Metadata.get(['entityDefs', scope, 'fields', field, 'type']) === 'link') {
+            field = field + 'Id';
+            operator = 'in';
+        }
+        return {
+            operator,
+            id: field,
+            field,
+            value: [node.id],
+            data: {nameHash: {[node.id]: node.name}},
+            _treeNode: true
+        };
+    }
+
+    function syncSelectedNodesToFilter(nodes: typeof selectedNodes): void {
+        window.dispatchEvent(new CustomEvent('sync-tree-nodes-filter', {
+            detail: {scope, rules: nodes.map(buildRuleForNode)}
+        }));
+    }
+
+    function toggleSelectedNode(node: { id: string; name: string; scope: string; link: string }): void {
+        const existing = selectedNodes.find(n => n.link === node.link);
+        if (existing?.id === node.id) {
+            selectedNodes = selectedNodes.filter(n => n.link !== node.link);
+        } else {
+            selectedNodes = [...selectedNodes.filter(n => n.link !== node.link), node];
+        }
+    }
+
+    function removeSelectedNode(id: string, link: string): void {
+        selectedNodes = selectedNodes.filter(n => n.link !== link);
     }
 
     function getDisabledNodesFromFilter() {
@@ -1175,6 +1227,7 @@
     }
 
     onMount(() => {
+        mounted = true;
         const savedWidth = Storage.get('panelWidth', scope);
         if (savedWidth) {
             currentWidth = parseInt(savedWidth) || minWidth;
@@ -1358,6 +1411,8 @@
                     {#if showEmptyPlaceholder}
                         <p>{Language.translate('No Data')}</p>
                     {/if}
+
+                    <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
                 {/if}
             {/if}
         {/if}
