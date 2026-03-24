@@ -1349,7 +1349,9 @@
             {/if}
         {/if}
     </div>
-    <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
+    {#if mode === 'list'}
+        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
+    {/if}
 </CollapsibleSidebar>
 
 <style>
