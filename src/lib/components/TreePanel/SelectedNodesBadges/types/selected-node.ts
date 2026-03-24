@@ -1,4 +1,4 @@
-export interface SelectedNode {
+export type SelectedNode = {
     id: string;
     name: string;
     scope: string;
