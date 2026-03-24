@@ -1,5 +1,7 @@
 <script lang="ts">
-    export let nodes: Array<{ id: string; name: string; scope: string; link: string; icon?: string | null }> = [];
+    import type { SelectedNode } from './types/selected-node';
+
+    export let nodes: SelectedNode[] = [];
     export let onRemove: (id: string, link: string) => void = () => {};
 </script>
 

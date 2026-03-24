@@ -13,6 +13,7 @@
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
+    import type { SelectedNode } from './SelectedNodesBadges/types/selected-node';
 
     export let scope: string;
     export let model: any = null;
@@ -62,7 +63,7 @@
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
     let showEmptyPlaceholder: boolean = false;
-    let selectedNodes: Array<{ id: string; name: string; scope: string; link: string }> = [];
+    let selectedNodes: SelectedNode[] = [];
     let mounted = false;
 
     $: if (mounted) syncSelectedNodesToFilter(selectedNodes);
@@ -684,7 +685,7 @@
         openNodes($tree, ids, onFinished);
     }
 
-    function buildRuleForNode(node: { id: string; name: string; scope: string; link: string }) {
+    function buildRuleForNode(node: SelectedNode) {
         let field = node.link;
         let operator = 'linked_with';
         if (Metadata.get(['entityDefs', scope, 'fields', field, 'type']) === 'link') {
@@ -703,7 +704,7 @@
         };
     }
 
-    function syncSelectedNodesToFilter(nodes: typeof selectedNodes): void {
+    function syncSelectedNodesToFilter(nodes: SelectedNode[]): void {
         Storage.set('treeSelectedNodes', scope, nodes);
         window.dispatchEvent(new CustomEvent('sync-tree-nodes-filter', {
             detail: {scope, rules: nodes.map(buildRuleForNode)}
@@ -723,7 +724,7 @@
         });
     }
 
-    function toggleSelectedNode(node: { id: string; name: string; scope: string; link: string }): void {
+    function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
         const existing = selectedNodes.find(n => n.link === node.link);
         if (existing?.id === node.id) {
             selectedNodes = selectedNodes.filter(n => n.link !== node.link);
