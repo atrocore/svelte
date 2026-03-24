@@ -178,6 +178,7 @@
         });
 
         $queryBuilder.on('click', '.rule-toggle', function (e: any) {
+            if (window.$(e.currentTarget).hasClass('disabled')) return;
             const $el = window.$(e.currentTarget)
             let disabled
 
@@ -449,6 +450,7 @@
 
         $queryBuilder.on('afterSetRules.queryBuilder', (e: any, rule: any) => {
             model.trigger('afterInitQueryBuilder');
+            markTreeNodeRuleToggles();
         });
 
         $queryBuilder.on('afterAddGroup.queryBuilder', (e: any, rule: any) => {
@@ -458,6 +460,9 @@
         $queryBuilder.on('afterAddRule.queryBuilder', async (e: any, rule: any) => {
             await tick();
             if (rule.$el) {
+                if (isTreeNodeRule(rule)) {
+                    rule.$el.find('.rule-toggle').addClass('disabled');
+                }
                 rule.$el.find('.rule-filter-container select:not(.selectized)').selectize({
                     onFocus: function () {
                         if (this.getValue() === defaultValue) {
@@ -916,6 +921,15 @@
         return !!rule.data?._treeNodeKey;
     }
 
+    function markTreeNodeRuleToggles(): void {
+        const $queryBuilder = window.$(queryBuilderElement);
+        $queryBuilder[0]?.queryBuilder?.getRules({allow_invalid: true})?.rules?.forEach((rule: any) => {
+            if (isTreeNodeRule(rule) && rule.$el) {
+                rule.$el.find('.rule-toggle').addClass('disabled');
+            }
+        });
+    }
+
     function syncTreeNodesFilter(event: CustomEvent) {
         if (event.detail.scope !== scope) return;
 
@@ -1313,6 +1327,12 @@
 
     :global(.advanced-filters .icons-wrapper .toggle.active, .advanced-filters .rule-toggle.active) {
         color: #06c;
+    }
+
+    :global(.advanced-filters .rule-toggle.disabled) {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
     }
 
     :global(.advanced-filters .icons-wrapper .toggle i) {
