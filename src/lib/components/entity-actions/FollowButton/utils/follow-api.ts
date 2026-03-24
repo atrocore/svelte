@@ -2,7 +2,7 @@ import { ApiClient } from '$lib/core/api-client';
 
 export async function followEntity(entity: string, id: string): Promise<boolean> {
     try {
-        await ApiClient.put(`${entity}/${id}/subscription`);
+        await ApiClient.patch(`${entity}/${id}/subscription`);
         return true;
     } catch {
         return false;
