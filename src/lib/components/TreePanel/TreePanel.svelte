@@ -426,7 +426,7 @@
                 }
 
                 // For linked relationship tabs — add to selectedNodes + notify backbone
-                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) {
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && !isNodeInSubTree(node)) {
                     toggleSelectedNode({
                         id: node.id,
                         name: node.name,
