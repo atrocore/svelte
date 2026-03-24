@@ -20,8 +20,8 @@
 <style>
     .selected-nodes-badges {
         position: sticky;
-        z-index: 10;
         bottom: 0;
+        z-index: 10;
         background: var(--sidebar-color);
         padding: 6px 8px;
         display: flex;

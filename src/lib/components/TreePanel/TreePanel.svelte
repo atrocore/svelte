@@ -1345,14 +1345,23 @@
                         <div class="no-data-container"><p>{Language.translate('No Data')}</p></div>
                     {/if}
 
-                    <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
                 {/if}
             {/if}
         {/if}
     </div>
+    <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
 </CollapsibleSidebar>
 
 <style>
+    :global(.catalog-tree-panel .sidebar-inner) {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .category-panel {
+        flex: 1;
+    }
+
     .field[data-name="category-search"] {
         position: relative;
     }
