@@ -25,10 +25,10 @@
         bottom: 0;
         z-index: 10;
         background: var(--sidebar-color);
-        padding: 6px 8px;
+        padding: 10px 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
+        gap: 5px;
         border-top: 1px solid #efefef;
     }
 

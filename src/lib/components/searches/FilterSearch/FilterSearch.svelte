@@ -20,6 +20,7 @@
     let showUnsetAll: boolean = false;
     let filterNames: string = "";
     let advancedFilterDisabled: boolean = false;
+    let hasTreeNodeRules: boolean = false;
     let advancedFilterChecked: boolean = searchManager.isQueryBuilderApplied();
     let dropdownButton: HTMLElement;
     let dropdownDiv: HTMLElement;
@@ -54,7 +55,11 @@
     const advancedFilterDisabledSub = generalFilterStore.advancedFilterDisabled.subscribe((value) => {
         advancedFilterDisabled = value;
         closeDropdown();
-    })
+    });
+
+    const hasTreeNodeRulesSub = generalFilterStore.hasTreeNodeRules.subscribe((value) => {
+        hasTreeNodeRules = value;
+    });
 
     function refreshShowUnsetAll() {
         showUnsetAll = searchManager.isFilterSet();
@@ -196,6 +201,7 @@
             selectSavedSub();
             selectBoolSub();
             advancedFilterDisabledSub();
+            hasTreeNodeRulesSub();
             dropdown.destroy();
         }
     });
@@ -237,7 +243,7 @@
                     <ul class="advanced-checkbox">
                         <li class="checkbox">
                             <label>
-                                <input type="checkbox" disabled={advancedFilterDisabled}
+                                <input type="checkbox" disabled={advancedFilterDisabled || hasTreeNodeRules}
                                        bind:checked={advancedFilterChecked}
                                        on:change={() => handleAdvancedFilterChecked()}>
                                 {Language.translate('Advanced Filter')}
@@ -250,7 +256,7 @@
             {#if filterNames !== "" || advancedFilterChecked}
                 <button
                         type="button"
-                        disabled={!showUnsetAll}
+                        disabled={!showUnsetAll || hasTreeNodeRules}
                         class="reset"
                         title={Language.translate('Reset Filter')}
                         aria-expanded="false"

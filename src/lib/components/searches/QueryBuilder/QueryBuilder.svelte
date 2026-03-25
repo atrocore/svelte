@@ -49,6 +49,9 @@
 
     let hasQbRules: boolean = false;
 
+    let hasTreeNodeRules: boolean = false;
+    $: generalFilterStore.hasTreeNodeRules.set(hasTreeNodeRules);
+
     let isQbValid: boolean = false;
 
     let defaultValue = "-1";
@@ -615,6 +618,7 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
+        hasTreeNodeRules = false;
         window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
@@ -792,6 +796,7 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
+        hasTreeNodeRules = false;
         window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
@@ -945,6 +950,7 @@
         }
 
         rules.rules.unshift(...event.detail.rules);
+        hasTreeNodeRules = event.detail.rules.length > 0;
 
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
         applyFilter();
@@ -1071,7 +1077,7 @@
     }
 
     function handleFilterToggle(e: MouseEvent): void {
-        if (advancedFilterDisabled) {
+        if (advancedFilterDisabled || hasTreeNodeRules) {
             return;
         }
 
@@ -1079,7 +1085,8 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-            window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
+            hasTreeNodeRules = false;
+        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
             handleAdvancedFilterChecked();
             return;
         }
@@ -1241,7 +1248,7 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled} class:active={advancedFilterChecked}
+                <span class="toggle" class:disabled={advancedFilterDisabled || hasTreeNodeRules} class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
                     {#if advancedFilterChecked}
