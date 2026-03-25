@@ -13,9 +13,13 @@
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
-    import type { SelectedNode } from './SelectedNodesBadges/types/selected-node';
+    import type { SelectedNode } from '$lib/types/selected-node';
+    import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
+    import { buildRuleForNode } from './utils/tree-node-rule';
+    import { get } from 'svelte/store';
 
     export let scope: string;
+    export let uniqueKey: string = 'default';
     export let model: any = null;
     export let collection: any = null;
     export let callbacks: object = {};
@@ -63,10 +67,12 @@
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
     let showEmptyPlaceholder: boolean = false;
-    let selectedNodes: SelectedNode[] = [];
+    const generalFilterStore = getGeneralFilterStore(uniqueKey);
+    const selectedNodes = generalFilterStore.selectedTreeNodes;
+    const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
 
-    $: if (mounted) syncSelectedNodesToFilter(selectedNodes);
+    $: if (mounted) syncSelectedNodesToFilter($selectedNodes);
 
     $: {
         treeScope = activeItem ? getLinkScope(activeItem.name) : null;
@@ -137,9 +143,9 @@
 
         // When a node is selected in the current linked tab — exclude its rule from tree filtering
         // (the node is highlighted but the tree shows all items unfiltered)
-        const activeNode = selectedNodes.find(n => n.link === activeItem.name);
+        const activeNode = $selectedNodes.find(n => n.link === activeItem.name);
         if (activeNode && Array.isArray(whereData)) {
-            const rule = buildRuleForNode(activeNode);
+            const rule = buildRuleForNode(activeNode, scope);
             whereData = whereData.map((item: any) => {
                 if (item.condition && Array.isArray(item.rules)) {
                     return {
@@ -288,7 +294,7 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && $selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
                     $li.addClass('jqtree-selected');
                 }
 
@@ -685,30 +691,9 @@
         openNodes($tree, ids, onFinished);
     }
 
-    function buildRuleForNode(node: SelectedNode) {
-        let field = node.link;
-        let operator = 'linked_with';
-        if (Metadata.get(['entityDefs', scope, 'fields', field, 'type']) === 'link') {
-            field = field + 'Id';
-            operator = 'in';
-        }
-        return {
-            operator,
-            id: field,
-            field,
-            value: [node.id],
-            data: {
-                nameHash: {[node.id]: node.name},
-                _treeNodeKey: `${node.link}__${node.id}`
-            }
-        };
-    }
-
     function syncSelectedNodesToFilter(nodes: SelectedNode[]): void {
         Storage.set('treeSelectedNodes', scope, nodes);
-        window.dispatchEvent(new CustomEvent('sync-tree-nodes-filter', {
-            detail: {scope, rules: nodes.map(buildRuleForNode)}
-        }));
+        treeNodeRules.set(nodes.map(n => buildRuleForNode(n, scope)));
         refreshTreeSelection();
     }
 
@@ -719,23 +704,24 @@
         $tree.find('li.jqtree_common').each((_, el) => {
             const $li = window.$(el);
             const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
-            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
+            const isSelected = get(selectedNodes).some(n => n.id === nodeId && n.link === activeItem.name);
             $li.toggleClass('jqtree-selected', isSelected);
         });
     }
 
     function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
-        const existing = selectedNodes.find(n => n.link === node.link);
+        const current = get(selectedNodes);
+        const existing = current.find(n => n.link === node.link);
         if (existing?.id === node.id) {
-            selectedNodes = selectedNodes.filter(n => n.link !== node.link);
+            selectedNodes.set(current.filter(n => n.link !== node.link));
         } else {
             const icon = node.scope ? getTabIcon(node.scope) : null;
-            selectedNodes = [...selectedNodes.filter(n => n.link !== node.link), {...node, icon}];
+            selectedNodes.set([...current.filter(n => n.link !== node.link), {...node, icon}]);
         }
     }
 
     function removeSelectedNode(id: string, link: string): void {
-        selectedNodes = selectedNodes.filter(n => n.link !== link);
+        selectedNodes.update(nodes => nodes.filter(n => n.link !== link));
     }
 
     function getDisabledNodesFromFilter() {
@@ -1168,7 +1154,7 @@
 
         const storedNodes = Storage.get('treeSelectedNodes', scope);
         if (Array.isArray(storedNodes) && storedNodes.length > 0) {
-            selectedNodes = storedNodes;
+            selectedNodes.set(storedNodes);
         }
 
         const savedWidth = Storage.get('panelWidth', scope);
@@ -1221,27 +1207,7 @@
             callbacks.afterMounted();
         }
 
-        const onClearTreeNodes = (e: CustomEvent) => {
-            if (e.detail.scope === scope) {
-                selectedNodes = [];
-            }
-        };
-
-        const onTreeNodesRulesChanged = (e: CustomEvent) => {
-            if (e.detail.scope !== scope) return;
-            const treeKeys: string[] = e.detail.treeKeys;
-            const next = selectedNodes.filter(n => treeKeys.includes(`${n.link}__${n.id}`));
-            if (next.length !== selectedNodes.length) {
-                selectedNodes = next;
-            }
-        };
-
-        window.addEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
-        window.addEventListener('tree-nodes-rules-changed', onTreeNodesRulesChanged as EventListener);
-        return () => {
-            window.removeEventListener('clear-tree-nodes-filter', onClearTreeNodes as EventListener);
-            window.removeEventListener('tree-nodes-rules-changed', onTreeNodesRulesChanged as EventListener);
-        };
+        return () => {};
     });
 
     function onSidebarResize(e: CustomEvent): void {
@@ -1351,7 +1317,7 @@
         {/if}
     </div>
     {#if mode === 'list'}
-        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => selectedNodes = []} />
+        <SelectedNodesBadges nodes={$selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => selectedNodes.set([])} />
     {/if}
 </CollapsibleSidebar>
 

@@ -1,7 +1,1 @@
-export type SelectedNode = {
-    id: string;
-    name: string;
-    scope: string;
-    link: string;
-    icon?: string | null;
-}
+export type { SelectedNode } from '$lib/types/selected-node';

@@ -49,13 +49,14 @@
 
     let hasQbRules: boolean = false;
 
-    let hasTreeNodeRules: boolean = false;
-
     let isQbValid: boolean = false;
 
     let defaultValue = "-1";
 
     let generalFilterStore = getGeneralFilterStore(uniqueKey);
+
+    const treeNodeRulesStore = generalFilterStore.treeNodeRules;
+    $: hasTreeNodeRules = $treeNodeRulesStore.length > 0;
 
     let savedSearchStore = getSavedSearchStore(scope, uniqueKey, {
         items: searchManager.savedSearchList || [],
@@ -618,9 +619,8 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
-        hasTreeNodeRules = false;
-        generalFilterStore.hasTreeNodeRules.set(false);
-        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
+        generalFilterStore.selectedTreeNodes.set([]);
+        generalFilterStore.treeNodeRules.set([]);
     }
 
     function updateCollection() {
@@ -797,9 +797,8 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
-        hasTreeNodeRules = false;
-        generalFilterStore.hasTreeNodeRules.set(false);
-        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
+        generalFilterStore.selectedTreeNodes.set([]);
+        generalFilterStore.treeNodeRules.set([]);
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
@@ -941,14 +940,15 @@
                 window.$(el).addClass('tree-node-rule');
             }
         });
-        hasTreeNodeRules = found;
-        generalFilterStore.hasTreeNodeRules.set(found);
     }
 
-    function syncTreeNodesFilter(event: CustomEvent) {
-        if (event.detail.scope !== scope) return;
-
+    function syncTreeNodesToQB(treeRules: any[]): void {
         let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
+
+        const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
+        if (treeRules.length === 0 && currentTreeRules.length === 0) {
+            return;
+        }
 
         if (Array.isArray(rules.rules)) {
             if (rules.condition !== 'AND') {
@@ -959,7 +959,7 @@
             rules = {condition: 'AND', rules: []};
         }
 
-        rules.rules.unshift(...event.detail.rules);
+        rules.rules.unshift(...treeRules);
 
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
         applyFilter();
@@ -1094,9 +1094,8 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-            hasTreeNodeRules = false;
-        generalFilterStore.hasTreeNodeRules.set(false);
-        window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
+            generalFilterStore.selectedTreeNodes.set([]);
+        generalFilterStore.treeNodeRules.set([]);
             handleAdvancedFilterChecked();
             return;
         }
@@ -1123,8 +1122,14 @@
         try {
             const rules = $queryBuilder.queryBuilder('getRules');
             if (rules) {
+                const rulesToSave = JSON.parse(JSON.stringify(rules));
+                (rulesToSave.rules || []).forEach((r: any) => {
+                    if (isTreeNodeRule(r) && r.data?.nameHash) {
+                        delete r.data.nameHash;
+                    }
+                });
                 updateSearchManager({
-                    queryBuilder: rules,
+                    queryBuilder: rulesToSave,
                     advanced: []
                 });
                 handleAdvancedFilterChecked(false);
@@ -1135,7 +1140,11 @@
                 const treeKeys = (rules.rules || [])
                     .filter((r: any) => isTreeNodeRule(r))
                     .map((r: any) => r.data._treeNodeKey as string);
-                window.dispatchEvent(new CustomEvent('tree-nodes-rules-changed', {detail: {scope, treeKeys}}));
+                const currentNodes = get(generalFilterStore.selectedTreeNodes);
+                const filteredNodes = currentNodes.filter(n => treeKeys.includes(`${n.link}__${n.id}`));
+                if (filteredNodes.length !== currentNodes.length) {
+                    generalFilterStore.selectedTreeNodes.set(filteredNodes);
+                }
             }
             queryBuilderRulesChanged = false;
         } catch (err) {
@@ -1199,20 +1208,23 @@
         refreshShowUnsetAll();
         searchManager.collection.on('filter-state:changed', (value: any) => showUnsetAll = !!value);
 
+        let unsubTreeNodes: (() => void) | null = null;
         prepareFilters(() => {
             initQueryBuilderFilter();
+            unsubTreeNodes = generalFilterStore.treeNodeRules.subscribe(rules => {
+                syncTreeNodesToQB(rules);
+            });
         });
 
         window.addEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
-        window.addEventListener('sync-tree-nodes-filter', syncTreeNodesFilter as EventListener);
 
         return () => {
             searchManager.collection.off('filter-state:changed');
             selectBoolSub();
             selectSavedSub();
             advancedFilterCheckedSub();
+            unsubTreeNodes?.();
             window.removeEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
-            window.removeEventListener('sync-tree-nodes-filter', syncTreeNodesFilter as EventListener);
         }
     })
 </script>

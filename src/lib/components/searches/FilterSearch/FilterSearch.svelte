@@ -57,8 +57,8 @@
         closeDropdown();
     });
 
-    const hasTreeNodeRulesSub = generalFilterStore.hasTreeNodeRules.subscribe((value) => {
-        hasTreeNodeRules = value;
+    const hasTreeNodeRulesSub = generalFilterStore.treeNodeRules.subscribe((rules) => {
+        hasTreeNodeRules = rules.length > 0;
     });
 
     function refreshShowUnsetAll() {
