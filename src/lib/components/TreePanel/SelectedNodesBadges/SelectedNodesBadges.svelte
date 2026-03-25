@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { SelectedNode } from './types/selected-node';
+    import type { SelectedNode } from '../types/selected-node';
     import { Language } from '$lib/core/language';
 
     export let nodes: SelectedNode[] = [];
