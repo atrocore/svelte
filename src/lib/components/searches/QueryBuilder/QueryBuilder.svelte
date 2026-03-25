@@ -1350,16 +1350,13 @@
     :global(.query-builder .rule-container.tree-node-rule .rule-operator-container),
     :global(.query-builder .rule-container.tree-node-rule .rule-value-container) {
         pointer-events: none;
-        opacity: 0.5;
-    }
-
-    :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
-        pointer-events: none;
         cursor: not-allowed;
     }
 
     :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
+        pointer-events: none;
         opacity: .6;
+        cursor: not-allowed;
     }
 
     :global(.advanced-filters .icons-wrapper .toggle i) {
