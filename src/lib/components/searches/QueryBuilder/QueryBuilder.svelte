@@ -464,7 +464,7 @@
             await tick();
             if (rule.$el) {
                 if (isTreeNodeRule(rule)) {
-                    rule.$el.find('.rule-toggle').addClass('disabled');
+                    rule.$el.addClass('tree-node-rule');
                 }
                 rule.$el.find('.rule-filter-container select:not(.selectized)').selectize({
                     onFocus: function () {
@@ -938,7 +938,7 @@
             const rule = qb.getModel(el);
             if (rule && isTreeNodeRule(rule)) {
                 found = true;
-                window.$(el).find('.rule-toggle').addClass('disabled');
+                window.$(el).addClass('tree-node-rule');
             }
         });
         hasTreeNodeRules = found;
@@ -1346,10 +1346,20 @@
         color: #06c;
     }
 
-    :global(.advanced-filters .rule-toggle.disabled) {
-        opacity: 0.35;
-        cursor: not-allowed;
+    :global(.query-builder .rule-container.tree-node-rule .rule-filter-container),
+    :global(.query-builder .rule-container.tree-node-rule .rule-operator-container),
+    :global(.query-builder .rule-container.tree-node-rule .rule-value-container) {
         pointer-events: none;
+        opacity: 0.5;
+    }
+
+    :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
+        opacity: .6;
     }
 
     :global(.advanced-filters .icons-wrapper .toggle i) {
