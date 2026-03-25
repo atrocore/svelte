@@ -619,7 +619,6 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
-        generalFilterStore.selectedTreeNodes.set([]);
         generalFilterStore.treeNodeRules.set([]);
     }
 
@@ -797,7 +796,6 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
-        generalFilterStore.selectedTreeNodes.set([]);
         generalFilterStore.treeNodeRules.set([]);
     }
 
@@ -946,7 +944,9 @@
         let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
 
         const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
-        if (treeRules.length === 0 && currentTreeRules.length === 0) {
+        const storeKeys = treeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
+        const qbKeys = currentTreeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
+        if (storeKeys === qbKeys) {
             return;
         }
 
@@ -1094,7 +1094,6 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-            generalFilterStore.selectedTreeNodes.set([]);
         generalFilterStore.treeNodeRules.set([]);
             handleAdvancedFilterChecked();
             return;
@@ -1137,13 +1136,10 @@
                     updateCollection();
                 }
 
-                const treeKeys = (rules.rules || [])
-                    .filter((r: any) => isTreeNodeRule(r))
-                    .map((r: any) => r.data._treeNodeKey as string);
-                const currentNodes = get(generalFilterStore.selectedTreeNodes);
-                const filteredNodes = currentNodes.filter(n => treeKeys.includes(`${n.link}__${n.id}`));
-                if (filteredNodes.length !== currentNodes.length) {
-                    generalFilterStore.selectedTreeNodes.set(filteredNodes);
+                const newTreeRules = (rules.rules || []).filter((r: any) => isTreeNodeRule(r));
+                const currentTreeRules = get(treeNodeRulesStore);
+                if (newTreeRules.length !== currentTreeRules.length) {
+                    generalFilterStore.treeNodeRules.set(newTreeRules);
                 }
             }
             queryBuilderRulesChanged = false;

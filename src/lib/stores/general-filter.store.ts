@@ -1,11 +1,9 @@
 import { type Writable, writable } from 'svelte/store';
-import type { SelectedNode } from '$lib/types/selected-node';
 
 type GeneralFilterStore = {
     selectBoolFilters: Writable<string[]>;
     advancedFilterChecked: Writable<boolean>;
     advancedFilterDisabled: Writable<boolean>;
-    selectedTreeNodes: Writable<SelectedNode[]>;
     treeNodeRules: Writable<any[]>;
     toggleBoolFilters: (filter: string) => void;
     key?: string;
@@ -17,7 +15,6 @@ function createStore(): GeneralFilterStore {
     const selectBoolFilters = writable<string[]>([]);
     const advancedFilterChecked = writable(false);
     const advancedFilterDisabled = writable(false);
-    const selectedTreeNodes = writable<SelectedNode[]>([]);
     const treeNodeRules = writable<any[]>([]);
 
     function toggleBoolFilters(filter: string): void {
@@ -34,7 +31,6 @@ function createStore(): GeneralFilterStore {
         selectBoolFilters,
         advancedFilterChecked,
         advancedFilterDisabled,
-        selectedTreeNodes,
         treeNodeRules,
         toggleBoolFilters
     }

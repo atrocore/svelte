@@ -68,11 +68,20 @@
     let sortBy: string | null = null;
     let showEmptyPlaceholder: boolean = false;
     const generalFilterStore = getGeneralFilterStore(uniqueKey);
-    const selectedNodes = generalFilterStore.selectedTreeNodes;
     const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
 
-    $: if (mounted) syncSelectedNodesToFilter($selectedNodes);
+    function nodeFromRule(rule: any): SelectedNode {
+        const key: string = rule.data._treeNodeKey;
+        const link = key.split('__')[0];
+        const id = rule.value[0];
+        const name = rule.data.nameHash?.[id] ?? id;
+        const nodeScope = getLinkScope(link) ?? '';
+        return { id, name, link, scope: nodeScope, icon: nodeScope ? getTabIcon(nodeScope) : null };
+    }
+
+    $: selectedNodes = $treeNodeRules.map(r => nodeFromRule(r));
+    $: if (mounted) { selectedNodes; refreshTreeSelection(); }
 
     $: {
         treeScope = activeItem ? getLinkScope(activeItem.name) : null;
@@ -143,7 +152,7 @@
 
         // When a node is selected in the current linked tab — exclude its rule from tree filtering
         // (the node is highlighted but the tree shows all items unfiltered)
-        const activeNode = $selectedNodes.find(n => n.link === activeItem.name);
+        const activeNode = selectedNodes.find(n => n.link === activeItem.name);
         if (activeNode && Array.isArray(whereData)) {
             const rule = buildRuleForNode(activeNode, scope);
             whereData = whereData.map((item: any) => {
@@ -294,7 +303,7 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && $selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
                     $li.addClass('jqtree-selected');
                 }
 
@@ -691,12 +700,6 @@
         openNodes($tree, ids, onFinished);
     }
 
-    function syncSelectedNodesToFilter(nodes: SelectedNode[]): void {
-        Storage.set('treeSelectedNodes', scope, nodes);
-        treeNodeRules.set(nodes.map(n => buildRuleForNode(n, scope)));
-        refreshTreeSelection();
-    }
-
     function refreshTreeSelection(): void {
         if (!treeElement || !activeItem || ['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) return;
 
@@ -704,24 +707,26 @@
         $tree.find('li.jqtree_common').each((_, el) => {
             const $li = window.$(el);
             const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
-            const isSelected = get(selectedNodes).some(n => n.id === nodeId && n.link === activeItem.name);
+            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
             $li.toggleClass('jqtree-selected', isSelected);
         });
     }
 
     function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
-        const current = get(selectedNodes);
-        const existing = current.find(n => n.link === node.link);
-        if (existing?.id === node.id) {
-            selectedNodes.set(current.filter(n => n.link !== node.link));
-        } else {
-            const icon = node.scope ? getTabIcon(node.scope) : null;
-            selectedNodes.set([...current.filter(n => n.link !== node.link), {...node, icon}]);
-        }
+        const current = get(treeNodeRules);
+        const key = `${node.link}__${node.id}`;
+        const hasExact = current.some(r => r.data._treeNodeKey === key);
+        const newRules = hasExact
+            ? current.filter(r => !r.data._treeNodeKey.startsWith(`${node.link}__`))
+            : [...current.filter(r => !r.data._treeNodeKey.startsWith(`${node.link}__`)), buildRuleForNode(node, scope)];
+        Storage.set('treeSelectedNodes', scope, newRules.map(r => nodeFromRule(r)));
+        treeNodeRules.set(newRules);
     }
 
     function removeSelectedNode(id: string, link: string): void {
-        selectedNodes.update(nodes => nodes.filter(n => n.link !== link));
+        const newRules = get(treeNodeRules).filter(r => !r.data._treeNodeKey.startsWith(`${link}__`));
+        Storage.set('treeSelectedNodes', scope, newRules.map(r => nodeFromRule(r)));
+        treeNodeRules.set(newRules);
     }
 
     function getDisabledNodesFromFilter() {
@@ -1154,7 +1159,7 @@
 
         const storedNodes = Storage.get('treeSelectedNodes', scope);
         if (Array.isArray(storedNodes) && storedNodes.length > 0) {
-            selectedNodes.set(storedNodes);
+            treeNodeRules.set(storedNodes.map((n: SelectedNode) => buildRuleForNode(n, scope)));
         }
 
         const savedWidth = Storage.get('panelWidth', scope);
@@ -1317,7 +1322,7 @@
         {/if}
     </div>
     {#if mode === 'list'}
-        <SelectedNodesBadges nodes={$selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => selectedNodes.set([])} />
+        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => { treeNodeRules.set([]); Storage.set('treeSelectedNodes', scope, []); }} />
     {/if}
 </CollapsibleSidebar>
 
