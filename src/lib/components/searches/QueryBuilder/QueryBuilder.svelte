@@ -50,7 +50,6 @@
     let hasQbRules: boolean = false;
 
     let hasTreeNodeRules: boolean = false;
-    $: generalFilterStore.hasTreeNodeRules.set(hasTreeNodeRules);
 
     let isQbValid: boolean = false;
 
@@ -346,6 +345,7 @@
             }
         }
 
+        markTreeNodeRuleToggles();
         model.trigger('afterInitQueryBuilder');
 
         $queryBuilder.on('rulesChanged.queryBuilder', async (e: any, rule: any) => {
@@ -619,6 +619,7 @@
         updateCollection();
         queryBuilderRulesChanged = false;
         hasTreeNodeRules = false;
+        generalFilterStore.hasTreeNodeRules.set(false);
         window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
@@ -797,6 +798,7 @@
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
         hasTreeNodeRules = false;
+        generalFilterStore.hasTreeNodeRules.set(false);
         window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
     }
 
@@ -928,11 +930,19 @@
 
     function markTreeNodeRuleToggles(): void {
         const $queryBuilder = window.$(queryBuilderElement);
-        $queryBuilder[0]?.queryBuilder?.getRules({allow_invalid: true})?.rules?.forEach((rule: any) => {
-            if (isTreeNodeRule(rule) && rule.$el) {
-                rule.$el.find('.rule-toggle').addClass('disabled');
+        const qb = $queryBuilder[0]?.queryBuilder;
+        if (!qb) return;
+
+        let found = false;
+        $queryBuilder.find('.rule-container').each(function (_: any, el: HTMLElement) {
+            const rule = qb.getModel(el);
+            if (rule && isTreeNodeRule(rule)) {
+                found = true;
+                window.$(el).find('.rule-toggle').addClass('disabled');
             }
         });
+        hasTreeNodeRules = found;
+        generalFilterStore.hasTreeNodeRules.set(found);
     }
 
     function syncTreeNodesFilter(event: CustomEvent) {
@@ -950,7 +960,6 @@
         }
 
         rules.rules.unshift(...event.detail.rules);
-        hasTreeNodeRules = event.detail.rules.length > 0;
 
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
         applyFilter();
@@ -1086,6 +1095,7 @@
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
             hasTreeNodeRules = false;
+        generalFilterStore.hasTreeNodeRules.set(false);
         window.dispatchEvent(new CustomEvent('clear-tree-nodes-filter', {detail: {scope}}));
             handleAdvancedFilterChecked();
             return;
