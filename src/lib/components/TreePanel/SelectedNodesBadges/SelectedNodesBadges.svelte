@@ -1,8 +1,10 @@
 <script lang="ts">
     import type { SelectedNode } from './types/selected-node';
+    import { Language } from '$lib/core/language';
 
     export let nodes: SelectedNode[] = [];
     export let onRemove: (id: string, link: string) => void = () => {};
+    export let onUnsetAll: () => void = () => {};
 </script>
 
 {#if nodes.length > 0}
@@ -16,6 +18,7 @@
                 <button class="badge-remove ph ph-x" on:click={() => onRemove(node.id, node.link)}></button>
             </span>
         {/each}
+        <button class="unset-all" title={Language.translate('Unset All')} on:click={onUnsetAll}><i class="ph ph-x-circle"></i></button>
     </div>
 {/if}
 
@@ -67,6 +70,23 @@
     }
 
     .badge-remove:hover {
+        color: #333;
+    }
+
+    .unset-all {
+        border: none;
+        background: none;
+        padding: 0;
+        cursor: pointer;
+        font-size: 16px;
+        color: #999;
+        line-height: 1;
+        align-self: center;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .unset-all:hover {
         color: #333;
     }
 </style>

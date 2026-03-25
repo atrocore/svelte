@@ -1351,7 +1351,7 @@
         {/if}
     </div>
     {#if mode === 'list'}
-        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} />
+        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => selectedNodes = []} />
     {/if}
 </CollapsibleSidebar>
 
