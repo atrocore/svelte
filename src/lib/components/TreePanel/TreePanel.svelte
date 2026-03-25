@@ -12,8 +12,13 @@
     import { ApiClient } from '$lib/core/api-client';
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
+    import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
+    import type { SelectedNode } from './types/selected-node';
+    import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
+    import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
 
     export let scope: string;
+    export let uniqueKey: string = 'default';
     export let model: any = null;
     export let collection: any = null;
     export let callbacks: object = {};
@@ -31,8 +36,6 @@
     };
 
     export let isAdminPage: boolean = false;
-
-    export let showApplyQuery: boolean = true;
 
     export let showApplySortOrder: boolean = true
 
@@ -58,12 +61,27 @@
     let treeScope: string | null;
     let treeIcon: string | null;
     let layoutData: any;
-    let selectNodeId: string | null = null;
+
     let isHidden: boolean = false;
     let sortAsc: boolean = true;
     let sortBy: string | null = null;
-    let applyAdvancedFilter: boolean = false;
     let showEmptyPlaceholder: boolean = false;
+    const generalFilterStore = getGeneralFilterStore(uniqueKey);
+    const treeNodeRules = generalFilterStore.treeNodeRules;
+    let mounted = false;
+    let selectedNodes: SelectedNode[] = [];
+    let updatingFromTree = false;
+
+    treeNodeRules.subscribe(rules => {
+        if (!mounted || updatingFromTree) return;
+        const filtered = filterStaleNodes(selectedNodes, rules);
+        if (filtered.length !== selectedNodes.length) {
+            selectedNodes = filtered;
+            saveNodes(scope, filtered);
+        }
+    });
+
+    $: if (mounted) { selectedNodes; refreshTreeSelection(); }
 
     $: {
         treeScope = activeItem ? getLinkScope(activeItem.name) : null;
@@ -119,7 +137,7 @@
 
     function getWhereData(): [] {
         let whereData = Storage.get('treeWhereData', scope) || [];
-        if (!['_self', '_bookmark'].includes(activeItem.name) || !applyAdvancedFilter) {
+        if (!['_self', '_bookmark'].includes(activeItem.name)) {
             whereData = [];
         }
 
@@ -128,15 +146,36 @@
 
     function getForeignWhereData() {
         let whereData = Storage.get('treeWhereData', scope) || [];
-        if (['_self', '_bookmark'].includes(activeItem.name) || !applyAdvancedFilter) {
+        if (['_self', '_bookmark'].includes(activeItem.name)) {
             whereData = [];
+        }
+
+        // When a node is selected in the current linked tab — exclude its rule from tree filtering
+        // (the node is highlighted but the tree shows all items unfiltered)
+        const activeNode = selectedNodes.find(n => n.link === activeItem.name);
+        if (activeNode && Array.isArray(whereData)) {
+            const rule = buildRuleForNode(activeNode, scope);
+            whereData = whereData.map((item: any) => {
+                if (item.condition && Array.isArray(item.rules)) {
+                    return {
+                        ...item,
+                        rules: item.rules.filter((r: any) =>
+                            !(r.id === rule.id &&
+                              r.operator === rule.operator &&
+                              Array.isArray(r.value) &&
+                              r.value[0] === rule.value[0])
+                        )
+                    };
+                }
+                return item;
+            }).filter((item: any) => !(item.condition && item.rules?.length === 0));
         }
 
         return JSON.parse(JSON.stringify(whereData))
     }
 
     function canUseDataRequest() {
-        if (!['_self', '_bookmark'].includes(activeItem.name) || (applyAdvancedFilter && getWhereData().length > 0)) {
+        if (!['_self', '_bookmark'].includes(activeItem.name) || getWhereData().length > 0) {
             return true
         }
         return false
@@ -264,10 +303,8 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                if (!['_self', '_bookmark', '_admin'].includes(activeItem.name) && selectNodeId === node.id) {
-                    $tree.tree('addToSelection', node);
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
                     $li.addClass('jqtree-selected');
-                    appendUnsetButton($li)
                 }
 
                 if (callbacks?.shouldBeSelected && callbacks.shouldBeSelected(activeItem.name, node.id)) {
@@ -353,19 +390,8 @@
                 return;
             }
 
-            if (Storage.get('selectedNodeId', scope) && mode === 'list') {
-                const id = Storage.get('selectedNodeId', scope);
-                const route = Storage.get('selectedNodeRoute', scope);
-                if (callbacks?.selectNode) {
-                    callbacks.selectNode({id, route}, true);
-                }
-            }
-            if (mode === 'detail') {
-                if (model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-                    selectTreeNode(model.get('id'), (model.get('routesNames')?.[0]?.map(item => item.id) || []).reverse())
-                } else if (Storage.get('selectedNodeId', scope)) {
-                    selectTreeNode(Storage.get('selectedNodeId', scope), parseRoute(Storage.get('selectedNodeRoute', scope)))
-                }
+            if (mode === 'detail' && model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
+                selectTreeNode(model.get('id'), (model.get('routesNames')?.[0]?.map(item => item.id) || []).reverse())
             }
         })
         $tree.on('tree.move', e => {
@@ -415,8 +441,29 @@
                     return loadMore(node);
                 }
 
-                if (node.element && !isNodeInSubTree(node)) {
-                    appendUnsetButton(window.$(node.element));
+                // For linked relationship tabs — add to selectedNodes + notify backbone
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && !isNodeInSubTree(node)) {
+                    toggleSelectedNode({
+                        id: node.id,
+                        name: node.name,
+                        scope: node.scope || treeScope,
+                        link: activeItem.name
+                    });
+
+                    let route = [];
+                    let n = node;
+                    while (n.parent.id) {
+                        route.push(n.parent.id);
+                        n = n.parent;
+                    }
+                    const data: any = {id: node.id, route: '', scope: node.scope, click: true};
+                    if (route.length > 0) {
+                        data.route = '|' + route.reverse().join('|') + '|';
+                    }
+                    if (callbacks?.selectNode) {
+                        callbacks.selectNode(data);
+                    }
+                    return;
                 }
 
                 let route = [];
@@ -471,44 +518,6 @@
 
     function getDataWithoutSubTree(node) {
         return node.getData().filter(item => !node.subTreeData.find(i => i.id === item.id))
-    }
-
-    function appendUnsetButton($el): void {
-        if (['_admin', '_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-            return
-        }
-
-        if ($el && $el.length) {
-            removeUnsetButton($el);
-
-            if (selectNodeId && isSelectionEnabled) {
-                let button = document.createElement('span');
-                button.classList.add('reset-button', 'tree-button', 'ph', 'ph-x', 'pull-right');
-                button.addEventListener('click', () => {
-                    removeUnsetButton($el);
-                    callUnselectNode();
-                });
-                $el.append(button);
-
-                button = document.createElement('span');
-                button.classList.add('add-to-filter-button', 'tree-button', 'ph', 'ph-funnel', 'pull-right');
-                button.addEventListener('click', () => {
-                    removeUnsetButton($el);
-                    callAddNodeToFilter();
-                    selectNodeId = null;
-                    Storage.clear('selectedNodeId', scope);
-                    Storage.clear('selectedNodeRoute', scope);
-                });
-                $el.append(button);
-            }
-        }
-    }
-
-    function removeUnsetButton($el): void {
-        if ($el && $el.length) {
-            $el.find('.reset-button').remove();
-            $el.find('.add-to-filter-button').remove();
-        }
     }
 
     function parseRoute(routeStr) {
@@ -671,7 +680,6 @@
             let node = $tree.tree('getNodeById', id);
             if (node) {
                 $tree.tree('addToSelection', node);
-                selectNodeId = id
             }
 
             $tree.find(`.jqtree-title`).each((k, el) => {
@@ -682,14 +690,9 @@
                 if (elId !== id && $tree.tree('getNodeById', elId)) {
                     $tree.tree('removeFromSelection', $tree.tree('getNodeById', elId));
                     li.removeClass('jqtree-selected');
-                    removeUnsetButton(li);
                     return;
                 } else if (!li.hasClass('jqtree-selected')) {
                     li.addClass('jqtree-selected');
-                }
-
-                if (li.hasClass('jqtree-selected')) {
-                    appendUnsetButton(li);
                 }
             });
         }
@@ -697,41 +700,38 @@
         openNodes($tree, ids, onFinished);
     }
 
-    function callUnselectNode() {
-        if (callbacks?.selectNode) {
-            callbacks.selectNode({id: selectNodeId})
+    function refreshTreeSelection(): void {
+        if (!treeElement || !activeItem || ['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) return;
+
+        const $tree = window.$(treeElement);
+        $tree.find('li.jqtree_common').each((_, el) => {
+            const $li = window.$(el);
+            const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
+            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
+            $li.toggleClass('jqtree-selected', isSelected);
+        });
+    }
+
+    function setSelectedNodes(nodes: SelectedNode[]): void {
+        selectedNodes = nodes;
+        saveNodes(scope, nodes);
+        updatingFromTree = true;
+        treeNodeRules.set(nodes.map(n => buildRuleForNode(n, scope)));
+        updatingFromTree = false;
+    }
+
+    function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
+        const existing = selectedNodes.find(n => n.link === node.link);
+        if (existing?.id === node.id) {
+            setSelectedNodes(selectedNodes.filter(n => n.link !== node.link));
+        } else {
+            const icon = node.scope ? getTabIcon(node.scope) : null;
+            setSelectedNodes([...selectedNodes.filter(n => n.link !== node.link), { ...node, icon }]);
         }
     }
 
-    function callAddNodeToFilter() {
-        if (callbacks?.addNodeToFilter) {
-            const $tree = window.$(treeElement);
-            let node = $tree.tree('getNodeById', selectNodeId);
-            let name = ''
-            if (node) {
-                name = node.name;
-            }
-
-            let field = activeItem.name
-            let operator = 'linked_with'
-
-            if (Metadata.get(['entityDefs', scope, 'fields', field, 'type']) === 'link') {
-                field = field + 'Id';
-                operator = 'in'
-            }
-
-            callbacks.addNodeToFilter({
-                operator: operator,
-                id: field,
-                field: field,
-                value: [selectNodeId],
-                data: {
-                    nameHash: {
-                        [selectNodeId]: name
-                    }
-                }
-            })
-        }
+    function removeSelectedNode(id: string, link: string): void {
+        setSelectedNodes(selectedNodes.filter(n => n.link !== link));
     }
 
     function getDisabledNodesFromFilter() {
@@ -760,13 +760,8 @@
     export function unSelectTreeNode(id) {
         const $tree = getTreeEl();
         const node = $tree.tree('getNodeById', id);
-        selectNodeId = null;
 
         if (node) {
-            if (node.element) {
-                removeUnsetButton(window.$(node.element));
-            }
-
             $tree.tree('removeFromSelection', node);
         }
     }
@@ -931,16 +926,6 @@
             Storage.clear('treeSearchValue', treeScope)
             Storage.clear('treeSearchValue', '_admin')
 
-            if (mode === 'list') {
-                if (selectNodeId) {
-                    if (callbacks?.selectNode) {
-                        callbacks.selectNode({id: selectNodeId});
-                    }
-                    selectNodeId = null
-                }
-            } else {
-                selectNodeId = null
-            }
             initSorting(false)
             rebuildTree()
         })
@@ -1175,6 +1160,13 @@
     }
 
     onMount(() => {
+        mounted = true;
+
+        const storedNodes = loadNodes(scope, getLinkScope);
+        if (storedNodes.length > 0) {
+            setSelectedNodes(storedNodes);
+        }
+
         const savedWidth = Storage.get('panelWidth', scope);
         if (savedWidth) {
             currentWidth = parseInt(savedWidth) || minWidth;
@@ -1185,15 +1177,6 @@
         }
 
         isPinned = Storage.get('catalog-tree-panel-pin', scope) !== 'not-pinned';
-
-        let treeApplyAdvanced = Storage.get('treeApplyAdvancedFilter', scope);
-        if (treeApplyAdvanced) {
-            applyAdvancedFilter = treeApplyAdvanced === 'on';
-        } else {
-            applyAdvancedFilter = true;
-        }
-
-        applyAdvancedFilter = showApplyQuery && applyAdvancedFilter;
 
         if (collection) {
             Storage.set('treeWhereData', scope, collection.where)
@@ -1233,6 +1216,8 @@
         if (callbacks?.afterMounted) {
             callbacks.afterMounted();
         }
+
+        return () => {};
     });
 
     function onSidebarResize(e: CustomEvent): void {
@@ -1255,12 +1240,7 @@
         Storage.set('catalog-tree-panel-pin', scope, isPinned ? 'pin' : 'not-pinned');
     }
 
-    function handleFilterToggle(e: MouseEvent): void {
-        applyAdvancedFilter = !applyAdvancedFilter;
-        Storage.set('treeApplyAdvancedFilter', scope, applyAdvancedFilter ? 'on' : 'off');
-        Notifier.notify('Loading...')
-        rebuildTree()
-    }
+
 </script>
 
 <CollapsibleSidebar className="catalog-tree-panel" position="left" bind:width={currentWidth} bind:isCollapsed={isCollapsed}
@@ -1331,23 +1311,6 @@
                                     </div>
                                 </div>
                             {/if}
-                            {#if showApplyQuery && !(activeItem.name === '_items') && !['_lastViewed', '_admin'].includes(activeItem.name) }
-                                <div class="main-filter-container">
-                                     <span class="icons-wrapper">
-                                        <span class="toggle" class:active={applyAdvancedFilter}
-                                              on:click|stopPropagation|preventDefault={handleFilterToggle}
-                                        >
-                                            {#if applyAdvancedFilter}
-                                                <i class="ph-fill ph-toggle-right"></i>
-                                            {:else}
-                                                <i class="ph-fill ph-toggle-left"></i>
-                                            {/if}
-                                        </span>
-                                         {Language.translate('applyMainSearchAndFilter')}
-                                    </span>
-                                </div>
-                            {/if}
-
                         </div>
                     </div>
 
@@ -1356,15 +1319,28 @@
                     </div>
 
                     {#if showEmptyPlaceholder}
-                        <p>{Language.translate('No Data')}</p>
+                        <div class="no-data-container"><p>{Language.translate('No Data')}</p></div>
                     {/if}
+
                 {/if}
             {/if}
         {/if}
     </div>
+    {#if mode === 'list'}
+        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => setSelectedNodes([])} />
+    {/if}
 </CollapsibleSidebar>
 
 <style>
+    :global(.catalog-tree-panel .sidebar-inner) {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .category-panel {
+        flex: 1;
+    }
+
     .field[data-name="category-search"] {
         position: relative;
     }
@@ -1476,30 +1452,6 @@
         position: relative;
     }
 
-    :global(ul.jqtree-tree li.jqtree_common .tree-button) {
-        background-color: rgba(255, 255, 255, .9);
-        border-radius: 5px;
-        padding: 3px 4px;
-        font-size: 16px;
-        border: 1px solid var(--primary-border-color);
-    }
-
-    :global(ul.jqtree-tree li.jqtree_common .reset-button) {
-        margin-top: 4px;
-        position: absolute;
-        top: 0;
-        right: 0;
-        cursor: pointer;
-    }
-
-    :global(ul.jqtree-tree li.jqtree_common .add-to-filter-button) {
-        margin-top: 4px;
-        position: absolute;
-        top: 0;
-        right: 30px;
-        cursor: pointer;
-    }
-
     :global(.tree-_admin ul.jqtree-tree .jqtree_common.disabled > div > span) {
         color: #000;
         font-weight: bold;
@@ -1521,7 +1473,7 @@
         align-items: center;
     }
 
-    .sort-container, .main-filter-container {
+    .sort-container {
         margin-top: 5px;
     }
 
@@ -1561,13 +1513,7 @@
         border-color: var(--primary-border-color);
     }
 
-    .main-filter-container {
-        font-size: 12px;
-        margin-left: auto;
-        margin-right: 0;
-    }
-
-    .main-filter-container i {
-        font-size: 16px;
+    .no-data-container {
+        padding: 0 10px;
     }
 </style>

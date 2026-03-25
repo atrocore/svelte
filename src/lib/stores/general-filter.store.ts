@@ -4,6 +4,7 @@ type GeneralFilterStore = {
     selectBoolFilters: Writable<string[]>;
     advancedFilterChecked: Writable<boolean>;
     advancedFilterDisabled: Writable<boolean>;
+    treeNodeRules: Writable<any[]>;
     toggleBoolFilters: (filter: string) => void;
     key?: string;
 };
@@ -14,6 +15,7 @@ function createStore(): GeneralFilterStore {
     const selectBoolFilters = writable<string[]>([]);
     const advancedFilterChecked = writable(false);
     const advancedFilterDisabled = writable(false);
+    const treeNodeRules = writable<any[]>([]);
 
     function toggleBoolFilters(filter: string): void {
         selectBoolFilters.update((selected) => {
@@ -29,6 +31,7 @@ function createStore(): GeneralFilterStore {
         selectBoolFilters,
         advancedFilterChecked,
         advancedFilterDisabled,
+        treeNodeRules,
         toggleBoolFilters
     }
 }

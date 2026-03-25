@@ -48,12 +48,16 @@
     let hideRowAction: boolean = false;
 
     let hasQbRules: boolean = false;
+    let syncingFromStore: boolean = false;
 
     let isQbValid: boolean = false;
 
     let defaultValue = "-1";
 
     let generalFilterStore = getGeneralFilterStore(uniqueKey);
+
+    const treeNodeRulesStore = generalFilterStore.treeNodeRules;
+    $: hasTreeNodeRules = $treeNodeRulesStore.length > 0;
 
     let savedSearchStore = getSavedSearchStore(scope, uniqueKey, {
         items: searchManager.savedSearchList || [],
@@ -178,6 +182,7 @@
         });
 
         $queryBuilder.on('click', '.rule-toggle', function (e: any) {
+            if (window.$(e.currentTarget).hasClass('disabled')) return;
             const $el = window.$(e.currentTarget)
             let disabled
 
@@ -342,6 +347,7 @@
             }
         }
 
+        markTreeNodeRuleToggles();
         model.trigger('afterInitQueryBuilder');
 
         $queryBuilder.on('rulesChanged.queryBuilder', async (e: any, rule: any) => {
@@ -449,6 +455,7 @@
 
         $queryBuilder.on('afterSetRules.queryBuilder', (e: any, rule: any) => {
             model.trigger('afterInitQueryBuilder');
+            markTreeNodeRuleToggles();
         });
 
         $queryBuilder.on('afterAddGroup.queryBuilder', (e: any, rule: any) => {
@@ -458,6 +465,9 @@
         $queryBuilder.on('afterAddRule.queryBuilder', async (e: any, rule: any) => {
             await tick();
             if (rule.$el) {
+                if (isTreeNodeRule(rule)) {
+                    rule.$el.addClass('tree-node-rule');
+                }
                 rule.$el.find('.rule-filter-container select:not(.selectized)').selectize({
                     onFocus: function () {
                         if (this.getValue() === defaultValue) {
@@ -470,6 +480,7 @@
                         }
                     }
                 });
+
             }
 
             model.trigger('afterAddRule', rule);
@@ -609,6 +620,7 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
+        generalFilterStore.treeNodeRules.set([]);
     }
 
     function updateCollection() {
@@ -785,6 +797,7 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
+        generalFilterStore.treeNodeRules.set([]);
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
@@ -909,6 +922,52 @@
         applyFilter()
     }
 
+    function isTreeNodeRule(rule: any): boolean {
+        return !!rule.data?._treeNodeKey;
+    }
+
+    function markTreeNodeRuleToggles(): void {
+        const $queryBuilder = window.$(queryBuilderElement);
+        const qb = $queryBuilder[0]?.queryBuilder;
+        if (!qb) return;
+
+        let found = false;
+        $queryBuilder.find('.rule-container').each(function (_: any, el: HTMLElement) {
+            const rule = qb.getModel(el);
+            if (rule && isTreeNodeRule(rule)) {
+                found = true;
+                window.$(el).addClass('tree-node-rule');
+            }
+        });
+    }
+
+    function syncTreeNodesToQB(treeRules: any[]): void {
+        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
+
+        const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
+        const storeKeys = treeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
+        const qbKeys = currentTreeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
+        if (storeKeys === qbKeys) {
+            return;
+        }
+
+        if (Array.isArray(rules.rules)) {
+            if (rules.condition !== 'AND') {
+                rules = {condition: 'AND', rules: [rules], valid: true};
+            }
+            rules.rules = rules.rules.filter((r: any) => !isTreeNodeRule(r));
+        } else {
+            rules = {condition: 'AND', rules: []};
+        }
+
+        rules.rules.unshift(...treeRules);
+
+        syncingFromStore = true;
+        window.$(queryBuilderElement).queryBuilder('setRules', rules);
+        applyFilter();
+        syncingFromStore = false;
+    }
+
     function copySaveSearch(item: any): void {
         searchManager.update({queryBuilder: item.data, queryBuilderApplied: false});
         prepareFilters(() => {
@@ -1030,7 +1089,7 @@
     }
 
     function handleFilterToggle(e: MouseEvent): void {
-        if (advancedFilterDisabled) {
+        if (advancedFilterDisabled || hasTreeNodeRules) {
             return;
         }
 
@@ -1038,7 +1097,7 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-
+        generalFilterStore.treeNodeRules.set([]);
             handleAdvancedFilterChecked();
             return;
         }
@@ -1065,13 +1124,30 @@
         try {
             const rules = $queryBuilder.queryBuilder('getRules');
             if (rules) {
+                const rulesToSave = JSON.parse(JSON.stringify(rules));
+                (rulesToSave.rules || []).forEach((r: any) => {
+                    if (isTreeNodeRule(r) && r.data?.nameHash) {
+                        delete r.data.nameHash;
+                    }
+                });
                 updateSearchManager({
-                    queryBuilder: rules,
+                    queryBuilder: rulesToSave,
                     advanced: []
                 });
                 handleAdvancedFilterChecked(false);
                 if (rules.rules.length === 0) {
                     updateCollection();
+                }
+
+                if (!syncingFromStore) {
+                    const remainingKeys = new Set(
+                        (rules.rules || []).filter((r: any) => isTreeNodeRule(r)).map((r: any) => r.data._treeNodeKey)
+                    );
+                    const currentTreeRules = get(treeNodeRulesStore);
+                    const filteredRules = currentTreeRules.filter((r: any) => remainingKeys.has(r.data._treeNodeKey));
+                    if (filteredRules.length !== currentTreeRules.length) {
+                        generalFilterStore.treeNodeRules.set(filteredRules);
+                    }
                 }
             }
             queryBuilderRulesChanged = false;
@@ -1136,8 +1212,12 @@
         refreshShowUnsetAll();
         searchManager.collection.on('filter-state:changed', (value: any) => showUnsetAll = !!value);
 
+        let unsubTreeNodes: (() => void) | null = null;
         prepareFilters(() => {
             initQueryBuilderFilter();
+            unsubTreeNodes = generalFilterStore.treeNodeRules.subscribe(rules => {
+                syncTreeNodesToQB(rules);
+            });
         });
 
         window.addEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
@@ -1147,6 +1227,7 @@
             selectBoolSub();
             selectSavedSub();
             advancedFilterCheckedSub();
+            unsubTreeNodes?.();
             window.removeEventListener('add-item-to-query-builder', addItemToQueryBuilder as EventListener);
         }
     })
@@ -1193,7 +1274,7 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled} class:active={advancedFilterChecked}
+                <span class="toggle" class:disabled={advancedFilterDisabled || hasTreeNodeRules} class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
                     {#if advancedFilterChecked}
@@ -1279,6 +1360,19 @@
 
     :global(.advanced-filters .icons-wrapper .toggle.active, .advanced-filters .rule-toggle.active) {
         color: #06c;
+    }
+
+    :global(.query-builder .rule-container.tree-node-rule .rule-filter-container),
+    :global(.query-builder .rule-container.tree-node-rule .rule-operator-container),
+    :global(.query-builder .rule-container.tree-node-rule .rule-value-container) {
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
+        pointer-events: none;
+        opacity: .6;
+        cursor: not-allowed;
     }
 
     :global(.advanced-filters .icons-wrapper .toggle i) {
