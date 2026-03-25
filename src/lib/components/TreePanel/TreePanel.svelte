@@ -13,10 +13,9 @@
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
     import { Acl } from "$lib/core/acl";
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
-    import type { SelectedNode } from '$lib/types/selected-node';
+    import type { SelectedNode } from './types/selected-node';
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
-    import { buildRuleForNode } from './utils/tree-node-rule';
-    import { get } from 'svelte/store';
+    import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
 
     export let scope: string;
     export let uniqueKey: string = 'default';
@@ -70,17 +69,18 @@
     const generalFilterStore = getGeneralFilterStore(uniqueKey);
     const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
+    let selectedNodes: SelectedNode[] = [];
+    let updatingFromTree = false;
 
-    function nodeFromRule(rule: any): SelectedNode {
-        const key: string = rule.data._treeNodeKey;
-        const link = key.split('__')[0];
-        const id = rule.value[0];
-        const name = rule.data.nameHash?.[id] ?? id;
-        const nodeScope = getLinkScope(link) ?? '';
-        return { id, name, link, scope: nodeScope, icon: nodeScope ? getTabIcon(nodeScope) : null };
-    }
+    treeNodeRules.subscribe(rules => {
+        if (!mounted || updatingFromTree) return;
+        const filtered = filterStaleNodes(selectedNodes, rules);
+        if (filtered.length !== selectedNodes.length) {
+            selectedNodes = filtered;
+            saveNodes(scope, filtered);
+        }
+    });
 
-    $: selectedNodes = $treeNodeRules.map(r => nodeFromRule(r));
     $: if (mounted) { selectedNodes; refreshTreeSelection(); }
 
     $: {
@@ -712,21 +712,26 @@
         });
     }
 
+    function setSelectedNodes(nodes: SelectedNode[]): void {
+        selectedNodes = nodes;
+        saveNodes(scope, nodes);
+        updatingFromTree = true;
+        treeNodeRules.set(nodes.map(n => buildRuleForNode(n, scope)));
+        updatingFromTree = false;
+    }
+
     function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
-        const current = get(treeNodeRules);
-        const key = `${node.link}__${node.id}`;
-        const hasExact = current.some(r => r.data._treeNodeKey === key);
-        const newRules = hasExact
-            ? current.filter(r => !r.data._treeNodeKey.startsWith(`${node.link}__`))
-            : [...current.filter(r => !r.data._treeNodeKey.startsWith(`${node.link}__`)), buildRuleForNode(node, scope)];
-        Storage.set('treeSelectedNodes', scope, newRules.map(r => nodeFromRule(r)));
-        treeNodeRules.set(newRules);
+        const existing = selectedNodes.find(n => n.link === node.link);
+        if (existing?.id === node.id) {
+            setSelectedNodes(selectedNodes.filter(n => n.link !== node.link));
+        } else {
+            const icon = node.scope ? getTabIcon(node.scope) : null;
+            setSelectedNodes([...selectedNodes.filter(n => n.link !== node.link), { ...node, icon }]);
+        }
     }
 
     function removeSelectedNode(id: string, link: string): void {
-        const newRules = get(treeNodeRules).filter(r => !r.data._treeNodeKey.startsWith(`${link}__`));
-        Storage.set('treeSelectedNodes', scope, newRules.map(r => nodeFromRule(r)));
-        treeNodeRules.set(newRules);
+        setSelectedNodes(selectedNodes.filter(n => n.link !== link));
     }
 
     function getDisabledNodesFromFilter() {
@@ -1157,9 +1162,9 @@
     onMount(() => {
         mounted = true;
 
-        const storedNodes = Storage.get('treeSelectedNodes', scope);
-        if (Array.isArray(storedNodes) && storedNodes.length > 0) {
-            treeNodeRules.set(storedNodes.map((n: SelectedNode) => buildRuleForNode(n, scope)));
+        const storedNodes = loadNodes(scope, getLinkScope);
+        if (storedNodes.length > 0) {
+            setSelectedNodes(storedNodes);
         }
 
         const savedWidth = Storage.get('panelWidth', scope);
@@ -1322,7 +1327,7 @@
         {/if}
     </div>
     {#if mode === 'list'}
-        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => { treeNodeRules.set([]); Storage.set('treeSelectedNodes', scope, []); }} />
+        <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode} onUnsetAll={() => setSelectedNodes([])} />
     {/if}
 </CollapsibleSidebar>
 

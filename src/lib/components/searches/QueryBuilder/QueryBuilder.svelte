@@ -48,6 +48,7 @@
     let hideRowAction: boolean = false;
 
     let hasQbRules: boolean = false;
+    let syncingFromStore: boolean = false;
 
     let isQbValid: boolean = false;
 
@@ -961,8 +962,10 @@
 
         rules.rules.unshift(...treeRules);
 
+        syncingFromStore = true;
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
         applyFilter();
+        syncingFromStore = false;
     }
 
     function copySaveSearch(item: any): void {
@@ -1136,10 +1139,15 @@
                     updateCollection();
                 }
 
-                const newTreeRules = (rules.rules || []).filter((r: any) => isTreeNodeRule(r));
-                const currentTreeRules = get(treeNodeRulesStore);
-                if (newTreeRules.length !== currentTreeRules.length) {
-                    generalFilterStore.treeNodeRules.set(newTreeRules);
+                if (!syncingFromStore) {
+                    const remainingKeys = new Set(
+                        (rules.rules || []).filter((r: any) => isTreeNodeRule(r)).map((r: any) => r.data._treeNodeKey)
+                    );
+                    const currentTreeRules = get(treeNodeRulesStore);
+                    const filteredRules = currentTreeRules.filter((r: any) => remainingKeys.has(r.data._treeNodeKey));
+                    if (filteredRules.length !== currentTreeRules.length) {
+                        generalFilterStore.treeNodeRules.set(filteredRules);
+                    }
                 }
             }
             queryBuilderRulesChanged = false;

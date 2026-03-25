@@ -1,1 +1,1 @@
-export type { SelectedNode } from '$lib/types/selected-node';
+export type { SelectedNode } from '../../types/selected-node';
