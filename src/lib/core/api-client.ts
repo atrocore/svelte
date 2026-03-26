@@ -11,7 +11,7 @@
 import { UserData } from '$lib/core/user-data';
 import { Storage } from '$lib/core/storage';
 
-const API_BASE = '/api/v1';
+const API_BASE = '/api';
 
 export class ApiError extends Error {
     constructor(
@@ -70,7 +70,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
 export const ApiClient = {
     /**
-     * GET /api/v1/{url}?{params}
+     * GET /api/{url}?{params}
      */
     get<T = unknown>(url: string, params?: Record<string, any>, headers?: Record<string, string>): Promise<T> {
         let finalUrl = url;
@@ -88,7 +88,7 @@ export const ApiClient = {
     },
 
     /**
-     * POST /api/v1/{url}
+     * POST /api/{url}
      */
     post<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
         return fetch(joinUrl(url), {
@@ -99,7 +99,7 @@ export const ApiClient = {
     },
 
     /**
-     * PUT /api/v1/{url}
+     * PUT /api/{url}
      */
     put<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
         return fetch(joinUrl(url), {
@@ -110,7 +110,7 @@ export const ApiClient = {
     },
 
     /**
-     * PATCH /api/v1/{url}
+     * PATCH /api/{url}
      */
     patch<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
         return fetch(joinUrl(url), {
@@ -121,7 +121,7 @@ export const ApiClient = {
     },
 
     /**
-     * DELETE /api/v1/{url}
+     * DELETE /api/{url}
      */
     delete<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
         return fetch(joinUrl(url), {
