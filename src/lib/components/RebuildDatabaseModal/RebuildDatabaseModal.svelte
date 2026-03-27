@@ -14,7 +14,7 @@
 
     onMount(() => {
         loading = true;
-        ApiClient.request('GET', 'Admin/getSchemaDiff')
+        ApiClient.request('GET', 'getSchemaDiff')
             .then(response => response.text())
             .then(text => {
                 if (text) {
