@@ -2,7 +2,7 @@ import { ApiClient } from '$lib/core/api-client';
 
 export async function followEntity(entity: string, id: string): Promise<boolean> {
     try {
-        await ApiClient.post('entitySubscription', { entityName: entity, id });
+        await ApiClient.post('entitySubscription', { entityName: entity, ids: [id] });
         return true;
     } catch {
         return false;
@@ -11,7 +11,7 @@ export async function followEntity(entity: string, id: string): Promise<boolean>
 
 export async function unfollowEntity(entity: string, id: string): Promise<boolean> {
     try {
-        await ApiClient.delete('entitySubscription', { entityName: entity, id });
+        await ApiClient.delete('entitySubscription', { entityName: entity, ids: [id] });
         return true;
     } catch {
         return false;
