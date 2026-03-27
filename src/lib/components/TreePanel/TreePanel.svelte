@@ -584,7 +584,7 @@
         }
 
         let treeScope = activeItem ? getLinkScope(activeItem.name) : null
-        let url = treeScope + `/action/Tree?isTreePanel=1&scope=${scope}&link=${activeItem.name}`;
+        let url = `entityTree?entityName=${treeScope}&isTreePanel=1&scope=${scope}&link=${activeItem.name}`;
         if (sortBy) {
             url += `&sortBy=${sortBy}&asc=${sortAsc ? 'true' : 'false'}`
         }
@@ -637,7 +637,7 @@
 
     function generateSubTreeUrl(node) {
         const foreignWhere = getForeignWhereData()
-        let url = scope + `/action/Tree?isTreePanel=1&scope=${scope}&link=_self`;
+        let url = `entityTree?entityName=${scope}&isTreePanel=1&scope=${scope}&link=_self`;
         if (Metadata.get(['scopes', scope, 'type']) === 'Hierarchy') {
             url = `${scope}/action/TreeData?scope=${scope}&link=_self`
         }
