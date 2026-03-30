@@ -9,7 +9,7 @@ export async function startStopJm(pause: boolean) {
     }
 
     try {
-        await ApiClient.post('App/action/JobManagerUpdate', { pause });
+        await ApiClient.post('jobManagerPause', { pause });
         Notifier.notify('Done', 'success');
     } catch (error) {
         console.error('Error:', error);
