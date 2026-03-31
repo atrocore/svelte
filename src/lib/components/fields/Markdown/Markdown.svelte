@@ -33,6 +33,23 @@
     export let searchValue: string = '';
     export let markdownView: any = null;
 
+    $: displayValue = (() => {
+        if (!value || (mode !== 'detail' && mode !== 'list')) {
+            return value;
+        }
+        const mentionData: Record<string, { name: string; id: string }> =
+            (markdownView?.model?.get('data') || {}).mentions || {};
+        if (!Object.keys(mentionData).length) return value;
+        let text = value;
+        Object.keys(mentionData)
+            .sort((a, b) => b.length - a.length)
+            .forEach(item => {
+                const part = '[' + mentionData[item].name + '](#User/view/' + mentionData[item].id + ')';
+                text = text!.replace(new RegExp(item, 'g'), part);
+            });
+        return text;
+    })();
+
     $: minHeight = (() => {
         const min = (params.minHeight as number) || 200;
         const max = (params.maxHeight as number) || 400;
@@ -55,9 +72,9 @@
 </script>
 
 {#if mode === 'detail'}
-    <MarkdownDetail {value} />
+    <MarkdownDetail value={displayValue} />
 {:else if mode === 'list'}
-    <MarkdownList {value} />
+    <MarkdownList value={displayValue} />
 {:else if mode === 'edit'}
     <MarkdownEdit
         bind:this={editComponent}
