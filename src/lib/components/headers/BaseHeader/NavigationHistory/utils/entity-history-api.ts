@@ -8,7 +8,7 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { ApiClient } from '$lib/core/api-client';
+import {ApiClient} from '$lib/core/api-client';
 
 import type EntityHistoryResponse
     from "$lib/components/headers/BaseHeader/NavigationHistory/types/entity-history-response";
@@ -35,10 +35,9 @@ export async function loadLastEntities(scope: string, id: string | null, tabId: 
 
 export async function createHistoryLog(name: string): Promise<void> {
     try {
-        await ApiClient.post(
-            'App/logNavigation/' + name,
-            { url: window.location.pathname + (window.location.hash || '#') },
-            { 'Entity-History': sessionStorage.tabId || 'true' }
+        await ApiClient.post('logNavigation',
+            {name, url: window.location.pathname + (window.location.hash || '#')},
+            {'Entity-History': sessionStorage.tabId || 'true'}
         );
     } catch (error) {
         console.error('Error:', error);
