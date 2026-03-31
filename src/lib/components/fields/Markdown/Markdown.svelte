@@ -32,19 +32,17 @@
     export let searchType: string = 'startsWith';
     export let searchValue: string = '';
     export let markdownView: any = null;
+    export let mentions: Record<string, { name: string; id: string }> = {};
 
     $: displayValue = (() => {
-        if (!value || (mode !== 'detail' && mode !== 'list')) {
+        if (!value || !['detail', 'list'].includes(mode) || !Object.keys(mentions).length) {
             return value;
         }
-        const mentionData: Record<string, { name: string; id: string }> =
-            (markdownView?.model?.get('data') || {}).mentions || {};
-        if (!Object.keys(mentionData).length) return value;
         let text = value;
-        Object.keys(mentionData)
+        Object.keys(mentions)
             .sort((a, b) => b.length - a.length)
             .forEach(item => {
-                const part = '[' + mentionData[item].name + '](#User/view/' + mentionData[item].id + ')';
+                const part = '[' + mentions[item].name + '](#User/view/' + mentions[item].id + ')';
                 text = text!.replace(new RegExp(item, 'g'), part);
             });
         return text;
