@@ -58,7 +58,7 @@ export function registerEditorActions(
                     Notifier.notify(false);
                     dialog.once('select', (models) => {
                         const fields = models.map((m) => m.get('code') as string);
-                        ApiClient.post<{ text: string }>('App/action/prepareScriptFields', { entityName, fields })
+                        ApiClient.post<{ text: string }>('generateScriptFieldsSnippet', { entityName, fields })
                             .then((res) => {
                                 ed.executeEdits('add-entity-fields', [{
                                     range: ed.getSelection() ?? ed.getModel()!.getFullModelRange(),
@@ -101,7 +101,7 @@ export function registerEditorActions(
                             Notifier.notify(false);
                             dialog.once('select', (models) => {
                                 const attributesIds = models.map((m) => m.get('id') as string);
-                                ApiClient.post<{ text: string }>('App/action/prepareScriptAttributes', { entityName, attributesIds })
+                                ApiClient.post<{ text: string }>('generateScriptAttributesSnippet', { entityName, attributesIds })
                                     .then((res) => {
                                         ed.executeEdits('add-entity-attributes', [{
                                             range: ed.getSelection() ?? ed.getModel()!.getFullModelRange(),
