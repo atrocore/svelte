@@ -32,6 +32,21 @@
     export let searchType: string = 'startsWith';
     export let searchValue: string = '';
     export let markdownView: any = null;
+    export let mentions: Record<string, { name: string; id: string }> = {};
+
+    $: displayValue = (() => {
+        if (!value || !['detail', 'list'].includes(mode) || !Object.keys(mentions).length) {
+            return value;
+        }
+        let text = value;
+        Object.keys(mentions)
+            .sort((a, b) => b.length - a.length)
+            .forEach(item => {
+                const part = '[' + mentions[item].name + '](#User/view/' + mentions[item].id + ')';
+                text = text!.replace(new RegExp(item, 'g'), part);
+            });
+        return text;
+    })();
 
     $: minHeight = (() => {
         const min = (params.minHeight as number) || 200;
@@ -55,9 +70,9 @@
 </script>
 
 {#if mode === 'detail'}
-    <MarkdownDetail {value} />
+    <MarkdownDetail value={displayValue} />
 {:else if mode === 'list'}
-    <MarkdownList {value} />
+    <MarkdownList value={displayValue} />
 {:else if mode === 'edit'}
     <MarkdownEdit
         bind:this={editComponent}
