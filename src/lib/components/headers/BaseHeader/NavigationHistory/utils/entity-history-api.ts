@@ -25,7 +25,7 @@ export async function loadLastEntities(scope: string, id: string | null, tabId: 
     let entityHistory = {collection: [], total: 0} as EntityHistoryResponse;
 
     try {
-        entityHistory = await ApiClient.get<EntityHistoryResponse>('LastViewed/action/getNavigationHistory', params);
+        entityHistory = await ApiClient.get<EntityHistoryResponse>('navigationHistory', params);
     } catch (error) {
         console.error('Error:', error);
     }
