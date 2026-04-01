@@ -245,7 +245,7 @@
             if (searchValue) {
                 whereData.push({"type": "textFilter", "value": searchValue});
             }
-            ApiClient.get(`${treeScope}/action/TreeData`, {
+            ApiClient.get(`${treeScope}/treeData`, {
                 "where": whereData,
                 "foreignWhere": foreignWhereData,
                 "scope": scope,
@@ -639,7 +639,7 @@
         const foreignWhere = getForeignWhereData()
         let url = `entityTree?entityName=${scope}&isTreePanel=1&scope=${scope}&link=_self`;
         if (Metadata.get(['scopes', scope, 'type']) === 'Hierarchy') {
-            url = `${scope}/action/TreeData?scope=${scope}&link=_self`
+            url = `${scope}/treeData?scope=${scope}&link=_self`
         }
 
         if (node.showMoreDirection) {
