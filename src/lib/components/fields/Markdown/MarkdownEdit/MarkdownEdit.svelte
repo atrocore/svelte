@@ -48,6 +48,12 @@
         const EasyMDE = (window as any).EasyMDE;
         if (!EasyMDE || !textareaEl) return;
 
+        // temporary fix as that views 'views/stream/panel', 'views/note/fields/post' and 'discussions:views/stream/notes/discussion' listen to the event
+        if (markdownView) {
+            const $ = (window as any).$;
+            if ($) markdownView.trigger('before:editor:rendered', $(textareaEl));
+        }
+
         editor = new EasyMDE({
             element: textareaEl,
             autoDownloadFontAwesome: false,
@@ -90,6 +96,11 @@
 
         const scroller = editor.codemirror.getScrollerElement();
         if (scroller) scroller.style.maxHeight = `${maxHeight}px`;
+
+        // temporary fix as that views 'views/stream/panel', 'views/note/fields/post' and 'discussions:views/stream/notes/discussion' listen to the event
+        if (markdownView) {
+            markdownView.trigger('editor:rendered', editor);
+        }
 
         editor.codemirror.on('change', () => {
             value = editor.value();
