@@ -12,8 +12,8 @@
     import { Language } from '$lib/core/language';
 
     export let value: boolean | null = null;
+    export let valueIsSet: boolean;
 
-    $: valueIsSet = value !== null && value !== undefined;
     $: isNull = value === null || value === undefined;
 </script>
 

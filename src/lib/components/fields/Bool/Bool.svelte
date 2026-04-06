@@ -16,6 +16,7 @@
 
     export let name: string = '';
     export let value: boolean | null = null;
+    export let valueIsSet: boolean = true;
     export let mode: FieldMode = 'detail';
     export let notNull: boolean = true;
 
@@ -34,7 +35,7 @@
 </script>
 
 {#if mode === 'detail' || mode === 'list'}
-    <BoolDetail {value} />
+    <BoolDetail {value} {valueIsSet}/>
 {:else if mode === 'edit' || mode === 'search'}
     <BoolEdit
         bind:this={editComponent}
