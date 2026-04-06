@@ -1,4 +1,4 @@
-export type FieldMode = 'detail' | 'list' | 'edit' | 'search';
+export type FieldMode = 'detail' | 'list' | 'listLink' | 'edit' | 'search';
 
 export type FieldFetchResult = Record<string, unknown>;
 
