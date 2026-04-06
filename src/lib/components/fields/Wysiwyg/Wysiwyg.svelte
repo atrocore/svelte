@@ -23,11 +23,14 @@
     import WysiwygEdit from './WysiwygEdit/WysiwygEdit.svelte';
     import WysiwygList from './WysiwygList/WysiwygList.svelte';
     import TextSearch from '$lib/components/fields/Text/TextSearch/TextSearch.svelte';
+    import RecordLink from '$lib/components/containers/RecordLink/RecordLink.svelte';
     import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
     export let mode: FieldMode = 'detail';
     export let name: string = '';
     export let value: string | null = null;
+    export let entityName: string = '';
+    export let entityId: string | null = '';
     export let isHtml: boolean = true;
     export let hasIsHtml: boolean = false;
     export let params: Record<string, unknown> = {};
@@ -71,6 +74,10 @@
     />
 {:else if mode === 'list'}
     <WysiwygList {value} {isPlain} {detailMaxHeight} {seeMoreDisabled} />
+{:else if mode === 'listLink'}
+    <RecordLink {entityName} {entityId}>
+        <WysiwygList {value} {isPlain} {detailMaxHeight} {seeMoreDisabled} />
+    </RecordLink>
 {:else if mode === 'edit'}
     <WysiwygEdit
         bind:this={editComponent}
