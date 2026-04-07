@@ -22,6 +22,7 @@
     export let uniqueKey: string = 'default';
 
     let filters: Array<any> = [];
+    let deletedFilterIds = new Set<string>();
 
     let queryBuilderElement: HTMLElement
 
@@ -203,6 +204,7 @@
                     rule.data.disabled = disabled
                 } else {
                     delete rule.data.disabled;
+                    tick().then(() =>  markDeletedFieldRules($queryBuilder));
                 }
                 queryBuilderRulesChanged = true;
             }
@@ -348,6 +350,7 @@
         }
 
         markTreeNodeRuleToggles();
+        tick().then(() => markDeletedFieldRules($queryBuilder));
         model.trigger('afterInitQueryBuilder');
 
         $queryBuilder.on('rulesChanged.queryBuilder', async (e: any, rule: any) => {
@@ -456,6 +459,7 @@
         $queryBuilder.on('afterSetRules.queryBuilder', (e: any, rule: any) => {
             model.trigger('afterInitQueryBuilder');
             markTreeNodeRuleToggles();
+            tick().then(() => markDeletedFieldRules($queryBuilder));
         });
 
         $queryBuilder.on('afterAddGroup.queryBuilder', (e: any, rule: any) => {
@@ -506,6 +510,7 @@
     function prepareFilters(callback: () => void): void {
 
         filters = filters.filter(item => item.id.includes('attr_'));
+        deletedFilterIds.clear();
 
         let promiseList: Promise<void>[] = [];
 
@@ -556,13 +561,12 @@
                     const where = [{attribute: 'id', type: 'in', value: attributesIds}];
                     const queryString = window.$.param({where});
                     ApiClient.get<any>(`Attribute?${queryString}`).then((attrs: any) => {
-                        // we clean up the rules to remove attribute rule if attribute does not exist anymore
-
-                        cleanUpSavedRule((fieldId: string) => {
-                            if (fieldId.includes('attr_')) {
-                                return !!attrs.list.find((v: any) => v.id === getFieldOrAttributeId(fieldId))
-                            } else {
-                                return true;
+                        getRulesIds(rules.rules).forEach((id: string) => {
+                            if (id.includes('attr_')) {
+                                const attrId = getFieldOrAttributeId(id);
+                                if (!attrs.list.find((v: any) => v.id === attrId) && !filters.find((f: any) => f.id === id)) {
+                                    filters.push(makeDeletedFilter(id));
+                                }
                             }
                         });
 
@@ -587,6 +591,15 @@
         }
 
         Promise.all(promiseList).then(() => {
+            const savedRules = searchManager.getQueryBuilder();
+            if (savedRules.rules) {
+                getRulesIds(savedRules.rules).forEach((id: string) => {
+                    if (!filters.find((f: any) => f.id === id)) {
+                        filters.push(makeDeletedFilter(id));
+                    }
+                });
+            }
+
             callback();
 
             const $queryBuilder = window.$(queryBuilderElement);
@@ -603,6 +616,7 @@
                 }
             });
             $queryBuilder.find('.rule-operator-container select').selectize();
+            tick().then(() => markDeletedFieldRules($queryBuilder));
         });
     }
 
@@ -926,6 +940,25 @@
         return !!rule.data?._treeNodeKey;
     }
 
+    function makeDeletedFilter(id: string): any {
+        deletedFilterIds.add(id);
+        return {id, label: id, type: 'string', __deleted: true, validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}};
+    }
+
+    function markDeletedFieldRules(qbEl: any): void {
+        const qb = qbEl[0]?.queryBuilder;
+        if (!qb) return;
+        qbEl.find('.rule-container').each(function (_: any, el: HTMLElement) {
+            const rule = qb.getModel(el);
+            const id: string = rule?.filter?.id;
+            if (id && deletedFilterIds.has(id)) {
+                window.$(el).addClass('has-error');
+                const msg = Language.translate('deletedFilterTooltip', 'messages').replace('%s', id);
+                window.$(el).find('.error-container').attr('title', msg);
+            }
+        });
+    }
+
     function markTreeNodeRuleToggles(): void {
         const $queryBuilder = window.$(queryBuilderElement);
         const qb = $queryBuilder[0]?.queryBuilder;
@@ -1201,7 +1234,30 @@
                     return null;
                 }
 
+                if (deletedFilterIds.has(id)) {
+                    return makeDeletedFilter(id);
+                }
+
+                const found = this.filters.find((f: any) => f.id === id);
+                if (!found && id && id !== '-1') {
+                    return makeDeletedFilter(id);
+                }
+
                 return originalGetFilterById.call(this, id, doThrow);
+            };
+
+            const originalClearErrors = window.$.fn.queryBuilder.constructor.prototype.clearErrors;
+            window.$.fn.queryBuilder.constructor.prototype.clearErrors = function (group?: any) {
+                originalClearErrors.call(this, group);
+                this.$el.find('.rule-container').each((_: any, el: HTMLElement) => {
+                    const rule = this.getModel(el);
+                    const id: string = rule?.filter?.id;
+                    if (id && deletedFilterIds.has(id)) {
+                        window.$(el).addClass('has-error');
+                        const msg = Language.translate('deletedFilterTooltip', 'messages').replace('%s', id);
+                        window.$(el).find('.error-container').attr('title', msg);
+                    }
+                });
             };
         }
 

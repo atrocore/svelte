@@ -146,16 +146,20 @@
         let hasChanged = false;
         let cleanUpRule = (rule: Rule) => {
             if (rule.rules) {
+                let newRules: Rule[] | null = null;
                 for (const rulesKey in rule.rules) {
-                    if (rule.rules[rulesKey].id) {
+                    if (rule.rules[rulesKey] && rule.rules[rulesKey].id) {
                         if (!exists(rule.rules[rulesKey].id)) {
                             hasChanged = true;
-                            rule.rules = rule.rules.filter(v => v.id !== rule.rules[rulesKey].id);
+                            newRules = rule.rules.filter(v => v.id !== rule.rules[rulesKey].id);
                         }
                     }
                     if (rule.rules[rulesKey] && rule.rules[rulesKey].rules) {
                         cleanUpRule(rule.rules[rulesKey]);
                     }
+                }
+                if (hasChanged && newRules && newRules.length !== rule.rules.length) {
+                    rule.rules = newRules;
                 }
             }
         }
@@ -178,17 +182,6 @@
         refreshShowUnsetAll();
         searchManager.collection.on('filter-state:changed', (value: any) => showUnsetAll = !!value);
         refreshAdvancedFilterDisabled();
-        cleanUpSavedRule((field: string) => {
-            // we do not clean up attribute here
-            if (field.includes('attr_')) {
-                return true;
-            }
-            let exits = !!Metadata.get(['entityDefs', scope, 'fields', field]);
-            if (!exits && field === (field.slice(0, -2) + 'Id')) {
-                return !!Metadata.get(['entityDefs', scope, 'fields', field.slice(0, -2)]);
-            }
-            return exits;
-        });
 
         const dropdown = new Floating(dropdownButton, dropdownMenu, {
             placement: 'bottom-start',
