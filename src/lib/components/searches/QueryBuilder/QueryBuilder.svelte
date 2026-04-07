@@ -1122,7 +1122,7 @@
     }
 
     function handleFilterToggle(e: MouseEvent): void {
-        if (advancedFilterDisabled || hasTreeNodeRules) {
+        if (advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)) {
             return;
         }
 
@@ -1330,7 +1330,7 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled || hasTreeNodeRules} class:active={advancedFilterChecked}
+                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)} class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
                     {#if advancedFilterChecked}
@@ -1420,7 +1420,8 @@
 
     :global(.query-builder .rule-container.tree-node-rule .rule-filter-container),
     :global(.query-builder .rule-container.tree-node-rule .rule-operator-container),
-    :global(.query-builder .rule-container.tree-node-rule .rule-value-container) {
+    :global(.query-builder .rule-container.tree-node-rule .rule-value-container),
+    :global(.query-builder .rule-container.tree-node-rule .drag-handle) {
         pointer-events: none;
         cursor: not-allowed;
     }
