@@ -14,7 +14,7 @@
     import TextEdit from './TextEdit/TextEdit.svelte';
     import TextList from './TextList/TextList.svelte';
     import TextSearch from './TextSearch/TextSearch.svelte';
-    import RecordLink from '$lib/components/containers/RecordLink/RecordLink.svelte';
+    import RecordLink from '$lib/components/RecordLink/RecordLink.svelte';
     import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
     type TextParams = {
