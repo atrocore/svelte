@@ -364,6 +364,11 @@
             treeData['autoOpen'] = true;
             treeData['dragAndDrop'] = false;
             showEmptyPlaceholder = data.length === 0
+
+            if (activeItem.name !== '_admin'){
+                treeData['autoOpen'] = false;
+                setInitialOpenState(data);
+            }
         }
 
         let dataLoaded = false;
@@ -801,6 +806,16 @@
             if (item.children && item.children.length > 0) {
                 item.has_children = true;
                 addHasChildren(item.children);
+            }
+        });
+    }
+
+    function setInitialOpenState(list) {
+        list.forEach(item => {
+            if (item.children && item.children.length > 0) {
+                const hasGrandchildren = item.children.some(child => child.children && child.children.length > 0);
+                item.is_open = hasGrandchildren;
+                setInitialOpenState(item.children);
             }
         });
     }

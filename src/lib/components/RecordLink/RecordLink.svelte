@@ -10,7 +10,7 @@
 
 <script lang="ts">
     export let entityName: string = '';
-    export let entityId: string = '';
+    export let entityId: string|null = '';
 </script>
 
 <a href="#{entityName}/view/{entityId}" class="link" data-id={entityId}>

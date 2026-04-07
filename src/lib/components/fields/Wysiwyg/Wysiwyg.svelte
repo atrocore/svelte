@@ -23,7 +23,7 @@
     import WysiwygEdit from './WysiwygEdit/WysiwygEdit.svelte';
     import WysiwygList from './WysiwygList/WysiwygList.svelte';
     import TextSearch from '$lib/components/fields/Text/TextSearch/TextSearch.svelte';
-    import RecordLink from '$lib/components/containers/RecordLink/RecordLink.svelte';
+    import RecordLink from '$lib/components/RecordLink/RecordLink.svelte';
     import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
     export let mode: FieldMode = 'detail';
