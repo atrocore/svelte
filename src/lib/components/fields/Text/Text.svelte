@@ -14,6 +14,7 @@
     import TextEdit from './TextEdit/TextEdit.svelte';
     import TextList from './TextList/TextList.svelte';
     import TextSearch from './TextSearch/TextSearch.svelte';
+    import RecordLink from '$lib/components/RecordLink/RecordLink.svelte';
     import type { FieldMode, FieldFetchResult, FieldSearchResult } from '$lib/types/ui/field';
 
     type TextParams = {
@@ -31,6 +32,8 @@
     export let value: string = '';
     export let mode: FieldMode = 'detail';
     export let params: TextParams = {};
+    export let entityName: string = '';
+    export let entityId: string|null = '';
 
     // Individual props — fallback when used directly without a params object
     export let rowsMin: number = 2;
@@ -104,6 +107,15 @@
             detailMaxNewLineCount={p.detailMaxNewLineCount}
             seeMoreDisabled={p.seeMoreDisabled}
         />
+    {:else if mode === 'listLink'}
+        <RecordLink {entityName} {entityId}>
+            <TextList
+                value={currentValue}
+                detailMaxLength={p.detailMaxLength}
+                detailMaxNewLineCount={p.detailMaxNewLineCount}
+                seeMoreDisabled={p.seeMoreDisabled}
+            />
+        </RecordLink>
     {:else if mode === 'edit'}
         <TextEdit
             bind:this={editComponent}
