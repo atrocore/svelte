@@ -69,7 +69,7 @@ export function buildToolbar(EasyMDE: any, options: ToolbarOptions): any[] {
                         Notifier.notify(false);
                         markdownView.listenTo(view, 'select', (model: any) => {
                             Notifier.notify(Language.translate('Loading...'));
-                            ApiClient.post<{ sharedUrl: string }>('File/action/prepareForRichEditor', { fileId: model.get('id') })
+                            ApiClient.post<{ sharedUrl: string }>(`File/${model.get('id')}/createSharedUrl`, {})
                                 .then(response => {
                                     Notifier.notify(false);
                                     const file = new File([], model.get('name'));
