@@ -44,7 +44,6 @@
                     placeholder={Language.translate("typeToSearch")}
                     name="textFilter"
                     bind:value={searchValue}
-                    on:keypress={(e) => {e.key === 'Enter' ? search() : e}}
                     on:keyup={(e) => {e.key === 'Enter' ? search() : e}}
                     tabindex="1"
             >
