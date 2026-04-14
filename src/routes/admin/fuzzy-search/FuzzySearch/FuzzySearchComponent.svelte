@@ -6,22 +6,22 @@
     import { Notifier } from '$lib/core/notifier';
     import BaseHeader from '$lib/components/headers/BaseHeader/BaseHeader.svelte';
 
-    let similarityThreshold: number = 0.3;
+    let similarityThreshold: number = 1;
     let fuzzySearchAvailable: boolean = false;
     let saving: boolean = false;
     let loaded: boolean = false;
 
     onMount(async () => {
         fuzzySearchAvailable = Config.get('fuzzySearchAvailable') ?? false;
-        const settings = await ApiClient.get<Record<string, any>>('Settings');
-        similarityThreshold = settings.similarityThreshold ?? 0.3;
+        const settings = await ApiClient.get<Record<string, any>>('settings');
+        similarityThreshold = settings.similarityThreshold ?? 1;
         loaded = true;
     });
 
     async function save() {
         saving = true;
         try {
-            await ApiClient.patch('Settings', {similarityThreshold});
+            await ApiClient.patch('settings', {similarityThreshold});
             Notifier.notify(Language.translate('Saved'), 'success');
         } catch (e) {
             Notifier.notify(Language.translate('Error occurred'), 'danger');
