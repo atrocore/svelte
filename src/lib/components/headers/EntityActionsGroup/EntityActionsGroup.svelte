@@ -92,7 +92,7 @@
 <div class="buttons-container">
     <div class="action-group-container">
         <ActionButtonGroup {actions} {dropdownActions} className="entity-actions" hasMoreButton={true}
-                     dropdownPosition="right"/>
+                           entityName={scope} dropdownPosition="right"/>
     </div>
     <div class="right-group">
         <div class="entity-buttons">
