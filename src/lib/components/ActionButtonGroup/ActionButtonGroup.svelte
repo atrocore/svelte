@@ -12,6 +12,7 @@
     export let hasMoreButton: boolean = false;
     export let dropdownPosition: string = 'left';
     export let className: string = '';
+    export let entityName: string = '';
     export let executeAction: (e: CustomEvent<any>) => void = () => {
     };
 </script>
@@ -21,7 +22,7 @@
         {#if 'dropdownItems' in action && action.dropdownItems?.length}
             <DropdownActionButton params={action} on:execute={executeAction}/>
         {:else}
-            <ActionButton params={action} on:execute={executeAction}/>
+            <ActionButton params={action} entityName={entityName} on:execute={executeAction}/>
         {/if}
     {/each}
 

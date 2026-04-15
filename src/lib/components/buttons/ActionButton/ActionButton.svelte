@@ -8,6 +8,7 @@
 
     export let params: ActionButtonParams;
     export let className: string = '';
+    export let entityName: string = '';
 
     $: computedClassNames = getComputedClasses(params, className);
 
@@ -36,7 +37,7 @@
         {#if params.html}
             {@html params.html}
         {:else}
-            {Language.translate(params.label ?? params.name ?? '')}
+            {Language.translate(params.label ?? params.name ?? '', 'labels', entityName)}
         {/if}
     </button>
 {/if}
