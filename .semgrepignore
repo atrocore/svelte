@@ -1,0 +1,4 @@
+# Build output and dependencies — not project source code
+node_modules/
+.svelte-kit/
+build/
