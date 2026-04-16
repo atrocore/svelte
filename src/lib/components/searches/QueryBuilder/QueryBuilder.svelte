@@ -58,7 +58,8 @@
     let generalFilterStore = getGeneralFilterStore(uniqueKey);
 
     const treeNodeRulesStore = generalFilterStore.treeNodeRules;
-    $: hasTreeNodeRules = $treeNodeRulesStore.length > 0;
+    let applicableTreeRulesCount: number = 0;
+    $: hasTreeNodeRules = applicableTreeRulesCount > 0;
 
     let savedSearchStore = getSavedSearchStore(scope, uniqueKey, {
         items: searchManager.savedSearchList || [],
@@ -167,6 +168,10 @@
             ...(filterPerGroups['default'] ?? []),
             ...(filterPerGroups[Language.translate('Fields')] ?? []),
         ]
+
+        if (filters.length === 0) {
+            return;
+        }
 
         $queryBuilder.on('afterCreateRuleInput.queryBuilder', function (e: any, rule: any) {
             if (rule.data?.disabled) {
@@ -621,6 +626,11 @@
     }
 
 
+    function clearScopeTreeRules() {
+        const current = get(treeNodeRulesStore);
+        generalFilterStore.treeNodeRules.set(current.filter((r: any) => r.data?._scope && r.data._scope !== scope));
+    }
+
     function resetFilter() {
         if (advancedFilterDisabled) {
             return;
@@ -634,7 +644,7 @@
         window.$(queryBuilderElement).queryBuilder('setRules', []);
         updateCollection();
         queryBuilderRulesChanged = false;
-        generalFilterStore.treeNodeRules.set([]);
+        clearScopeTreeRules();
     }
 
     function updateCollection() {
@@ -811,7 +821,7 @@
         refreshShowUnsetAll();
         updateCollection();
         window.dispatchEvent(new CustomEvent('filter:unset-all'));
-        generalFilterStore.treeNodeRules.set([]);
+        clearScopeTreeRules();
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
@@ -975,10 +985,25 @@
     }
 
     function syncTreeNodesToQB(treeRules: any[]): void {
+        // Skip if this QB's DOM element has been detached (e.g. after navigating to a different entity)
+        if (!queryBuilderElement?.isConnected) return;
+
+        // FIXME: _scope filtering is needed because the shared treeNodeRules store is never cleared on navigation.
+        // When the user switches between entities, the previous list view is not destroyed --
+        // TreePanel and QueryBuilder instances remain in memory and stay subscribed to the store.
+        // Without the scope check, rules from entity A would leak into entity B's QB
+        // if both happen to have a filter with the same field ID.
+        const applicableRules = treeRules.filter((r: any) =>
+            (!r.data?._scope || r.data._scope === scope) &&
+            filters.some((f: any) => f.id === r.id)
+        );
+
+        applicableTreeRulesCount = applicableRules.length;
+
         let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
 
         const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
-        const storeKeys = treeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
+        const storeKeys = applicableRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
         const qbKeys = currentTreeRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
         if (storeKeys === qbKeys) {
             return;
@@ -993,7 +1018,7 @@
             rules = {condition: 'AND', rules: []};
         }
 
-        rules.rules.unshift(...treeRules);
+        rules.rules.unshift(...applicableRules);
 
         syncingFromStore = true;
         window.$(queryBuilderElement).queryBuilder('setRules', rules);
@@ -1049,6 +1074,12 @@
 
         if (typeof rules === 'object' && rules.condition) {
             advancedFilterDisabled = isRuleEmpty(rules);
+        }
+
+        // Only write to shared stores when this QB is the active one (element connected to DOM).
+        // Detached QB instances must not override the active QB's filter state.
+        if (!queryBuilderElement?.isConnected) {
+            return;
         }
 
         generalFilterStore.advancedFilterDisabled.set(advancedFilterDisabled);
@@ -1130,7 +1161,7 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-        generalFilterStore.treeNodeRules.set([]);
+        clearScopeTreeRules();
             handleAdvancedFilterChecked();
             return;
         }
