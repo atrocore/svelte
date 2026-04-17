@@ -19,6 +19,7 @@
 
     let mode: string;
     let currentIsHeading: boolean = params?.currentIsHeading ?? true;
+    let disableNavigationHistory: boolean = params?.disableNavigationHistory ?? false;
 
     $: mode = params.mode ?? 'detail';
 
@@ -53,7 +54,7 @@
     });
 </script>
 
-<BaseHeader breadcrumbs={params.breadcrumbs} {currentIsHeading} scope={params.scope} id={params.id}>
+<BaseHeader breadcrumbs={params.breadcrumbs} {currentIsHeading} scope={params.scope} id={params.id} disableNavigationHistory={disableNavigationHistory}>
     {#if recordButtons}
         <div class="detail-button-container">
             <RecordActionsGroup {mode} scope={params.scope} id={params.id} permissions={params.scopePermissions}
