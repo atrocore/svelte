@@ -22,7 +22,8 @@ type Params = {
     currentIsHeading: boolean;
     afterOnMount?: () => void,
     afterOnDestroy?: () => void,
-    scopePermissions?: Permissions
+    scopePermissions?: Permissions,
+    disableNavigationHistory: boolean
 }
 
 export default Params;
