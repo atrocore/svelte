@@ -35,45 +35,20 @@
     let availableGroups: Group[] = [];
     let lastPanelNumber = -1;
     let lastRowNumber = -1;
-    let sidePanelsLayout: Record<string, { disabled?: boolean }> | undefined;
 
     const dispatch = createEventDispatcher();
 
     function loadLayout(callback: (data: any) => void): void {
-        let layoutData: { layout: any[] } | undefined;
-
-        const promiseList = [];
-
-        promiseList.push(
-            new Promise(resolve => {
-                LayoutManager.get(params.scope, params.type, params.relatedScope, params.layoutProfileId, layoutLoaded => {
-                    layoutData = layoutLoaded;
-                    resolve(layoutLoaded);
-                }, false, true);
-            })
-        );
-
-        if (params.type === "detail") {
-            promiseList.push(
-                new Promise(resolve => {
-                    LayoutManager.get(params.scope, 'sidePanelsDetail', null, params.layoutProfileId, layoutLoaded => {
-                        sidePanelsLayout = layoutLoaded.layout;
-                        resolve(layoutLoaded.layout);
-                    }, false, true);
-                })
-            );
-        }
-
-        Promise.all(promiseList).then(() => {
+        LayoutManager.get(params.scope, params.type, params.relatedScope, params.layoutProfileId, layoutData => {
             if (callback) {
-                readDataFromLayout(layoutData!.layout);
+                readDataFromLayout(layoutData.layout);
                 setupPanels();
                 tick().then(() => {
                     initializeSortable();
                 })
                 callback(layoutData);
             }
-        });
+        }, false, true);
     }
 
     function getRelationScope(leftScope: string, rightScope: string) {
@@ -245,13 +220,6 @@
     function hasDefaultPanel() {
         if (Metadata.get(['clientDefs', params.scope, 'defaultSidePanelDisabled'])) return false;
 
-        if (sidePanelsLayout) {
-            for (const name in sidePanelsLayout) {
-                if (name === 'default' && sidePanelsLayout[name].disabled) {
-                    return false;
-                }
-            }
-        }
         return true;
     }
 
