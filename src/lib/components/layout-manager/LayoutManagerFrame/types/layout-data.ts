@@ -1,5 +1,5 @@
 type LayoutData = {
-    storedProfile?: { id: string };
+    storedProfile: { id: string; name: string } | null;
     canEdit?: boolean;
 }
 
