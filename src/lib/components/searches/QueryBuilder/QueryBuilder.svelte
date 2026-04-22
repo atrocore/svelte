@@ -267,7 +267,7 @@
             filters: filters,
             plugins: {
                 sortable: {
-                    icon: 'ph ph-arrows-out-cardinal'
+                    disable_template: true
                 },
             },
             icons: {
@@ -279,35 +279,35 @@
                 group: ({group_id, level, conditions, icons, settings, translate, builder}: any) => `
                     <div id="${group_id}" class="rules-group-container">
                       <div class="rules-group-header">
-                        <div class="rules-group-header-icons">
-                            ${settings.display_errors ? `
-                              <div class="error-container"><i class="${icons.error}"></i></div>
-                            ` : ''}
-                            ${level > 1 ? `
-                                <div class="btn-group" style="margin-left: auto">
-                                    <span class="rule-toggle active" data-id="${group_id}"><i class="ph-fill ph-toggle-right"></i></span>
-                                    <button type="button" class="btn btn-danger outline rule-delete" data-delete="group">
-                                        <i class="${icons.remove_group}"></i>
-                                    </button>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="btn-group float-end group-actions">
-                          <button type="button" class="btn btn-sm btn-default" data-add="rule">
-                            ${translate("add_rule")}
-                          </button>
-                          ${settings.allow_groups === -1 || settings.allow_groups >= level ? `
-                            <button type="button" class="btn btn-sm btn-default" data-add="group">
-                              ${translate("add_group")}
+                        ${level > 1 ? `
+                          <div class="group-header-top drag-handle">
+                            <span class="rule-toggle active" data-id="${group_id}"><i class="ph-fill ph-toggle-right"></i></span>
+                            <div class="rule-header-right">
+                              ${settings.display_errors ? `<div class="error-container"><i class="${icons.error}"></i></div>` : ''}
+                              <button type="button" class="btn rule-delete" data-delete="group">
+                                <i class="${icons.remove_group}"></i>
+                              </button>
+                            </div>
+                          </div>
+                        ` : ''}
+                        <div class="group-header-center">
+                          <div class="btn-group group-conditions">
+                            ${conditions.map((condition: any) => `
+                              <label class="btn btn-sm btn-default">
+                                <input type="radio" name="${group_id}_cond" value="${condition}"> ${translate("conditions", condition)}
+                              </label>
+                            `).join('\n')}
+                          </div>
+                          <div class="btn-group group-actions">
+                            <button type="button" class="btn btn-sm btn-default" data-add="rule">
+                              ${translate("add_rule")}
                             </button>
-                          ` : ''}
-                        </div>
-                        <div class="btn-group group-conditions">
-                          ${conditions.map((condition: any) => `
-                            <label class="btn btn-sm btn-default">
-                              <input type="radio" name="${group_id}_cond" value="${condition}"> ${translate("conditions", condition)}
-                            </label>
-                          `).join('\n')}
+                            ${settings.allow_groups === -1 || settings.allow_groups >= level ? `
+                              <button type="button" class="btn btn-sm btn-default" data-add="group">
+                                ${translate("add_group")}
+                              </button>
+                            ` : ''}
+                          </div>
                         </div>
                       </div>
                       <div class=rules-group-body>
@@ -317,17 +317,15 @@
                 `,
                 rule: ({rule_id, icons, settings, translate, builder}: any) => `
                     <div id="${rule_id}" class="rule-container">
-                      <div class="rule-header">
-                        <div class="btn-group float-end rule-actions">
-                          <span class="rule-toggle active" data-id="${rule_id}"><i class="ph-fill ph-toggle-right"></i></span>
-                          <button type="button" class="btn btn-danger outline rule-delete" data-delete="rule">
+                      <div class="rule-header drag-handle">
+                        <span class="rule-toggle active" data-id="${rule_id}"><i class="ph-fill ph-toggle-right"></i></span>
+                        <div class="rule-header-right">
+                          ${settings.display_errors ? `<div class="error-container"><i class="${icons.error}"></i></div>` : ''}
+                          <button type="button" class="btn rule-delete" data-delete="rule">
                             <i class="${icons.remove_rule}"></i>
                           </button>
                         </div>
                       </div>
-                      ${settings.display_errors ? `
-                        <div class="error-container"><i class="${icons.error}"></i></div>
-                      ` : ''}
                       <div class="rule-container-group">
                         <div class="rule-filter-container"></div>
                         <div class="rule-operator-container"></div>
@@ -476,6 +474,7 @@
             if (rule.$el) {
                 if (isTreeNodeRule(rule)) {
                     rule.$el.addClass('tree-node-rule');
+                    rule.$el.find('.rule-header').removeClass('drag-handle');
                 }
                 rule.$el.find('.rule-filter-container select:not(.selectized)').selectize({
                     onFocus: function () {
@@ -980,6 +979,7 @@
             if (rule && isTreeNodeRule(rule)) {
                 found = true;
                 window.$(el).addClass('tree-node-rule');
+                window.$(el).find('.rule-header').removeClass('drag-handle');
             }
         });
     }
@@ -1467,46 +1467,80 @@
         font-size: 20px;
     }
 
+    :global(.query-builder .drag-handle) {
+        user-select: none;
+    }
+
+    :global(.query-builder .rule-toggle) {
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    :global(.query-builder .rule-toggle i) {
+        font-size: 22px;
+    }
+
     :global(.query-builder .btn.rule-delete) {
         border: 0;
         padding: 0;
         background-color: transparent;
-        float: right;
-        margin-left: auto;
+        line-height: 1;
+        color: var(--danger-color, #dc3545);
+    }
+
+    :global(.query-builder .error-container) {
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    :global(.query-builder .has-error .form-control),
+    :global(.query-builder .has-error .input-group-btn > .btn),
+    :global(.query-builder .has-error .input-group-btn > button) {
+        border-color: #a94442 !important;
+    }
+
+    .query-builder :global(.rule-container .rule-header) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .query-builder :global(.rule-container .rule-header .rule-header-right) {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .query-builder :global(.rules-group-header) {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .query-builder :global(.rules-group-header .group-header-top) {
+        display: flex;
+        align-items: center;
         justify-content: space-between;
-        gap: 10px 5px;
     }
 
-    .query-builder :global(.rules-group-header .drag-handle) {
-        order: -1;
+    .query-builder :global(.rules-group-header .group-header-top .rule-header-right) {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
-    .query-builder :global(.rules-group-header .group-actions) {
-        order: 2;
+    .query-builder :global(.rules-group-header .group-header-center) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
     }
 
     .query-builder :global(.rules-group-header .group-actions > .btn-primary:not(:first-child)) {
         border-left-color: #0057ad;
-    }
-
-    .query-builder :global(.rules-group-header .group-conditions) {
-        order: 1;
-    }
-
-    .query-builder :global(.rules-group-header .rules-group-header-icons) {
-        flex: 1 1 80%;
-        display: flex;
-        justify-content: space-between;
-        order: 0;
-    }
-
-    .query-builder :global(> .rules-group-container > .rules-group-header .rules-group-header-icons) {
-        display: none;
     }
 
     .query-builder :global(.rule-container-group) {
