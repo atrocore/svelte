@@ -303,9 +303,7 @@
     .sidebar > .sidebar-inner {
         background-color: var(--sidebar-color);
         flex: 1;
-        padding-top: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
+        padding: 25px 20px;
         height: fit-content;
         min-height: 100%;
         max-width: calc(100% - 22px);
