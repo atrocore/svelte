@@ -18,8 +18,8 @@
                 <button class="badge-remove ph ph-x" on:click={() => onRemove(node.id, node.link)}></button>
             </span>
         {/each}
-        <button class="unset-all" title={Language.translate('Unset All')} on:click={onUnsetAll}><i class="ph ph-x-circle"></i></button>
     </div>
+    <button class="secondary unset-all" on:click={onUnsetAll}>{Language.translate('Unset All')}</button>
 {/if}
 
 <style>
@@ -28,7 +28,7 @@
         bottom: 0;
         z-index: 10;
         background: var(--sidebar-color);
-        padding: 10px 0;
+        padding: 10px 0 0;
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
@@ -41,7 +41,7 @@
         gap: 4px;
         border: 1px solid #efefef;
         border-radius: 12px;
-        padding: 2px 6px 2px 8px;
+        padding: 3px 6px 3px 8px;
         font-size: 12px;
         max-width: 180px;
     }
@@ -56,6 +56,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        line-height: 1;
     }
 
     .badge-remove {
@@ -63,7 +64,7 @@
         background: none;
         padding: 0;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 12px;
         color: #666;
         line-height: 1;
         flex-shrink: 0;
@@ -74,19 +75,11 @@
     }
 
     .unset-all {
-        border: none;
-        background: none;
-        padding: 0;
-        cursor: pointer;
-        font-size: 16px;
-        color: #999;
-        line-height: 1;
-        align-self: center;
-        flex-shrink: 0;
-        margin-left: auto;
-    }
-
-    .unset-all:hover {
-        color: #333;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 12px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-radius: 12px;
     }
 </style>
