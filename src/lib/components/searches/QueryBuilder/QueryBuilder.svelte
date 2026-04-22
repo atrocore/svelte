@@ -1503,7 +1503,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 6px;
+        margin: 0 5px 6px;
     }
 
     .query-builder :global(.rule-container .rule-header .rule-header-right) {
