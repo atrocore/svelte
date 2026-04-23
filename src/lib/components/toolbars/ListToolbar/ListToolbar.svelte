@@ -10,6 +10,7 @@
     export let loading: boolean = false;
     export let counters: Array<Counter[]> = [];
     export let massActions: Array<MassAction | string> = [];
+    export let massActionStyle: string = '';
     export let showFilter: boolean = false;
     export let showSearch: boolean = false;
     export let searchManager: any;
@@ -69,7 +70,7 @@
 
     {#if canShowAction}
         <div class="actions">
-            <button type="button" class="dropdown-toggle actions-button" data-toggle="dropdown"
+            <button type="button" class="dropdown-toggle actions-button {massActionStyle}" data-toggle="dropdown"
                     disabled={typeof selected === 'boolean' ? !selected : selected.length === 0}
                     title={Language.translate('Actions')}>
                 <span>{Language.translate('Actions')}</span><i class="ph ph-caret-down"></i>
