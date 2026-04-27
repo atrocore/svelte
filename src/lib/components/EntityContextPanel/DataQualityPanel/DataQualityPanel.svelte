@@ -43,10 +43,9 @@
         }
 
         try {
-            data = await ApiClient.get('/QualityCheck/action/getEntityData', {
+            data = await ApiClient.get(`/QualityCheck/${activeItem}/entityData`, {
                 entityName: scope,
-                entityId: id,
-                qualityCheckId: activeItem
+                entityId: id
             });
         } catch {
             data = null;
@@ -67,10 +66,8 @@
 
         Notifier.notify('Please wait...')
         try {
-            await ApiClient.post('/QualityCheck/action/recalculate', {
-                entityName: scope,
+            await ApiClient.post(`/QualityCheck/${activeItem}/recalculate`, {
                 entityId: id,
-                fieldName: qualityChecksList.find(item => item.value === activeItem)?.field,
             });
             Notifier.notify('Done', 'success')
             fetchModel()
