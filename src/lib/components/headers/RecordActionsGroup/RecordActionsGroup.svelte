@@ -34,6 +34,7 @@
     let dynamicEditActions: ActionParams[] = [];
     let dynamicActionsDropdown: ActionParams[] = [];
     let additionalEditActions: ActionParams[] = [];
+    let dynamicActionMeta = new Map<string, Record<string, any>>();
     let headerButtons: ActionParams[] = [];
     let loadingActions: boolean = false;
     let bookmarkId: string | null = null;
@@ -82,7 +83,7 @@
 
     async function loadDynamicActions(): Promise<Record<string, any>[]> {
         try {
-            const url = `Action/action/dynamicActions?type=record&scope=${scope}` + (id ? '&id=' + id : '');
+            const url = id ? `${scope}/${id}/dynamicActions?type=record` : `${scope}/dynamicActions?type=record`;
             return await ApiClient.get<Record<string, any>[]>(url);
         } catch (error) {
             console.error(error);
@@ -118,6 +119,12 @@
                 id: item.data.action_id ?? null
             } as ActionParams));
 
+            dynamicActionMeta = new Map(
+                list
+                    .filter(item => item.data?.action_id)
+                    .map(item => [item.data.action_id, { inBackground: item.inBackground ?? false, type: item.type ?? null }])
+            );
+
             const bookmarkAction: Record<string, any> | undefined = list.filter(item => ['bookmark', 'unbookmark'].includes(item.action)).pop();
             if (bookmarkAction) {
                 bookmarkId = bookmarkAction.data.bookmark_id ?? null;
@@ -132,7 +139,9 @@
     }
 
     function executeAction(event: CustomEvent): void {
-        recordButtons?.executeAction(event.detail.action, event.detail.data, event.detail.event || event);
+        const data = event.detail.data;
+        const meta = data?.id ? dynamicActionMeta.get(data.id) : null;
+        recordButtons?.executeAction(event.detail.action, meta ? { ...data, ...meta } : data, event.detail.event || event);
     }
 
     onMount(() => {
