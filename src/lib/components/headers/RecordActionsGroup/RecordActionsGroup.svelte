@@ -83,7 +83,7 @@
 
     async function loadDynamicActions(): Promise<Record<string, any>[]> {
         try {
-            const url = id ? `${scope}/${id}/dynamicActions?type=record` : `${scope}/dynamicActions?type=record`;
+            const url = `dynamicActions?entityName=${scope}` + (id ? `&id=${id}` : '') + `&type=record`;
             return await ApiClient.get<Record<string, any>[]>(url);
         } catch (error) {
             console.error(error);
