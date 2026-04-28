@@ -1,4 +1,5 @@
-import 'driver.js/dist/driver.css'
+import 'driver.js/dist/driver.css';
+import 'toastify-js/src/toastify.css';
 import './styles/style.css';
 
 import { Language } from '$lib/core/language';
@@ -15,6 +16,7 @@ import { CollectionFactory } from "$lib/core/collection-factory";
 import { Tooltip } from "$lib/dom/tooltip";
 import { Dropdown } from "$lib/dom/dropdown";
 import { Popover } from "$lib/dom/popover";
+import * as DomNotifier from "$lib/dom/notifier";
 
 import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
 import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePanel.svelte";
@@ -61,6 +63,7 @@ declare global {
         Tooltip: typeof Tooltip;
         Dropdown: typeof Dropdown;
         Popover: typeof Popover;
+        Notifier: typeof DomNotifier;
     }
 }
 
@@ -77,6 +80,7 @@ window.SvelteCollectionFactory = CollectionFactory;
 window.Dropdown = Dropdown;
 window.Popover = Popover;
 window.Tooltip = Tooltip;
+window.Notifier = DomNotifier;
 
 export {
     ScriptField,

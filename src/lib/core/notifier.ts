@@ -10,9 +10,9 @@
 
 import { writable } from 'svelte/store';
 import { Language } from '$lib/core/language';
+import { notify as domNotify, clearAll as domClearAll, type NotifyOptions } from '$lib/dom/notifier';
 
 type NotifierAdapter = {
-    notify(message: string | boolean, type: string | null, timeout: number): void;
     confirm(message: string, o: any, callback: any, context: any): void;
 };
 
@@ -24,12 +24,15 @@ export const Notifier = {
         data.set(notifier);
     },
 
-    notify(message: string | boolean, type: string | null = null, timeout: number = 2000): void {
-        data.subscribe((current: NotifierAdapter) => {
-            if (current) {
-                current.notify(message, type, 2000);
-            }
-        })();
+    notify(message: string | boolean, options: NotifyOptions | string | null = null, timeout: number = 2000, closeButton: boolean = false): void {
+        if (!message) {
+            domClearAll();
+            return;
+        }
+        const opts: NotifyOptions = typeof options === 'object' && options !== null
+            ? options
+            : { type: options ?? 'warning', duration: timeout || 2000, closeButton };
+        domNotify(String(message), opts);
     },
 
     confirm(o: any = null, callback: any = null, context: any): void {
