@@ -13,33 +13,47 @@ export type NotifyOptions = {
     actions?: NotifyAction[];
 };
 
-const activeToasts: ReturnType<typeof Toastify>[] = [];
+const regularToasts: ReturnType<typeof Toastify>[] = [];
+const stickyToasts: ReturnType<typeof Toastify>[] = [];
 
 export function clearAll(): void {
-    activeToasts.forEach(t => t.hideToast());
-    activeToasts.length = 0;
+    [...regularToasts, ...stickyToasts].forEach(t => t.hideToast());
+    //TODO: ?????
+    regularToasts.length = 0;
+    stickyToasts.length = 0;
 }
 
 export function notify(message: string, options: NotifyOptions = {}): void {
     const { type = 'warning', duration = 3000, closeButton = false, actions = [] } = options;
     const resolvedType = type === 'danger' ? 'error' : (type || 'warning');
+    const isSticky = duration <= 0;
+
+    if (!isSticky) {
+        regularToasts.forEach(t => t.hideToast());
+        regularToasts.length = 0;
+    }
+
+    const node = document.createElement('span');
+    node.innerHTML = message;
+    node.className = 'toast-text';
+
+    const toastList = isSticky ? stickyToasts : regularToasts;
 
     const toast = Toastify({
-        text: message,
+        node,
         duration,
         gravity: 'bottom',
         position: 'center',
         className: `toast-${resolvedType}`,
         stopOnFocus: true,
-        escapeMarkup: false,
         callback: () => {
-            const idx = activeToasts.indexOf(toast);
-            if (idx !== -1) activeToasts.splice(idx, 1);
+            const idx = toastList.indexOf(toast);
+            if (idx !== -1) toastList.splice(idx, 1);
         },
     });
 
     toast.showToast();
-    activeToasts.push(toast);
+    toastList.push(toast);
 
     const el = toast.toastElement;
     if (!el) return;
