@@ -17,10 +17,14 @@ export type NotifyOptions = {
 const regularToasts: ReturnType<typeof Toastify>[] = [];
 const stickyToasts: ReturnType<typeof Toastify>[] = [];
 
-export function clearAll(): void {
-    [...regularToasts, ...stickyToasts].forEach(t => t.hideToast());
-    //TODO: ?????
+export function clearRegular(): void {
+    regularToasts.forEach(t => t.hideToast());
     regularToasts.length = 0;
+}
+
+export function clearAll(): void {
+    clearRegular();
+    stickyToasts.forEach(t => t.hideToast());
     stickyToasts.length = 0;
 }
 
