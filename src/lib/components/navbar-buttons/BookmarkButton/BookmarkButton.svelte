@@ -1,7 +1,7 @@
 <script lang="ts">
     import type ActionButtonParams from "$lib/components/buttons/ActionButton/types/action-button-params";
     import ActionButton from "$lib/components/buttons/ActionButton/ActionButton.svelte";
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { Language } from "$lib/core/language";
     import { addBookmark as addBookmarkApi, removeBookmark as removeBookmarkApi } from "./utils/bookmark-api";
 

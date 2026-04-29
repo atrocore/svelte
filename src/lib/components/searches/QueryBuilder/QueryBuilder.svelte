@@ -5,7 +5,7 @@
     import type Rule from "./types/rule";
     import { Acl } from "$lib/core/acl";
     import { Language } from "$lib/core/language"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { UserData } from "$lib/core/user-data";
     import { ApiClient } from '$lib/core/api-client';
     import SavedSearch from "$lib/components/filters/SavedSearch/SavedSearch.svelte";
@@ -781,7 +781,7 @@
             }
         }, dialog => {
             dialog.render();
-            Notifier.notify(false);
+            Notifier.clearRegular();
             dialog.dialog.$el.on('hidden.bs.modal', (e: any) => {
                 if (callback) {
                     callback(false)
@@ -847,7 +847,7 @@
             updateCollection();
         }).catch(e => {
             console.error('Error on saving saveSearch', e);
-            Notifier.notify(false)
+            Notifier.clearRegular()
         })
     }
 
@@ -908,7 +908,7 @@
             Notifier.notify(Language.translate('Done'), 'success');
         }).catch(e => {
             console.error('Error on deleting saveSearch', e);
-            Notifier.notify(false)
+            Notifier.clearRegular()
         });
     }
 

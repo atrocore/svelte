@@ -5,7 +5,7 @@
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
     import { Config } from '$lib/core/config';
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { UserData } from "$lib/core/user-data";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import CollapsibleSidebar from "$lib/components/collapsers/ResizableCollapser/ResizableCollapser.svelte";
@@ -374,7 +374,7 @@
         let dataLoaded = false;
 
         $tree.on('tree.load_data', e => {
-            Notifier.notify(false)
+            Notifier.clearRegular()
             if (dataLoaded) {
                 return
             }

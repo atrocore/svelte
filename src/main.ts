@@ -16,7 +16,7 @@ import { CollectionFactory } from "$lib/core/collection-factory";
 import { Tooltip } from "$lib/dom/tooltip";
 import { Dropdown } from "$lib/dom/dropdown";
 import { Popover } from "$lib/dom/popover";
-import * as DomNotifier from "$lib/dom/notifier";
+import { Notifier as DomNotifier } from "$lib/dom/notifier";
 
 import JobManagerButton from '$lib/components/navbar-buttons/JobManagerButton/JobManagerButton.svelte';
 import SystemUpdatePanel from "./routes/update/SystemUpdatePanel/SystemUpdatePanel.svelte";

@@ -1,7 +1,7 @@
 import { Acl } from '$lib/core/acl';
 import { Config } from '$lib/core/config';
 import { Metadata } from '$lib/core/metadata';
-import { Notifier } from '$lib/core/notifier';
+import { Notifier } from '$lib/dom/notifier';
 import { Language } from '$lib/core/language';
 import { ApiClient } from '$lib/core/api-client';
 
@@ -66,18 +66,18 @@ export function buildToolbar(EasyMDE: any, options: ToolbarOptions): any[] {
                     },
                     (view: any) => {
                         view.render();
-                        Notifier.notify(false);
+                        Notifier.clearRegular();
                         markdownView.listenTo(view, 'select', (model: any) => {
                             Notifier.notify(Language.translate('Loading...'));
                             ApiClient.post<{ sharedUrl: string }>(`File/${model.get('id')}/createSharedUrl`, {})
                                 .then(response => {
-                                    Notifier.notify(false);
+                                    Notifier.clearRegular();
                                     const file = new File([], model.get('name'));
                                     (file as any).url = response.sharedUrl;
                                     editor().uploadImageUsingCustomFunction(uploadImage, file);
                                 })
                                 .catch(err => {
-                                    Notifier.notify(false);
+                                    Notifier.clearRegular();
                                     console.error(err);
                                     (window as any).Espo.ui.error('Error while selecting file');
                                 });
@@ -103,7 +103,7 @@ export function buildToolbar(EasyMDE: any, options: ToolbarOptions): any[] {
                     attributes: { share: true },
                 }, (view: any) => {
                     view.render();
-                    Notifier.notify(false);
+                    Notifier.clearRegular();
                     markdownView.listenTo(view.model, 'after:file-upload', (entity: any) => {
                         const file = new File([], entity.name);
                         (file as any).url = entity.sharedUrl;
@@ -162,7 +162,7 @@ export function buildImageUploadFunction(
         }
         const maxUploadSize = (Config.get('chunkFileSize') || 2) * 1024 * 1024;
         if (file.size >= maxUploadSize) {
-            (window as any).Espo.ui.notify(`Your file exceeded size limit of ${maxUploadSize / 1024 / 1024} MB`);
+            (window as any).Espo.ui.Notifier.notify(`Your file exceeded size limit of ${maxUploadSize / 1024 / 1024} MB`);
             return;
         }
         const extensions: string[] = Metadata.get(['app', 'file', 'image', 'extensions']) || [];
@@ -181,12 +181,12 @@ export function buildImageUploadFunction(
                 share: true,
             })
                 .then(response => {
-                    Notifier.notify(false);
+                    Notifier.clearRegular();
                     (file as any).url = response.sharedUrl;
                     uploadImage(file, onSuccess, onError);
                 })
                 .catch(err => {
-                    Notifier.notify(false);
+                    Notifier.clearRegular();
                     console.error(err);
                     (window as any).Espo.ui.error('Error while uploading file');
                 });

@@ -10,7 +10,6 @@
 
 import { writable } from 'svelte/store';
 import { Language } from '$lib/core/language';
-import { notify as domNotify, clearRegular as domClearRegular, clearAll as domClearAll, type NotifyOptions } from '$lib/dom/notifier';
 
 type NotifierAdapter = {
     confirm(message: string, o: any, callback: any, context: any): void;
@@ -22,17 +21,6 @@ export const Notifier = {
 
     setNotifier(notifier: NotifierAdapter): void {
         data.set(notifier);
-    },
-
-    notify(message: string | boolean, options: NotifyOptions | string | null = null, timeout: number = 2000, closeButton: boolean = false): void {
-        if (!message) {
-            domClearRegular();
-            return;
-        }
-        const opts: NotifyOptions = typeof options === 'object' && options !== null
-            ? options
-            : { type: options ?? 'warning', duration: timeout || 2000, closeButton };
-        domNotify(String(message), opts);
     },
 
     confirm(o: any = null, callback: any = null, context: any): void {
