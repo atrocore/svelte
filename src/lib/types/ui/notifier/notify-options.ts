@@ -5,4 +5,6 @@ export type NotifyOptions = {
     duration?: number;
     closeButton?: boolean;
     actions?: NotifyAction[];
+    onClick?: () => void;
+    onClose?: () => void;
 };

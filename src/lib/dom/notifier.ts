@@ -14,7 +14,7 @@ export const Notifier = {
             ? { type: options, duration }
             : (options ?? {});
 
-        const { type = 'warning', actions = [] } = opts;
+        const { type = 'warning', actions = [], onClick, onClose } = opts;
         const resolvedType = type === 'danger' ? 'error' : (type || 'warning');
         const isError = resolvedType === 'error';
         const resolvedDuration = opts.duration ?? (isError ? -1 : 3000);
@@ -39,9 +39,11 @@ export const Notifier = {
             position: 'center',
             className: `toast-${resolvedType}`,
             stopOnFocus: true,
+            onClick: onClick,
             callback: () => {
                 const idx = toastList.indexOf(toast);
                 if (idx !== -1) toastList.splice(idx, 1);
+                onClose?.();
             },
         });
 
