@@ -166,7 +166,7 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
     line-height: 16px;
     width: auto;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .toastify.toast-success {
@@ -193,8 +193,15 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
     color: #31708f;
 }
 
+.toastify.toast-notification {
+    background: #fcfcfc !important;
+    border-color: #ddd;
+    color: #333;
+}
+
 .toast-close-btn {
     margin-left: 12px;
+    margin-top: 2px;
     font-size: 16px;
     opacity: 0.6;
     cursor: pointer;
@@ -207,8 +214,8 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
 }
 
 .toast-action-btn {
-    margin-left: 12px;
-    padding: 2px 10px;
+    margin-left: 10px;
+    padding: 1px 4px;
     background: transparent;
     border: 1px solid currentColor;
     border-radius: 3px;
@@ -232,4 +239,9 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
     border-color: currentColor;
     opacity: 1;
     outline: none;
+}
+
+.toast-text {
+    max-width: 600px;
+    line-height: 20px;
 }
