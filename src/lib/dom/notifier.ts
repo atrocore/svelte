@@ -29,8 +29,11 @@ export function clearAll(): void {
 }
 
 export function notify(message: string, options: NotifyOptions = {}): void {
-    const { type = 'warning', duration = 3000, closeButton = false, actions = [] } = options;
+    const { type = 'warning', actions = [] } = options;
     const resolvedType = type === 'danger' ? 'error' : (type || 'warning');
+    const isError = resolvedType === 'error';
+    const duration = options.duration ?? (isError ? -1 : 3000);
+    const closeButton = options.closeButton ?? isError;
     const isSticky = duration <= 0;
 
     if (!isSticky) {

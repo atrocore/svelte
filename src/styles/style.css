@@ -160,7 +160,7 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
 .toastify {
     border-radius: 0;
     border: 1px solid transparent;
-    padding: 10px 15px;
+    padding: 7px 15px;
     box-shadow: 0 0 5px -1px rgba(0, 0, 0, .3);
     font-size: 14px;
     line-height: 16px;
@@ -229,7 +229,7 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
 }
 
 .toast-action-btn > i {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .toast-action-btn:hover,
