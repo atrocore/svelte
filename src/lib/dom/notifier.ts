@@ -1,7 +1,8 @@
 import Toastify from 'toastify-js';
 
 export type NotifyAction = {
-    label: string;
+    label?: string;
+    tooltip?: string;
     iconClass?: string;
     callback: () => void;
 };
@@ -61,6 +62,7 @@ export function notify(message: string, options: NotifyOptions = {}): void {
     for (const action of actions) {
         const btn = document.createElement('button');
         btn.className = 'toast-action-btn';
+        if (action.tooltip) btn.title = action.tooltip;
         if (action.iconClass) {
             const icon = document.createElement('i');
             icon.className = action.iconClass;
