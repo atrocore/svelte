@@ -45,6 +45,7 @@ import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNav
 import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
+import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 
 declare global {
     interface Window {
@@ -107,5 +108,6 @@ export {
     AnchorNavigation,
     RebuildDatabaseModal,
     Administration,
-    SelectionItemList
+    SelectionItemList,
+    ClusterItemList
 };
