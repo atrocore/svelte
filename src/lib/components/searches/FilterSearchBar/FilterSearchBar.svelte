@@ -2,7 +2,7 @@
     import FilterSearch from "$lib/components/searches/FilterSearch/FilterSearch.svelte";
     import SearchBar from "$lib/components/searches/SearchBar/SearchBar.svelte";
     import { Language } from "$lib/core/language"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
 
     export let showFilter: boolean = false;
     export let showSearchPanel: boolean = false;
@@ -25,7 +25,7 @@
         searchManager.fetchCollection();
 
         window.Backbone.once('after:search', () => {
-            Notifier.notify(false);
+            Notifier.clearRegular();
             refreshDisabled = false;
         })
     }

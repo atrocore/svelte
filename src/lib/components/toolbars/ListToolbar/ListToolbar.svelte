@@ -3,7 +3,7 @@
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import FilterSearch from "$lib/components/searches/FilterSearch/FilterSearch.svelte";
     import SearchBar from "$lib/components/searches/SearchBar/SearchBar.svelte";
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import type Counter from "$lib/components/toolbars/ListToolbar/types/counter";
     import type MassAction from "$lib/components/toolbars/ListToolbar/types/mass-action";
 
@@ -39,7 +39,7 @@
         searchManager.fetchCollection();
 
         window.Backbone.once('after:search', () => {
-            Notifier.notify(false);
+            Notifier.clearRegular();
             refreshDisabled = false;
         })
     }

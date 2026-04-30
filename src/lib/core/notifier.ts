@@ -12,7 +12,6 @@ import { writable } from 'svelte/store';
 import { Language } from '$lib/core/language';
 
 type NotifierAdapter = {
-    notify(message: string | boolean, type: string | null, timeout: number): void;
     confirm(message: string, o: any, callback: any, context: any): void;
 };
 
@@ -22,14 +21,6 @@ export const Notifier = {
 
     setNotifier(notifier: NotifierAdapter): void {
         data.set(notifier);
-    },
-
-    notify(message: string | boolean, type: string | null = null, timeout: number = 2000): void {
-        data.subscribe((current: NotifierAdapter) => {
-            if (current) {
-                current.notify(message, type, 2000);
-            }
-        })();
     },
 
     confirm(o: any = null, callback: any = null, context: any): void {

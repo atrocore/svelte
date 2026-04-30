@@ -3,7 +3,7 @@
     import { createEventDispatcher, onMount, tick } from 'svelte';
     import type Button from '$lib/types/ui/button'
     import type Params from './types/params'
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
     import { UserData } from "$lib/core/user-data";
@@ -82,7 +82,7 @@
         return new Promise<void>((resolve) => {
             loadLayout((data) => {
                 layoutData = data
-                Notifier.notify(false)
+                Notifier.clearRegular()
                 resolve()
                 if (params.afterRender) params.afterRender()
             });

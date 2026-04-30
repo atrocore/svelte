@@ -1,6 +1,6 @@
 import { Acl } from '$lib/core/acl';
 import { Metadata } from '$lib/core/metadata';
-import { Notifier } from '$lib/core/notifier';
+import { Notifier } from '$lib/dom/notifier';
 import { Language } from '$lib/core/language';
 import { ApiClient } from '$lib/core/api-client';
 
@@ -63,16 +63,16 @@ export function buildImageButtons(wysiwygView: any, getEditor: () => any): Recor
                         },
                         (view: any) => {
                             view.render();
-                            Notifier.notify(false);
+                            Notifier.clearRegular();
                             wysiwygView.listenTo(view, 'select', (model: any) => {
                                 Notifier.notify(Language.translate('Loading...'));
                                 ApiClient.post<{ sharedUrl: string }>(`File/${model.get('id')}/createSharedUrl`, {})
                                     .then(response => {
-                                        Notifier.notify(false);
+                                        Notifier.clearRegular();
                                         getEditor()?.summernote('insertImage', response.sharedUrl);
                                     })
                                     .catch(err => {
-                                        Notifier.notify(false);
+                                        Notifier.clearRegular();
                                         console.error(err);
                                         (window as any).Espo.ui.error('Error while selecting file');
                                     });
@@ -99,7 +99,7 @@ export function buildImageButtons(wysiwygView: any, getEditor: () => any): Recor
                         attributes: { share: true },
                     }, (view: any) => {
                         view.render();
-                        Notifier.notify(false);
+                        Notifier.clearRegular();
                         wysiwygView.listenTo(view.model, 'after:file-upload', (entity: any) => {
                             const extensions: string[] = Metadata.get(['app', 'file', 'image', 'extensions']) || [];
                             if (!extensions.some((ext: string) => entity.name.endsWith(ext))) {

@@ -10,7 +10,7 @@
 
 <script lang="ts">
     import { Language } from '$lib/core/language';
-    import { Notifier } from '$lib/core/notifier';
+    import { Notifier } from '$lib/dom/notifier';
     import PopoverButtonPanel
         from '$lib/components/buttons/PopoverButton/PopoverButtonPanel/PopoverButtonPanel.svelte';
     import ActionButton from '$lib/components/buttons/ActionButton/ActionButton.svelte';

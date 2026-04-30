@@ -1,7 +1,7 @@
 import type * as monaco from 'monaco-editor';
 import { Language } from '$lib/core/language';
 import { Metadata } from '$lib/core/metadata';
-import { Notifier } from '$lib/core/notifier';
+import { Notifier } from '$lib/dom/notifier';
 import { ApiClient } from '$lib/core/api-client';
 
 export type EditorActionsConfig = {
@@ -55,7 +55,7 @@ export function registerEditorActions(
                     boolFilterData: { fieldsFilter: { entityId: entityName } }
                 }, (dialog) => {
                     dialog.render();
-                    Notifier.notify(false);
+                    Notifier.clearRegular();
                     dialog.once('select', (models) => {
                         const fields = models.map((m) => m.get('code') as string);
                         ApiClient.post<{ text: string }>('generateScriptFieldsSnippet', { entityName, fields })
@@ -98,7 +98,7 @@ export function registerEditorActions(
                         },
                         (dialog) => {
                             dialog.render();
-                            Notifier.notify(false);
+                            Notifier.clearRegular();
                             dialog.once('select', (models) => {
                                 const attributesIds = models.map((m) => m.get('id') as string);
                                 ApiClient.post<{ text: string }>('generateScriptAttributesSnippet', { entityName, attributesIds })

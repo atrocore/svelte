@@ -12,7 +12,7 @@
     import { onMount, beforeUpdate, createEventDispatcher } from 'svelte';
     import { Acl } from '$lib/core/acl';
     import { Config } from '$lib/core/config';
-    import { Notifier } from '$lib/core/notifier';
+    import { Notifier } from '$lib/dom/notifier';
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from '$lib/core/language';
     import { Metadata } from '$lib/core/metadata';
@@ -145,11 +145,11 @@
                             share: true,
                         })
                             .then(response => {
-                                Notifier.notify(false);
+                                Notifier.clearRegular();
                                 summernote?.summernote('insertImage', response.sharedUrl);
                             })
                             .catch(err => {
-                                Notifier.notify(false);
+                                Notifier.clearRegular();
                                 console.error(err);
                                 (window as any).Espo.ui.error('Error while uploading file');
                             });
