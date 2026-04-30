@@ -3,6 +3,7 @@
     import { createEventDispatcher, onMount, tick } from 'svelte';
     import type Button from '$lib/types/ui/button'
     import type Params from './types/params'
+    import { Notifier as EspoNotifier } from "$lib/core/notifier";
     import { Notifier } from "$lib/dom/notifier";
     import { LayoutManager } from "$lib/core/layout-manager";
     import { Language } from "$lib/core/language"
@@ -131,7 +132,7 @@
     }
 
     function reset(): void {
-        Notifier.confirm('Are you sure you want to reset this layout?', () => {
+        EspoNotifier.confirm('Are you sure you want to reset this layout?', () => {
             LayoutManager.resetToDefault(params.scope, params.type, params.relatedScope, layoutData.storedProfile?.id, () => {
                 emitUpdate(true)
                 cancel();
