@@ -6,7 +6,7 @@
     import type LayoutItem from "./types/layout-item"
     import type Group from "./types/group";
     import { Language } from "$lib/core/language"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { Metadata } from '$lib/core/metadata';
     import { UserData } from "$lib/core/user-data";
 

@@ -3,7 +3,7 @@
     import { get } from 'svelte/store'
     import { Language } from "$lib/core/language"
     import { Metadata } from '$lib/core/metadata';
-    import { Notifier } from '$lib/core/notifier'
+    import { Notifier } from '$lib/dom/notifier'
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store'
     import { Acl } from "$lib/core/acl";
     import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";

@@ -5,7 +5,7 @@
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { Acl } from "$lib/core/acl";
     import type Item from "$lib/components/EntityContextPanel/DataQualityPanel/types/item";
     import ContentFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";

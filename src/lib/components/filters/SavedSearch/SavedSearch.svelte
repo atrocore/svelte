@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
     import { Language } from "$lib/core/language"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import { Acl } from "$lib/core/acl";
     import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import { getSavedSearchStore } from "$lib/stores/saved-search.store";
