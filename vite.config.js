@@ -15,7 +15,7 @@ const alias = {
 
 export default defineConfig(({ command }) => {
     if (command === 'serve') {
-        const backendUrl = process.env.BACKEND_URL || 'https://atrocore.local';
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
 
         return {
             plugins: [svelte(), devProxyPlugin(backendUrl)],

@@ -7,13 +7,14 @@ function backendFetch(urlString, { method = 'GET', headers = {} } = {}) {
         const url = new URL(urlString);
         const mod = url.protocol === 'https:' ? https : http;
         const req = mod.request(
+            // nosemgrep: problem-based-packs.insecure-transport.js-node.bypass-tls-verification.bypass-tls-verification
             {
                 hostname: url.hostname,
                 port: url.port || (url.protocol === 'https:' ? 443 : 80),
                 path: url.pathname + url.search,
                 method,
                 headers,
-                rejectUnauthorized: false, // nosemgrep: bypass-tls-verification
+                rejectUnauthorized: false
             },
             (res) => {
                 const chunks = [];
