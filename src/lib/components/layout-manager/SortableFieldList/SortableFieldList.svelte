@@ -133,8 +133,7 @@
             <header>
                 <h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5>
                 {#if hasAttributes && !['navigation', 'insights', 'relationships'].includes(params.type)}
-                    <a href="#"
-                       on:click|preventDefault={addAttribute}>{Language.translate('Add Attribute', 'labels', 'LayoutManager')}</a>
+                    <a href="#" on:click|preventDefault={addAttribute}>{Language.translate('addAttribute')}</a>
                 {/if}
             </header>
         </svelte:fragment>
