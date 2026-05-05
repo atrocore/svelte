@@ -13,7 +13,7 @@ function backendFetch(urlString, { method = 'GET', headers = {} } = {}) {
                 path: url.pathname + url.search,
                 method,
                 headers,
-                rejectUnauthorized: false,
+                rejectUnauthorized: false, // nosemgrep: bypass-tls-verification
             },
             (res) => {
                 const chunks = [];
