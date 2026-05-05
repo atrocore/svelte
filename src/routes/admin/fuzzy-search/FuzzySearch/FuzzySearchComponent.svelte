@@ -3,7 +3,7 @@
     import { Language } from '$lib/core/language';
     import { Config } from '$lib/core/config';
     import { ApiClient } from '$lib/core/api-client';
-    import { Notifier } from '$lib/core/notifier';
+    import { Notifier } from '$lib/dom/notifier';
     import BaseHeader from '$lib/components/headers/BaseHeader/BaseHeader.svelte';
 
     let similarityThreshold: number = 1;

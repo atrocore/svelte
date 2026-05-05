@@ -2,7 +2,7 @@
     import { createEventDispatcher, tick } from 'svelte';
     import Sortable from 'sortablejs';
     import type Params from "$lib/components/layout-manager/LayoutManagerFrame/types/params"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import LayoutManagerFrame from "$lib/components/layout-manager/LayoutManagerFrame/LayoutManagerFrame.svelte";
     import { Language } from "$lib/core/language"
     import { LayoutManager } from "$lib/core/layout-manager";

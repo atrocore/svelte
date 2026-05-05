@@ -17,8 +17,8 @@ export const Notifier = {
         const { type = 'warning', actions = [], onClick, onClose } = opts;
         const resolvedType = type === 'danger' ? 'error' : (type || 'warning');
         const isError = resolvedType === 'error';
-        const resolvedDuration = opts.duration ?? (isError ? -1 : 3000);
-        const closeButton = opts.closeButton ?? isError;
+        const resolvedDuration = isError ? -1 : (opts.duration ?? 3000);
+        const closeButton = isError ? true : (opts.closeButton ?? false);
         const isSticky = resolvedDuration <= 0;
 
         if (!isSticky) {

@@ -7,7 +7,7 @@
 
     import type Item from "$lib/components/layout-manager/SortableColumns/types/item";
     import { Language } from "$lib/core/language"
-    import { Notifier } from "$lib/core/notifier";
+    import { Notifier } from "$lib/dom/notifier";
     import type NavItem from './types/nav-item';
     import type FetchResult from './types/fetch-result';
 
