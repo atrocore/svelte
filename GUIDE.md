@@ -401,7 +401,64 @@ No business logic allowed here.
 
 ---
 
-## 8. Integration with BackboneJS
+## 8. Local Development
+
+### 8.1 Dev Server (HMR)
+
+The dev server proxies the PHP backend through Vite, replacing the built `atro.min.js` with a live ES module entry. Changes to `.svelte` and `.ts` files are reflected in the browser instantly via Hot Module Replacement — no page reload, no rebuild step.
+
+**First-time setup:**
+
+```bash
+cd src/svelte
+cp .env.example .env   # then edit .env
+npm install
+```
+
+Edit `.env` and set `BACKEND_URL` to your local PHP application URL:
+
+```
+BACKEND_URL=https://atrocore.local
+DEV_PORT=5173
+```
+
+**Start the dev server:**
+
+```bash
+npm run dev
+```
+
+Open **`http://localhost:5173`** (or the port set in `DEV_PORT`) instead of your usual backend URL. The app runs identically — login, data, and API all go through the PHP backend. Only Svelte components are served from Vite.
+
+### 8.2 Production Build
+
+```bash
+npm run build
+```
+
+Output goes to `../atrocore/client/` by default, or to the path set in `BUILD_PATH`.
+
+### 8.3 How the Dev Server Works
+
+```
+Browser → localhost:5173
+              │
+              ├── /src/**          → Vite (source files, HMR)
+              ├── /@vite/**        → Vite (HMR runtime)
+              └── everything else → PHP backend (proxied)
+```
+
+On the first HTML request, the proxy middleware intercepts the PHP response and:
+
+1. Makes all absolute backend URLs relative (so scripts and API calls go through the proxy)
+2. Replaces `<script src=".../atro.min.js">` with `<script type="module" src="/src/dev-main.ts">`
+3. Removes the built `style.css` link (Vite injects it from source automatically)
+
+`src/dev-main.ts` is the dev-only entry point. It imports `main.ts` and exposes everything on `window.Svelte`, matching the interface of the production UMD bundle.
+
+---
+
+## 9. Integration with BackboneJS
 
 Svelte components are mounted inside BackboneJS views using the global `Svelte` variable.
 

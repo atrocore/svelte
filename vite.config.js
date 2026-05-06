@@ -4,50 +4,60 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { existsSync } from 'fs';
 import dotenv from 'dotenv';
 
+import { devProxyPlugin } from './vite-dev-proxy.js';
+
 dotenv.config();
 
-export default defineConfig(({ command, mode }) => {
-    const isWatch = process.argv.includes('--watch');
-    let outDir = '';
+const alias = {
+    $lib: resolve(__dirname, 'src/lib'),
+    $assets: resolve(__dirname, 'src/assets'),
+};
 
-    if (process.env.BUILD_PATH) {
-        outDir = process.env.BUILD_PATH;
-    } else {
-        const atrocorePath = resolve(__dirname, '../atrocore');
-        outDir = existsSync(atrocorePath) ? '../atrocore/client' : '../client';
+export default defineConfig(({ command }) => {
+    if (command === 'serve') {
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+
+        return {
+            plugins: [svelte(), devProxyPlugin(backendUrl)],
+            resolve: { alias },
+            server: {
+                port: Number(process.env.DEV_PORT) || 5173,
+                proxy: {
+                    '^(?!/@|/src/|/node_modules/)': {
+                        target: backendUrl,
+                        changeOrigin: true,
+                        secure: false,
+                    },
+                },
+            },
+        };
     }
+
+    const atrocorePath = resolve(__dirname, '../atrocore');
+    const outDir = process.env.BUILD_PATH
+        ?? (existsSync(atrocorePath) ? '../atrocore/client' : '../client');
 
     return {
         plugins: [svelte()],
         base: '/client',
         build: {
-            minify: !isWatch, // minify only when NOT in watch mode
+            minify: true,
             outDir,
             rollupOptions: {
                 output: {
-                    assetFileNames: (assetInfo) => {
-                        if (assetInfo.name === 'style.css') {
-                            return 'css/style.css';
-                        }
-                        return 'assets/[name][extname]';
-                    }
-                }
+                    assetFileNames: ({ name }) => name === 'style.css' ? 'css/style.css' : 'assets/[name][extname]',
+                },
             },
             lib: {
                 entry: './src/main.ts',
                 name: 'Svelte',
                 formats: ['umd'],
-                fileName: (format) => 'atro.min.js',
-            }
+                fileName: () => 'atro.min.js',
+            },
         },
         define: {
             'process.env.NODE_ENV': JSON.stringify('production'),
         },
-        resolve: {
-            alias: {
-                $lib: resolve(__dirname, 'src/lib'),
-                $assets: resolve('./src/assets')
-            }
-        }
+        resolve: { alias },
     };
 });
