@@ -254,12 +254,13 @@
     .locale-switcher > span {
         display: inline-block;
         vertical-align: text-top;
-        max-width: 100px;
+        max-width: 75px;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .locale-switcher > i {
+        margin-inline-start: 8px;
         margin-inline-end: -4px;
         font-size: 12px;
         line-height: 1;
