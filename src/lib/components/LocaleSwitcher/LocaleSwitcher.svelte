@@ -6,9 +6,18 @@
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
     import { Acl } from "$lib/core/acl";
+    import {onMount} from "svelte";
+    import type Floating from "$lib/dom/floating";
+    import {Dropdown} from "$lib/dom/dropdown";
 
     export let checkConfirmLeaveOut: Function;
-    let mainLanguageCode = ''
+
+    let localeTrigger: HTMLElement;
+    let languageTrigger: HTMLElement;
+    let localeDropdown: HTMLElement;
+    let languageDropdown: HTMLElement;
+
+    let mainLanguageCode = '';
 
     for (const [code, language] of Object.entries(Config.get('referenceData').Language || {}) as [string, any][]) {
         if (language.role === 'main') {
@@ -48,13 +57,19 @@
 
     disabledLanguages = disabledLanguages.filter(code => !!languages[code])
 
-    function setAllLanguages() {
-        enabledLanguages = Object.keys(languages).filter(item => item !== defaultLanguageCode)
+    function unselectAllLanguages() {
+        enabledLanguages = []
         onLanguageChange()
     }
 
-    let enabledLanguages = Object.keys(languages).filter(item => !disabledLanguages.includes(item))
+    let enabledLanguages: string[] = disabledLanguages.length > 0
+        ? Object.keys(languages).filter(item => item !== defaultLanguageCode && !disabledLanguages.includes(item))
+        : []
 
+    async function onLocaleSelected(id: string) {
+        locale = id;
+        await onLocaleChange();
+    }
 
     async function onLocaleChange() {
         const userData = UserData.get()!
@@ -73,7 +88,8 @@
             await ApiClient.patch('/UserProfile/' + userData.user.id, {
                 disabledLanguages: Object.keys(languages).filter(item => item !== newDefaultCode)
             })
-            window.location.reload()
+
+            window.location.reload();
         })
     }
 
@@ -84,41 +100,64 @@
             disabledLanguages: disabledLanguages
         })
 
-        LayoutManager.clearListAndDetailCache()
+        LayoutManager.clearListAndDetailCache();
+
         // emit event to reload layouts
         for (const [_, view] of (window.languageObservableViews?.entries() ?? [])) {
             view?.trigger('change:disabled-languages', disabledLanguages)
         }
     }
+
+    onMount(() => {
+        let localeFloating: Floating | null = null;
+        let languageFloating: Floating | null = null;
+
+        if (localeTrigger) {
+            localeFloating = Dropdown.create(localeTrigger, localeDropdown, {
+                placement: 'bottom-end',
+            });
+        }
+
+        if (languageTrigger) {
+            languageFloating = Dropdown.create(languageTrigger, languageDropdown, {
+                placement: 'bottom-start',
+                disableAutoHide: true
+            })
+        }
+
+        return () => {
+            localeFloating?.destroy();
+            languageFloating?.destroy();
+        }
+    });
 </script>
 
-<div class="button-group input-group" style="display:flex; align-items: center; padding: 0 10px; height: 100%;">
+<div class="button-group input-group">
     {#if Object.keys(locales).length > 1}
-        <div>
-            <select class="form-control locale-switcher"
-                    title="{Language.translate('Locale','scopeNamesPlural','Global')}"
-                    style="max-width: 100px;" name="locales"
-                    bind:value={locale}
-                    on:change={onLocaleChange}>
-                <optgroup label="{Language.translate('Locale','scopeNamesPlural','Global')}">
-                </optgroup>
-                {#each Object.entries(locales) as [id, locale] }
-                    <option value="{id}">
-                        {locale.name}
-                    </option>
+        <div class="dropdown">
+            <button class="locale-switcher dropdown-toggle" data-toggle="dropdown" aria-expanded="false" bind:this={localeTrigger}>
+                <span>{locales[locale]?.name ?? locale}</span>
+                <i class="ph ph-caret-down"></i>
+            </button>
+            <ul class="dropdown-menu small" bind:this={localeDropdown}>
+                {#each Object.entries(locales) as [id, loc]}
+                    <li class:disabled={id === locale}>
+                        <a href="javascript:" on:click|preventDefault={e => locale !== id ? onLocaleSelected(id) : null }>
+                            {loc.name}
+                        </a>
+                    </li>
                 {/each}
-            </select>
+            </ul>
         </div>
     {/if}
     {#if Object.keys(languages).length > 1}
         <div class="dropdown has-content">
-            <button data-toggle="dropdown" class="filter-switcher" aria-expanded="false" style="padding: 6px 12px">
-                <i class="{`ph ph-${enabledLanguages.length >= Object.keys(languages).length - 1 ? 'globe-simple':'translate' }`}"
-                   style="display: block"></i>
+            <button data-toggle="dropdown" class="language-switcher" aria-expanded="false" bind:this={languageTrigger}>
+                <i class="{`ph ph-${enabledLanguages.length >= Object.keys(languages).length - 1 ? 'globe-simple' : 'translate' }`}"></i>
             </button>
-            <div class="dropdown-menu" style="padding: 10px; min-width: 180px">
-                <h5 style="margin-top: 0">{Language.translate('contentLanguages', 'labels', 'Global')}</h5>
-                <ul style="padding: 0" on:click={event => event.stopPropagation()}>
+            <div class="dropdown-menu" bind:this={languageDropdown}>
+                <h5>{Language.translate('contentLanguages', 'labels', 'Global')}</h5>
+                <ul>
                     {#if defaultLanguageCode}
                         <li class="checkbox">
                             <label style="cursor: not-allowed">
@@ -137,9 +176,9 @@
                         </li>
                     {/each}
                 </ul>
-                {#if enabledLanguages.length < Object.keys(languages).length - 1 }
-                    <a href="javascript:" on:click={setAllLanguages}
-                       style="margin-top: 10px">{Language.translate('selectAll', 'labels', 'Global')}</a>
+                {#if enabledLanguages.length > 0}
+                    <a href="javascript:" on:click={unselectAllLanguages}
+                       style="margin-top: 10px">{Language.translate('unselectAll', 'labels', 'Global')}</a>
                 {/if}
             </div>
         </div>
@@ -147,37 +186,83 @@
 </div>
 
 <style>
-    button, .locale-switcher {
+    .button-group {
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        height: 100%;
+    }
+
+    button {
         color: var(--toolbar-font-color);
         background-color: var(--toolbar-background-color);
         border-color: rgba(var(--nav-font-color-rgb, 0, 0, 0), 0.2);
         cursor: pointer;
     }
 
-    select, option, optgroup {
-        color: var(--toolbar-font-color);
-        background-color: var(--toolbar-background-color);
-    }
-
-    button:hover, .locale-switcher:hover, button:focus, .locale-switcher:focus {
+    button:hover, button:focus {
         background-color: rgba(0, 0, 0, 0.03);
     }
 
-    button:active, .locale-switcher:active {
+    .dropdown > button {
+        padding: 5px 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .dropdown.open > button,
+    button:active {
         background-color: rgba(0, 0, 0, 0.05);
     }
 
-    .button-group > :first-child > button, .button-group > :first-child > .locale-switcher {
+    .button-group > * > button {
+        border-radius: 0;
+    }
+
+    .button-group > :first-child > button {
         border-bottom-left-radius: 5px;
         border-top-left-radius: 5px;
     }
 
-    .button-group > :last-child > button, .button-group > :last-child > .locale-switcher {
+    .button-group > :last-child > button {
         border-bottom-right-radius: 5px;
         border-top-right-radius: 5px;
     }
 
     .button-group > :nth-child(2) > button {
         border-left-width: 0;
+    }
+
+    .dropdown-menu > li > a {
+        padding: 5px 15px;
+    }
+
+    .language-switcher + .dropdown-menu {
+        padding: 10px;
+        min-width: 180px;
+    }
+
+    .language-switcher + .dropdown-menu > h5 {
+        margin: 0;
+    }
+
+    .language-switcher + .dropdown-menu > ul {
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .locale-switcher > span {
+        display: inline-block;
+        vertical-align: text-top;
+        max-width: 75px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .locale-switcher > i {
+        margin-inline-start: 8px;
+        margin-inline-end: -4px;
+        font-size: 12px;
+        line-height: 1;
     }
 </style>
