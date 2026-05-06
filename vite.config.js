@@ -21,7 +21,7 @@ export default defineConfig(({ command }) => {
             plugins: [svelte(), devProxyPlugin(backendUrl)],
             resolve: { alias },
             server: {
-                port: 5173,
+                port: Number(process.env.DEV_PORT) || 5173,
                 proxy: {
                     '^(?!/@|/src/|/node_modules/)': {
                         target: backendUrl,
@@ -33,7 +33,6 @@ export default defineConfig(({ command }) => {
         };
     }
 
-    const isWatch = process.argv.includes('--watch');
     const atrocorePath = resolve(__dirname, '../atrocore');
     const outDir = process.env.BUILD_PATH
         ?? (existsSync(atrocorePath) ? '../atrocore/client' : '../client');
@@ -42,7 +41,7 @@ export default defineConfig(({ command }) => {
         plugins: [svelte()],
         base: '/client',
         build: {
-            minify: !isWatch,
+            minify: true,
             outDir,
             rollupOptions: {
                 output: {

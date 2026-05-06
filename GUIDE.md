@@ -419,6 +419,7 @@ Edit `.env` and set `BACKEND_URL` to your local PHP application URL:
 
 ```
 BACKEND_URL=https://atrocore.local
+DEV_PORT=5173
 ```
 
 **Start the dev server:**
@@ -427,7 +428,7 @@ BACKEND_URL=https://atrocore.local
 npm run dev
 ```
 
-Open **`http://localhost:5173`** instead of your usual backend URL. The app runs identically — login, data, and API all go through the PHP backend. Only Svelte components are served from Vite.
+Open **`http://localhost:5173`** (or the port set in `DEV_PORT`) instead of your usual backend URL. The app runs identically — login, data, and API all go through the PHP backend. Only Svelte components are served from Vite.
 
 ### 8.2 Production Build
 
