@@ -481,7 +481,7 @@ Key points:
 
 ---
 
-## 11. Rules Summary
+## 10. Rules Summary
 
 ### Do
 - Name components by **what they are**, not where they appear in the DOM
