@@ -76,7 +76,9 @@ export function devProxyPlugin(backendUrl) {
                         .replace(
                             /<script[^>]+atro\.min\.js[^"]*"[^>]*><\/script>/,
                             `<script type="module" src="/src/dev-main.ts"></script>`,
-                        );
+                        )
+                        // Remove the built style.css — Vite injects it from source via dev-main.ts
+                        .replace(/<link[^>]+client\/css\/style\.css[^>]*>/g, '');
 
                     const skip = new Set(['content-encoding', 'content-length', 'transfer-encoding', 'set-cookie']);
                     for (const [key, val] of Object.entries(response.rawHeaders)) {
