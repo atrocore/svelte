@@ -48,6 +48,7 @@ import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHe
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
+import RowActions from "$lib/components/RowActions/RowActions.svelte";
 
 declare global {
     interface Window {
@@ -113,5 +114,6 @@ export {
     RebuildDatabaseModal,
     Administration,
     SelectionItemList,
-    ClusterItemList
+    ClusterItemList,
+    RowActions
 };

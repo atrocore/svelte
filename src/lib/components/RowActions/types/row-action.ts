@@ -15,6 +15,9 @@ type RowAction = {
     icon?: string;
     hidden?: boolean;
     disabled?: boolean;
+    quick?: boolean;
+    link?: string;
+    data?: Record<string, string>;
 };
 
 export default RowAction;
