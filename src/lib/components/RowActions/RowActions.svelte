@@ -12,6 +12,7 @@
     import { onMount, createEventDispatcher } from 'svelte';
     import { Language } from '$lib/core/language';
     import { Dropdown } from '$lib/dom/dropdown';
+    import Preloader from '$lib/components/loaders/Preloader/Preloader.svelte';
     import type RowAction from './types/row-action';
 
     export let actions: RowAction[] = [];
@@ -79,9 +80,14 @@
     }
 
     $: visibleActions = actions.filter(a => !a.hidden);
-    $: quickActions = visibleActions.filter(a => a.quick && a.icon).slice(0, 2);
+    $: quickActions = visibleActions.filter(a => a.quick && a.iconClass).slice(0, 2);
     $: hasAnyAction = visibleActions.length > 0;
     $: hasDynamicSection = !!loadActions;
+    function hasIcon(a: RowAction): boolean {
+        return !a.html && !!(a.iconClass || a.iconUrl);
+    }
+
+    $: hasIcons = visibleActions.some(hasIcon) || dynamicActions.some(hasIcon);
 </script>
 
 {#if hasAnyAction}
@@ -96,14 +102,14 @@
                 {...dataAttrs(action.data)}
                 on:click={(e) => handleAction(e, action)}
             >
-                <i class={action.icon}></i>
+                <i class={action.iconClass}></i>
             </a>
         {/each}
         <div class="dropdown">
             <button class="dropdown-toggle" bind:this={toggleEl} data-toggle="dropdown">
                 <i class="ph ph-dots-three-vertical"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-right" bind:this={dropdownEl}>
+            <ul class="dropdown-menu dropdown-menu-right" class:has-icons={hasIcons} bind:this={dropdownEl}>
                 {#each visibleActions as action}
                     <li class:disabled={action.disabled}>
                         <a
@@ -117,8 +123,12 @@
                             {#if action.html}
                                 {@html action.html}
                             {:else}
-                                {#if action.icon}
-                                    <i class={action.icon}></i>
+                                {#if action.iconClass}
+                                    <i class={action.iconClass}></i>
+                                {:else if action.iconUrl}
+                                    <img src={action.iconUrl} class="icon-img" alt="">
+                                {:else if hasIcons}
+                                    <i class="icon-placeholder"></i>
                                 {/if}
                                 {Language.translate(action.label ?? '')}
                             {/if}
@@ -130,7 +140,7 @@
                         <li class="divider"></li>
                         <li class="preloader">
                             <a href="javascript:">
-                                <img style="height:12px;margin-top:5px" src="client/img/atro-loader.svg" alt="">
+                                <Preloader />
                             </a>
                         </li>
                     {:else if dynamicLoaded && dynamicActions.length > 0}
@@ -144,6 +154,13 @@
                                     {...dataAttrs(action.data)}
                                     on:click={(e) => handleAction(e, action)}
                                 >
+                                    {#if action.iconClass}
+                                        <i class={action.iconClass}></i>
+                                    {:else if action.iconUrl}
+                                        <img src={action.iconUrl} class="icon-img" alt="">
+                                    {:else if hasIcons}
+                                        <i class="icon-placeholder"></i>
+                                    {/if}
                                     {Language.translate(action.label ?? '')}
                                 </a>
                             </li>
@@ -208,11 +225,24 @@
     }
 
     a i {
+        display: inline-block;
         margin-inline-end: 5px;
-        font-size: 16px;
+        font-size: 18px;
+    }
+
+    a i.icon-placeholder {
+        width: 18px;
+    }
+
+    a .icon-img {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        margin-inline-end: 5px;
+        vertical-align: middle;
     }
 
     .quick-action i {
-        margin-right: 0;
+        margin-inline-end: 0;
     }
 </style>

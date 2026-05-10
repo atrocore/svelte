@@ -12,7 +12,8 @@ type RowAction = {
     name: string;
     label?: string;
     html?: string;
-    icon?: string;
+    iconClass?: string;
+    iconUrl?: string;
     hidden?: boolean;
     disabled?: boolean;
     quick?: boolean;
