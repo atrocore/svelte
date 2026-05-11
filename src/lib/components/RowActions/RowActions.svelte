@@ -211,11 +211,6 @@
         cursor: pointer;
         padding: 2px 5px;
         color: inherit;
-        opacity: 0.6;
-    }
-
-    .quick-action:hover {
-        opacity: 1;
     }
 
     .quick-action.disabled {
