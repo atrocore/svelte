@@ -99,6 +99,7 @@
                 data-action={action.name}
                 title={Language.translate(action.label ?? '')}
                 class:disabled={action.disabled}
+                class:always-visible={action.alwaysVisible}
                 {...dataAttrs(action.data)}
                 on:click={(e) => handleAction(e, action)}
             >
@@ -176,7 +177,7 @@
     .list-row-buttons {
         display: flex;
         align-items: center;
-        gap: 2px;
+        gap: 4px;
     }
 
     .list-row-buttons .dropdown {
@@ -218,6 +219,15 @@
         pointer-events: none;
     }
 
+    :global(.list-row) .quick-action.always-visible {
+        visibility: visible;
+    }
+
+    :global(.list-row) .quick-action i {
+        font-size: 18px;
+        color: #333;
+    }
+
     li.disabled a {
         opacity: 0.5;
         pointer-events: none;
@@ -235,8 +245,8 @@
 
     a .icon-img {
         display: inline-block;
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         margin-inline-end: 5px;
         vertical-align: middle;
     }

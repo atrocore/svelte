@@ -17,6 +17,7 @@ type RowAction = {
     hidden?: boolean;
     disabled?: boolean;
     quick?: boolean;
+    alwaysVisible?: boolean;
     link?: string;
     data?: Record<string, string>;
 };
