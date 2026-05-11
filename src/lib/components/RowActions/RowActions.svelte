@@ -198,6 +198,10 @@
         padding: 2px 5px;
     }
 
+    .dropdown-menu.has-icons > li > a {
+        padding-left: 15px;
+    }
+
     .quick-action {
         display: inline-flex;
         align-items: center;
