@@ -16,6 +16,7 @@
     import type RowAction from './types/row-action';
 
     export let actions: RowAction[] = [];
+    export let quickActions: string[] = [];
     export let itemId: string = '';
     export let loadActions: (() => Promise<RowAction[]>) | undefined = undefined;
 
@@ -80,8 +81,9 @@
     }
 
     $: visibleActions = actions.filter(a => !a.hidden);
-    $: quickActions = visibleActions.filter(a => a.quick && a.iconClass).slice(0, 2);
-    $: hasAnyAction = visibleActions.length > 0;
+    $: visibleActionMap = new Map(visibleActions.map(a => [a.name, a]));
+    $: resolvedQuickActions = quickActions.map(name => visibleActionMap.get(name)).filter((a): a is RowAction => !!a);
+    $: hasAnyAction = visibleActions.length > 0 || resolvedQuickActions.length > 0;
     $: hasDynamicSection = !!loadActions;
     function hasIcon(a: RowAction): boolean {
         return !a.html && !!(a.iconClass || a.iconUrl);
@@ -92,7 +94,7 @@
 
 {#if hasAnyAction}
     <div class="list-row-buttons">
-        {#each quickActions as action}
+        {#each resolvedQuickActions as action}
             <a
                 href={action.link ?? '/'}
                 class="action quick-action"
