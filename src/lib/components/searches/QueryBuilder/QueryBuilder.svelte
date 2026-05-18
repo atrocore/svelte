@@ -222,6 +222,8 @@
             operators: [
                 {type: 'contains'},
                 {type: 'not_contains'},
+                {type: 'begins_with'},
+                {type: 'ends_with'},
                 {type: 'equal'},
                 {type: 'not_equal'},
                 {type: 'less'},
