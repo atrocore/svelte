@@ -21,9 +21,10 @@
 
 
     let panelDataAttributesDefs = {
-        label: {type: 'varchar'},
+        label: {type: 'varchar', notNull: true},
         style: {
             type: 'enum',
+            required: true,
             options: ['default', 'success', 'danger', 'primary', 'info', 'warning'],
             translation: 'LayoutManager.options.style'
         }
@@ -138,7 +139,10 @@
                 });
         }
 
-        panels = layout;
+        panels = layout.map((panel: GridPanel) => ({
+            ...panel,
+            style: panel.style ?? 'default',
+        }));
 
         let enabledFields: string[] = [];
 
@@ -343,6 +347,7 @@
         lastPanelNumber++;
         const newPanel: GridPanel = {
             label: 'New panel',
+            style: 'default',
             rows: [{
                 number: lastRowNumber++,
                 cells: [false, false]
