@@ -398,7 +398,7 @@
 
         $queryBuilder.on('afterUpdateRuleOperator.queryBuilder', (e: any, rule: any) => {
             model.trigger('afterUpdateRuleOperator', rule);
-            if (['extensibleMultiEnum', 'array'].includes(rule?.filter?.realType)) {
+            if (['array'].includes(rule?.filter?.realType)) {
                 let operator = rule.operator?.type;
                 if (!rule.data) {
                     rule.data = {};
@@ -661,10 +661,6 @@
         const label = attribute.name;
         const params: any = {
             attribute
-        }
-
-        if (['extensibleEnum', 'extensibleMultiEnum'].includes(attribute.type)) {
-            params['extensibleEnumId'] = attribute.extensibleEnumId;
         }
 
         let createFieldView = (name: string, fieldType: string, label: string, params = {}, order = 0) => {
