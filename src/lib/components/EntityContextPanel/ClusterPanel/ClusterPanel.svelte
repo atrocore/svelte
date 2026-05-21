@@ -105,7 +105,7 @@
                 <ul class="record-list">
                     {#each data.masterRecords as record}
                         <li class="record-item">
-                            <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                            <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
                                 {#if record.confirmedAutomatically}
@@ -137,7 +137,7 @@
                 <ul class="record-list">
                     {#each data.stagingRecords as record}
                         <li class="record-item">
-                            <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                            <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
                                 {#if record.confirmedAutomatically}
