@@ -6,6 +6,7 @@
     import CollapsibleSidebar from "$lib/components/collapsers/ResizableCollapser/ResizableCollapser.svelte";
     import QueryBuilder from "$lib/components/searches/QueryBuilder/QueryBuilder.svelte";
     import DataQualityPanel from "$lib/components/EntityContextPanel/DataQualityPanel/DataQualityPanel.svelte";
+    import ClusterPanel from "$lib/components/EntityContextPanel/ClusterPanel/ClusterPanel.svelte";
 
     export let scope: string;
     export let mode: string;
@@ -23,6 +24,7 @@
     export let showFilter: boolean = false;
     export let showInsights: boolean = false;
     export let showDataQualities: boolean = false;
+    export let showCluster: boolean = false;
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
 
@@ -184,6 +186,17 @@
             ];
         }
 
+        if (showCluster) {
+            items = [
+                ...items,
+                {
+                    "name": "cluster",
+                    "label": Language.translate('Cluster', 'scopeNames'),
+                    iconClass: 'ph ph-tree-structure'
+                }
+            ];
+        }
+
         let itemName = getStoredData('right-side-view-active-item', scopeKey);
 
         if (itemName && items.map(i => i.name).includes(itemName)) {
@@ -246,6 +259,12 @@
                 <DataQualityPanel {scope} {id} {fetchModel}
                                   on:show={() => setActiveItem(items.find(i => i.name === 'data-qualities'))}
                 />
+            </div>
+        {/if}
+
+        {#if showCluster}
+            <div class="cluster" class:hidden={activeItem?.name !== 'cluster'}>
+                <ClusterPanel {scope} {id} />
             </div>
         {/if}
     </div>
