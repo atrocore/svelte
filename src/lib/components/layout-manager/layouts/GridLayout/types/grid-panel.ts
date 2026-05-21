@@ -2,6 +2,7 @@ import type GridRow from './grid-row';
 
 type GridPanel = {
     label?: string;
+    style: string;
     rows: GridRow[];
     number: number;
     name?: string;
