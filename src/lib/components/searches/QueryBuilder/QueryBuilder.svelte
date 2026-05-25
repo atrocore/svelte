@@ -712,7 +712,6 @@
                 let customLabel = label + ' ' + Language.translate(v);
                 if (attribute.measureId) {
                     promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`), params, key));
-                    promises.push(createFieldView('unit' + name + v, `unit-${type}`, customLabel, params, key - 10));
                 } else {
                     promises.push(createFieldView(name + v, type, customLabel, params, key + 10));
                 }
@@ -734,7 +733,6 @@
             }
         } else {
             if (['int', 'float'].includes(attribute.type) && attribute.measureId) {
-                promises.push(createFieldView('unit' + name, `unit-${fieldType}`, label, params, 0));
                 promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`), params, 1));
             } else {
                 promises.push(createFieldView(name, fieldType, label, params));
@@ -747,6 +745,14 @@
                 type: 'unit',
                 measureId: attribute.measureId
             }, 2));
+        }
+
+        if (attribute.prefixId) {
+            promises.push(createFieldView(name + 'PrefixId', 'extensible-enum', label + ' ' + Language.translate('Prefix'), {
+                ...params,
+                type: 'extensible-enum',
+                extensibleEnumId: attribute.prefixId
+            }, 3));
         }
 
         Promise.all(promises).then(newFilters => {
@@ -777,7 +783,7 @@
             massRelateEnabled: false,
             allowSelectAllResult: false,
             boolFilterList: ['onlyForEntity'],
-            mandatorySelectAttributeList: ['name', 'type'],
+            mandatorySelectAttributeList: ['name', 'type','measureId','prefixId'],
             boolFilterData: {
                 onlyForEntity: scope
             }
