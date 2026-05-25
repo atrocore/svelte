@@ -151,13 +151,13 @@ function buildVariableAndFunctionSuggestions(
             sortText: String(order++)
         }));
 
-    let functions = (Metadata.get(['twig', 'functions']) ?? {}) as Record<string, { insertText?: string }>;
+    let functions = (Metadata.get(['twig', 'functions']) ?? {}) as Record<string, { insertText?: string; hidden?: boolean }>;
     if (params.isExport) {
-        functions = { ...functions, ...(Metadata.get(['app', 'twigFunctions']) as Record<string, { insertText?: string }>) };
+        functions = { ...functions, ...(Metadata.get(['app', 'twigFunctions']) as Record<string, { insertText?: string; hidden?: boolean }>) };
     }
     const functionTranslations = (Language.get('Global', 'twig', 'functions') ?? {}) as Record<string, string>;
 
-    Object.keys(functions).sort((a, b) => a.localeCompare(b)).forEach((key) => {
+    Object.keys(functions).filter((key) => !functions[key].hidden).sort((a, b) => a.localeCompare(b)).forEach((key) => {
         suggestions.push({
             label: key,
             kind: monaco.languages.CompletionItemKind.Function,
