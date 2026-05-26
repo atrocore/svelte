@@ -10,10 +10,10 @@
 
 import { ApiClient } from '$lib/core/api-client';
 
-export type ExtensibleEnumOption = {
+export type PrefixOption = {
     id: string;
     name: string;
-    preparedName?: string;
+    value: string;
 };
 
 export type MeasureUnit = {
@@ -29,14 +29,20 @@ export type MeasureData = {
     [key: string]: unknown;
 };
 
-const optionsCache: Record<string, Promise<ExtensibleEnumOption[]>> = {};
 const measureCache: Record<string, Promise<MeasureData>> = {};
+const prefixCache: Record<string, Promise<PrefixOption[]>> = {};
 
-export function loadExtensibleEnumOptions(enumId: string): Promise<ExtensibleEnumOption[]> {
-    if (!optionsCache[enumId]) {
-        optionsCache[enumId] = ApiClient.get<ExtensibleEnumOption[]>(`ExtensibleEnum/${enumId}/options`);
+export function loadPrefixOptions(where: any[] = []): Promise<PrefixOption[]> {
+    const cacheKey = JSON.stringify(where);
+    if (!prefixCache[cacheKey]) {
+        const params: Record<string, any> = { maxSize: 200, sortBy: 'name', asc: true };
+        if (where.length > 0) {
+            params.where = where;
+        }
+        prefixCache[cacheKey] = ApiClient.get<{ list: PrefixOption[] }>('Prefix', params)
+            .then(res => res.list ?? []);
     }
-    return optionsCache[enumId];
+    return prefixCache[cacheKey];
 }
 
 export function loadMeasureData(measureId: string): Promise<MeasureData> {

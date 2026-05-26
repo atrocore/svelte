@@ -10,8 +10,8 @@
 
 <script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
-    import { loadExtensibleEnumOptions, loadMeasureData } from '$lib/helpers/field-data-cache';
-    import type { ExtensibleEnumOption, MeasureUnit } from '$lib/helpers/field-data-cache';
+    import { loadMeasureData } from '$lib/helpers/field-data-cache';
+    import type { PrefixOption, MeasureUnit } from '$lib/helpers/field-data-cache';
     import type { FieldFetchResult } from '$lib/types/ui/field';
     import PartSelect from '$lib/components/fields/PartSelect/PartSelect.svelte';
     import FloatEdit from '$lib/components/fields/Float/FloatEdit/FloatEdit.svelte';
@@ -19,7 +19,7 @@
     export let name: string = '';
     export let value: number | null = null;
     export let prefixValueId: string | null = null;
-    export let prefixExtensibleEnumId: string | null = null;
+    export let prefixOptions: PrefixOption[] = [];
     export let unitId: string | null = null;
     export let measureId: string | null = null;
 
@@ -30,24 +30,14 @@
     let currentUnitId: string | null = unitId;
     let currentPrefixValueId: string | null = prefixValueId;
 
-    let prefixOptions: ExtensibleEnumOption[] = [];
     let unitList: MeasureUnit[] = [];
 
-    $: hasGroup = !!prefixExtensibleEnumId || !!measureId;
+    $: hasGroup = !!(prefixOptions && prefixOptions.length > 0) || !!measureId;
 
     onMount(async () => {
-        const promises: Promise<void>[] = [];
-        if (prefixExtensibleEnumId) {
-            promises.push(
-                loadExtensibleEnumOptions(prefixExtensibleEnumId).then(opts => { prefixOptions = opts; })
-            );
-        }
         if (measureId) {
-            promises.push(
-                loadMeasureData(measureId).then(data => { unitList = data.units || []; })
-            );
+            loadMeasureData(measureId).then(data => { unitList = data.units || []; });
         }
-        await Promise.all(promises);
     });
 
     function handleValueChange(val: number | null) {
@@ -68,18 +58,18 @@
     export function fetch(): FieldFetchResult {
         const result: FieldFetchResult = { [name]: currentValue };
         if (measureId !== null) result[name + 'UnitId'] = currentUnitId;
-        if (prefixExtensibleEnumId !== null) result[name + 'PrefixId'] = currentPrefixValueId;
+        if (prefixOptions.length > 0 || currentPrefixValueId !== null) result[name + 'PrefixId'] = currentPrefixValueId;
         return result;
     }
 </script>
 
 {#if hasGroup}
     <div class="input-group combined-group">
-        {#if prefixExtensibleEnumId}
+        {#if prefixOptions && prefixOptions.length > 0}
             <PartSelect
                 name="{name}PrefixId"
                 value={prefixValueId}
-                options={prefixOptions.map(o => ({ id: o.id, label: o.preparedName || o.name }))}
+                options={prefixOptions.map(o => ({ id: o.id, label: o.value }))}
                 wrapperClass="prefix-select"
                 on:change={e => handlePrefixChange(e.detail)}
             />

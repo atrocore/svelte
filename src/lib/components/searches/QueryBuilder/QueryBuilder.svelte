@@ -747,11 +747,11 @@
             }, 2));
         }
 
-        if (attribute.prefixId) {
-            promises.push(createFieldView(name + 'PrefixId', 'extensible-enum', label + ' ' + Language.translate('Prefix'), {
+        if (attribute.prefixEnabled) {
+            promises.push(createFieldView(name + 'PrefixId', 'link', label + ' ' + Language.translate('Prefix'), {
                 ...params,
-                type: 'extensible-enum',
-                extensibleEnumId: attribute.prefixId
+                type: 'link',
+                entity: 'Prefix'
             }, 3));
         }
 
@@ -783,7 +783,7 @@
             massRelateEnabled: false,
             allowSelectAllResult: false,
             boolFilterList: ['onlyForEntity'],
-            mandatorySelectAttributeList: ['name', 'type','measureId','prefixId'],
+            mandatorySelectAttributeList: ['name', 'type', 'measureId', 'prefixEnabled'],
             boolFilterData: {
                 onlyForEntity: scope
             }

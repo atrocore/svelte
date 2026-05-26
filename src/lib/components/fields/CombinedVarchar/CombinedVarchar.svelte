@@ -10,8 +10,8 @@
 
 <script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
-    import { loadExtensibleEnumOptions, loadMeasureData } from '$lib/helpers/field-data-cache';
-    import type { ExtensibleEnumOption, MeasureUnit } from '$lib/helpers/field-data-cache';
+    import { loadMeasureData, loadPrefixOptions } from '$lib/helpers/field-data-cache';
+    import type { PrefixOption, MeasureUnit } from '$lib/helpers/field-data-cache';
     import CombinedVarcharEdit from './CombinedVarcharEdit/CombinedVarcharEdit.svelte';
     import CombinedVarcharDetail from './CombinedVarcharDetail/CombinedVarcharDetail.svelte';
     import CombinedVarcharList from './CombinedVarcharList/CombinedVarcharList.svelte';
@@ -22,7 +22,7 @@
     export let value: string | null = null;
     export let mode: FieldMode = 'detail';
     export let prefixValueId: string | null = null;
-    export let prefixExtensibleEnumId: string | null = null;
+    export let prefixWhere: any[] | undefined = undefined;
     export let unitId: string | null = null;
     export let measureId: string | null = null;
     export let entityName: string = '';
@@ -32,32 +32,26 @@
 
     let editComponent: CombinedVarcharEdit | undefined;
 
-    let prefixOptions: ExtensibleEnumOption[] = [];
     let unitList: MeasureUnit[] = [];
     let displayFormat: string = '';
+    let prefixOptions: PrefixOption[] = [];
 
-    $: prefixLabel = prefixOptions.find(o => o.id === prefixValueId)?.preparedName
-        || prefixOptions.find(o => o.id === prefixValueId)?.name
-        || '';
+    $: prefixLabel = prefixOptions.find(o => o.id === prefixValueId)?.value || '';
     $: unitSymbol = unitList.find(u => u.id === unitId)?.symbol || unitList.find(u => u.id === unitId)?.name || '';
     $: isFormat2 = displayFormat.endsWith('2');
 
     onMount(async () => {
-        const promises: Promise<void>[] = [];
-        if (prefixExtensibleEnumId) {
-            promises.push(
-                loadExtensibleEnumOptions(prefixExtensibleEnumId).then(opts => { prefixOptions = opts; })
-            );
-        }
         if (measureId) {
-            promises.push(
-                loadMeasureData(measureId).then(data => {
-                    unitList = data.units || [];
-                    displayFormat = data.displayFormat || '';
-                })
-            );
+            loadMeasureData(measureId).then(data => {
+                unitList = data.units || [];
+                displayFormat = data.displayFormat || '';
+            });
         }
-        await Promise.all(promises);
+        if (prefixWhere !== undefined) {
+            loadPrefixOptions(prefixWhere ?? []).then(opts => {
+                prefixOptions = opts;
+            });
+        }
     });
 
     function handleChange(event: CustomEvent<{ name: string; value: unknown }>) {
@@ -68,7 +62,7 @@
         if (editComponent) return editComponent.fetch();
         const result: FieldFetchResult = { [name]: value };
         if (measureId !== null) result[name + 'UnitId'] = unitId;
-        if (prefixExtensibleEnumId !== null) result[name + 'PrefixId'] = prefixValueId;
+        if (prefixWhere !== undefined) result[name + 'PrefixId'] = prefixValueId;
         return result;
     }
 </script>
@@ -79,7 +73,7 @@
         {name}
         {value}
         {prefixValueId}
-        {prefixExtensibleEnumId}
+        {prefixOptions}
         {unitId}
         {measureId}
         on:change={handleChange}
