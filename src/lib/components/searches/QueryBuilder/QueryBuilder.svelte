@@ -209,7 +209,7 @@
                     rule.data.disabled = disabled
                 } else {
                     delete rule.data.disabled;
-                    tick().then(() =>  markDeletedFieldRules($queryBuilder));
+                    tick().then(() => markDeletedFieldRules($queryBuilder));
                 }
                 queryBuilderRulesChanged = true;
             }
@@ -526,7 +526,11 @@
             }
 
             const fieldType = camelCaseToHyphen(fieldDefs.type);
-            const view = fieldDefs.view || Metadata.get(['fields', fieldDefs.type, 'view']) || `views/fields/${fieldType}`;
+            let view = fieldDefs.view || Metadata.get(['fields', fieldDefs.type, 'view']) || `views/fields/${fieldType}`;
+            if (fieldDefs.filterType) {
+                view = Metadata.get(['fields', fieldDefs.filterType, 'view']) || `views/fields/${fieldDefs.filterType}`;
+            }
+
             promiseList.push(new Promise(resolve => {
                 createView('qb_' + field, view, {
                     name: field,
@@ -538,7 +542,7 @@
                         }
                     },
                 }, view => {
-                    let filter = view.createQueryBuilderFilter(fieldDefs.type);
+                    let filter = view.createQueryBuilderFilter(fieldDefs.filterType || fieldDefs.type);
                     if (filter) {
                         filters.push(filter);
                     }
@@ -959,7 +963,13 @@
 
     function makeDeletedFilter(id: string): any {
         deletedFilterIds.add(id);
-        return {id, label: id, type: 'string', __deleted: true, validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}};
+        return {
+            id,
+            label: id,
+            type: 'string',
+            __deleted: true,
+            validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}
+        };
     }
 
     function markDeletedFieldRules(qbEl: any): void {
@@ -1008,7 +1018,10 @@
 
         applicableTreeRulesCount = applicableRules.length;
 
-        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
+        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {
+            condition: 'AND',
+            rules: []
+        };
 
         const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
         const storeKeys = applicableRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
@@ -1169,7 +1182,7 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-        clearScopeTreeRules();
+            clearScopeTreeRules();
             handleAdvancedFilterChecked();
             return;
         }
@@ -1369,7 +1382,8 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)} class:active={advancedFilterChecked}
+                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)}
+                      class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
                     {#if advancedFilterChecked}
