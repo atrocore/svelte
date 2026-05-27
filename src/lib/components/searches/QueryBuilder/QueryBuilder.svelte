@@ -209,7 +209,7 @@
                     rule.data.disabled = disabled
                 } else {
                     delete rule.data.disabled;
-                    tick().then(() =>  markDeletedFieldRules($queryBuilder));
+                    tick().then(() => markDeletedFieldRules($queryBuilder));
                 }
                 queryBuilderRulesChanged = true;
             }
@@ -526,7 +526,11 @@
             }
 
             const fieldType = camelCaseToHyphen(fieldDefs.type);
-            const view = fieldDefs.view || Metadata.get(['fields', fieldDefs.type, 'view']) || `views/fields/${fieldType}`;
+            let view = fieldDefs.view || Metadata.get(['fields', fieldDefs.type, 'view']) || `views/fields/${fieldType}`;
+            if (fieldDefs.filterType) {
+                view = Metadata.get(['fields', fieldDefs.filterType, 'view']) || `views/fields/${fieldDefs.filterType}`;
+            }
+
             promiseList.push(new Promise(resolve => {
                 createView('qb_' + field, view, {
                     name: field,
@@ -538,7 +542,7 @@
                         }
                     },
                 }, view => {
-                    let filter = view.createQueryBuilderFilter(fieldDefs.type);
+                    let filter = view.createQueryBuilderFilter(fieldDefs.filterType || fieldDefs.type);
                     if (filter) {
                         filters.push(filter);
                     }
@@ -708,7 +712,6 @@
                 let customLabel = label + ' ' + Language.translate(v);
                 if (attribute.measureId) {
                     promises.push(createFieldView(name + v, type, customLabel + ' ' + Language.translate(`${type}Part`), params, key));
-                    promises.push(createFieldView('unit' + name + v, `unit-${type}`, customLabel, params, key - 10));
                 } else {
                     promises.push(createFieldView(name + v, type, customLabel, params, key + 10));
                 }
@@ -730,7 +733,6 @@
             }
         } else {
             if (['int', 'float'].includes(attribute.type) && attribute.measureId) {
-                promises.push(createFieldView('unit' + name, `unit-${fieldType}`, label, params, 0));
                 promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`), params, 1));
             } else {
                 promises.push(createFieldView(name, fieldType, label, params));
@@ -743,6 +745,14 @@
                 type: 'unit',
                 measureId: attribute.measureId
             }, 2));
+        }
+
+        if (attribute.prefixEnabled) {
+            promises.push(createFieldView(name + 'PrefixId', 'link', label + ' ' + Language.translate('Prefix'), {
+                ...params,
+                type: 'link',
+                entity: 'Prefix'
+            }, 3));
         }
 
         Promise.all(promises).then(newFilters => {
@@ -773,7 +783,7 @@
             massRelateEnabled: false,
             allowSelectAllResult: false,
             boolFilterList: ['onlyForEntity'],
-            mandatorySelectAttributeList: ['name', 'type'],
+            mandatorySelectAttributeList: ['name', 'type', 'measureId', 'prefixEnabled'],
             boolFilterData: {
                 onlyForEntity: scope
             }
@@ -949,7 +959,13 @@
 
     function makeDeletedFilter(id: string): any {
         deletedFilterIds.add(id);
-        return {id, label: id, type: 'string', __deleted: true, validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}};
+        return {
+            id,
+            label: id,
+            type: 'string',
+            __deleted: true,
+            validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}
+        };
     }
 
     function markDeletedFieldRules(qbEl: any): void {
@@ -998,7 +1014,10 @@
 
         applicableTreeRulesCount = applicableRules.length;
 
-        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {condition: 'AND', rules: []};
+        let rules = window.$(queryBuilderElement).queryBuilder('getRules', {allow_invalid: true}) || {
+            condition: 'AND',
+            rules: []
+        };
 
         const currentTreeRules = Array.isArray(rules.rules) ? rules.rules.filter((r: any) => isTreeNodeRule(r)) : [];
         const storeKeys = applicableRules.map((r: any) => r.data._treeNodeKey).sort().join(',');
@@ -1159,7 +1178,7 @@
 
         if (!advancedFilterChecked && !hasQbRules) {
             handleEmptyRules();
-        clearScopeTreeRules();
+            clearScopeTreeRules();
             handleAdvancedFilterChecked();
             return;
         }
@@ -1359,7 +1378,8 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)} class:active={advancedFilterChecked}
+                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)}
+                      class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
                     {#if advancedFilterChecked}
