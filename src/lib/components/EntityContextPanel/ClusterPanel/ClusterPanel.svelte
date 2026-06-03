@@ -7,13 +7,14 @@
 
     export let scope: string;
     export let id: string;
+    export let maxVisibleCount: number = 20;
 
     let data: any = null;
     let loading = false;
     let masterCollapsed = false;
     let stagingCollapsed = false;
-    let masterVisibleCount = 20;
-    let stagingVisibleCount = 20;
+    let masterVisibleCount = maxVisibleCount;
+    let stagingVisibleCount = maxVisibleCount;
 
     async function load() {
         loading = true;
@@ -118,7 +119,7 @@
                     {/each}
                 </ul>
                 {#if data.masterRecords.length > masterVisibleCount}
-                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => masterVisibleCount += 20}>
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => masterVisibleCount += maxVisibleCount}>
                         {Language.translate("Show more")}
                     </button>
                 {/if}
@@ -155,7 +156,7 @@
                     {/each}
                 </ul>
                 {#if data.stagingRecords.length > stagingVisibleCount}
-                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => stagingVisibleCount += 20}>
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => stagingVisibleCount += maxVisibleCount}>
                         {Language.translate("Show more")}
                     </button>
                 {/if}
