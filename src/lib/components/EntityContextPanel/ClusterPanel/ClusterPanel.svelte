@@ -5,28 +5,167 @@
     import { Notifier } from "$lib/dom/notifier";
     import { Metadata } from "$lib/core/metadata";
 
-    export let scope: string;
-    export let id: string;
+    export let clusterId: string = '';
     export let maxVisibleCount: number = 20;
 
-    let data: any = null;
+    let cluster: any = null;
     let loading = false;
+
+    let masterRecords: any[] = [];
+    let masterOffset = 0;
+    let masterHasMore = false;
+    let masterLoadingMore = false;
     let masterCollapsed = false;
+    let masterTotal: number | null = null;
+
+    let stagingRecords: any[] = [];
+    let stagingOffset = 0;
+    let stagingHasMore = false;
+    let stagingLoadingMore = false;
     let stagingCollapsed = false;
-    let masterVisibleCount = maxVisibleCount;
-    let stagingVisibleCount = maxVisibleCount;
+    let stagingTotal: number | null = null;
+
+    function getStagingEntityTypes(masterEntity: string): string[] {
+        const scopes: Record<string, any> = Metadata.get(['scopes']) ?? {};
+        return Object.keys(scopes).filter(scope =>
+            scopes[scope].primaryEntityId === masterEntity && scopes[scope].role !== 'changeRequest'
+        );
+    }
+
+    function mapItem(item: any): any {
+        return {
+            id: item.entityId,
+            name: item.recordName ?? item.entityId,
+            entityName: item.entityName,
+            confirmed: item._meta?.cluster?.confirmed ?? false,
+            confirmedAutomatically: item.confirmedAutomatically,
+            isGoldenRecord: item._meta?.cluster?.golden ?? false,
+        };
+    }
+
+    async function fetchPage(where: any[], offset: number, fetchTotal = false): Promise<{ records: any[]; hasMore: boolean; total: number | null }> {
+        const withMetaHeader = { 'With-Meta': 'true' };
+        const result = await ApiClient.get('/entityRelation', {
+            entityName: 'Cluster',
+            link: 'clusterItems',
+            id: clusterId,
+            select: 'entityName,entityId,entity,confirmedAutomatically',
+            collectionOnly: true,
+            sortBy: 'id',
+            asc: false,
+            offset,
+            maxSize: maxVisibleCount + 1,
+            where: JSON.stringify(where)
+        }, withMetaHeader);
+        const list: any[] = result.list ?? [];
+        const hasMore = list.length > maxVisibleCount;
+
+        let total: number | null = null;
+        if (fetchTotal && hasMore) {
+            const totalResult = await ApiClient.get('/entityRelation', {
+                entityName: 'Cluster',
+                link: 'clusterItems',
+                id: clusterId,
+                collectionOnly: true,
+                totalOnly: true,
+                where: JSON.stringify(where)
+            });
+            total = totalResult.total ?? null;
+        }
+
+        return {
+            records: list.slice(0, maxVisibleCount).map(mapItem),
+            hasMore,
+            total,
+        };
+    }
 
     async function load() {
+        if (!clusterId) {
+            cluster = null;
+            return;
+        }
+
         loading = true;
+        masterRecords = [];
+        stagingRecords = [];
+        masterOffset = 0;
+        stagingOffset = 0;
+        masterHasMore = false;
+        stagingHasMore = false;
+        masterTotal = null;
+        stagingTotal = null;
+
         try {
-            data = await ApiClient.get('/Cluster/entityData', {entityName: scope, entityId: id});
+            cluster = await ApiClient.get(`/Cluster/${clusterId}`, { select: 'id,number,state,createdAt,masterEntity' });
+
+            const masterEntity: string = cluster.masterEntity;
+            const stagingTypes = getStagingEntityTypes(masterEntity);
+
+            const masterFilter = [{ attribute: 'entityName', type: 'equals', value: masterEntity }];
+            const stagingFilter = stagingTypes.length > 0
+                ? [{ attribute: 'entityName', type: 'in', value: stagingTypes }]
+                : null;
+
+            const promises: Promise<void>[] = [
+                fetchPage(masterFilter, 0, true).then(({ records, hasMore, total }) => {
+                    masterRecords = records;
+                    masterOffset = records.length;
+                    masterHasMore = hasMore;
+                    masterTotal = total;
+                })
+            ];
+
+            if (stagingFilter) {
+                promises.push(
+                    fetchPage(stagingFilter, 0, true).then(({ records, hasMore, total }) => {
+                        stagingRecords = records;
+                        stagingOffset = records.length;
+                        stagingHasMore = hasMore;
+                        stagingTotal = total;
+                    })
+                );
+            }
+
+            await Promise.all(promises);
         } catch (e: any) {
-            data = null;
+            cluster = null;
             if (e?.status !== 404) {
                 Notifier.notify('Error occurred', 'error');
             }
         }
         loading = false;
+    }
+
+    async function loadMoreMaster() {
+        if (masterLoadingMore || !cluster) return;
+        masterLoadingMore = true;
+        try {
+            const masterFilter = [{ attribute: 'entityName', type: 'equals', value: cluster.masterEntity }];
+            const { records, hasMore } = await fetchPage(masterFilter, masterOffset);
+            masterRecords = [...masterRecords, ...records];
+            masterOffset += records.length;
+            masterHasMore = hasMore;
+        } catch {
+            Notifier.notify('Error occurred', 'error');
+        }
+        masterLoadingMore = false;
+    }
+
+    async function loadMoreStaging() {
+        if (stagingLoadingMore || !cluster) return;
+        stagingLoadingMore = true;
+        try {
+            const stagingTypes = getStagingEntityTypes(cluster.masterEntity);
+            const stagingFilter = [{ attribute: 'entityName', type: 'in', value: stagingTypes }];
+            const { records, hasMore } = await fetchPage(stagingFilter, stagingOffset);
+            stagingRecords = [...stagingRecords, ...records];
+            stagingOffset += records.length;
+            stagingHasMore = hasMore;
+        } catch {
+            Notifier.notify('Error occurred', 'error');
+        }
+        stagingLoadingMore = false;
     }
 
     function getStateColor(state: string): string {
@@ -51,14 +190,14 @@
     <div style="text-align:center;margin-top:10px">
         <img style="width:40px" class="preloader" src="client/img/atro-loader.svg" alt="loader">
     </div>
-{:else if !data}
+{:else if !cluster}
     <p class="no-cluster">{Language.translate('noClusterFound', 'messages', 'Cluster')}</p>
 {:else}
     <div class="panel panel-cluster" data-name="cluster">
         <div class="panel-heading">
             <h4 class="panel-title">
-                <a href="#{`Cluster/view/${data.id}`}" target="_blank" class="cluster-name">
-                    <span>{data.number}</span>
+                <a href="#{`Cluster/view/${cluster.id}`}" target="_blank" class="cluster-name">
+                    <span>{cluster.number}</span>
                 </a>
                 <span class="panel-title-text">{Language.translate('Cluster', 'scopeNames')}</span>
             </h4>
@@ -73,14 +212,14 @@
                                 <th class="cell-label">{Language.translate('state', 'fields', 'Cluster')}</th>
                                 <td class="cell-value">
                                     <span class="label colored-enum">
-                                        <i style="background-color:{getStateColor(data.state)}"></i>
-                                        <span>{Language.translateOption(data.state, 'state', 'Cluster')}</span>
+                                        <i style="background-color:{getStateColor(cluster.state)}"></i>
+                                        <span>{Language.translateOption(cluster.state, 'state', 'Cluster')}</span>
                                     </span>
                                 </td>
                             </tr>
                             <tr>
                                 <th class="cell-label">{Language.translate('createdAt', 'fields', 'Global')}</th>
-                                <td class="cell-value">{data.createdAt ?? ''}</td>
+                                <td class="cell-value">{cluster.createdAt ?? ''}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -90,7 +229,7 @@
         </div>
     </div>
 
-    <div class="panel  panel-master-records" data-name="master-records">
+    <div class="panel panel-master-records" data-name="master-records">
         <div class="panel-heading"
              on:click={() => masterCollapsed = !masterCollapsed}
              on:keydown={(e) => e.key === 'Enter' && (masterCollapsed = !masterCollapsed)}
@@ -99,14 +238,14 @@
             <h4 class="panel-title">
                 <i class="ph" class:ph-caret-up={!masterCollapsed} class:ph-caret-down={masterCollapsed}></i>
                 <span class="panel-title-text">
-                    {Language.translate('masterRecordsPanel', 'labels', 'Cluster')} ({data.masterRecords.length})
+                    {Language.translate('masterRecordsPanel', 'labels', 'Cluster')} ({masterTotal ?? masterRecords.length})
                 </span>
             </h4>
         </div>
         {#if !masterCollapsed}
             <div class="panel-body">
                 <ul class="record-list">
-                    {#each data.masterRecords.slice(0, masterVisibleCount) as record}
+                    {#each masterRecords as record}
                         <li class="record-item">
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
@@ -118,9 +257,13 @@
                         </li>
                     {/each}
                 </ul>
-                {#if data.masterRecords.length > masterVisibleCount}
-                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => masterVisibleCount += maxVisibleCount}>
-                        {Language.translate("Show more")}
+                {#if masterHasMore}
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={loadMoreMaster} disabled={masterLoadingMore}>
+                        {#if masterLoadingMore}
+                            <img style="width:14px;vertical-align:middle" class="preloader" src="client/img/atro-loader.svg" alt="loader">
+                        {:else}
+                            {Language.translate("Show more")}
+                        {/if}
                     </button>
                 {/if}
             </div>
@@ -136,14 +279,14 @@
             <h4 class="panel-title">
                 <i class="ph" class:ph-caret-up={!stagingCollapsed} class:ph-caret-down={stagingCollapsed}></i>
                 <span class="panel-title-text">
-                        {Language.translate('stagingRecordsPanel', 'labels', 'Cluster')} ({data.stagingRecords.length})
-                    </span>
+                    {Language.translate('stagingRecordsPanel', 'labels', 'Cluster')} ({stagingTotal ?? stagingRecords.length})
+                </span>
             </h4>
         </div>
         {#if !stagingCollapsed}
             <div class="panel-body">
                 <ul class="record-list">
-                    {#each data.stagingRecords.slice(0, stagingVisibleCount) as record}
+                    {#each stagingRecords as record}
                         <li class="record-item">
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
@@ -155,9 +298,13 @@
                         </li>
                     {/each}
                 </ul>
-                {#if data.stagingRecords.length > stagingVisibleCount}
-                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => stagingVisibleCount += maxVisibleCount}>
-                        {Language.translate("Show more")}
+                {#if stagingHasMore}
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={loadMoreStaging} disabled={stagingLoadingMore}>
+                        {#if stagingLoadingMore}
+                            <img style="width:14px;vertical-align:middle" class="preloader" src="client/img/atro-loader.svg" alt="loader">
+                        {:else}
+                            {Language.translate("Show more")}
+                        {/if}
                     </button>
                 {/if}
             </div>
