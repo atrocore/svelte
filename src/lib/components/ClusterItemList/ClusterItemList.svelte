@@ -22,6 +22,9 @@
     export let onSelectAll: (entityType: string) => void = () => {};
     export let onUnSelectAll: (entityType: string) => void = () => {};
     export let onMountRowActions: (element: HTMLElement, itemId: string, relationName: string) => void = () => {};
+    export let onLoadMore: () => void = () => {};
+    export let hasMore: boolean = false;
+    export let loadingMore: boolean = false;
 
     let data: GroupedItems = {};
     let collapsed: Record<string, boolean> = {};
@@ -56,6 +59,14 @@
 
     export function setSelectionViewMode(value: string): void {
         selectionViewMode = value;
+    }
+
+    export function setHasMore(value: boolean): void {
+        hasMore = value;
+    }
+
+    export function setLoadingMore(value: boolean): void {
+        loadingMore = value;
     }
 
     function getSubGroups(items: ClusterItem[]) {
@@ -182,6 +193,18 @@
             {/if}
         </div>
     {/each}
+
+    {#if hasMore}
+        <div class="load-more-container">
+            <button class="btn btn-sm btn-default load-more-btn" on:click={onLoadMore} disabled={loadingMore}>
+                {#if loadingMore}
+                    <img style="width:14px;vertical-align:middle" class="preloader" src="client/img/atro-loader.svg" alt="loader">
+                {:else}
+                    {Language.translate("Show more")}
+                {/if}
+            </button>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -284,5 +307,14 @@
         text-transform: none;
         letter-spacing: 0.03em;
         color: #333;
+    }
+
+    .load-more-container {
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    .load-more-btn {
+        width: 100%;
     }
 </style>

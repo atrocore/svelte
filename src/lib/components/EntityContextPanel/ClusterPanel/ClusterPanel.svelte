@@ -12,6 +12,8 @@
     let loading = false;
     let masterCollapsed = false;
     let stagingCollapsed = false;
+    let masterVisibleCount = 20;
+    let stagingVisibleCount = 20;
 
     async function load() {
         loading = true;
@@ -103,7 +105,7 @@
         {#if !masterCollapsed}
             <div class="panel-body">
                 <ul class="record-list">
-                    {#each data.masterRecords as record}
+                    {#each data.masterRecords.slice(0, masterVisibleCount) as record}
                         <li class="record-item">
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
@@ -115,6 +117,11 @@
                         </li>
                     {/each}
                 </ul>
+                {#if data.masterRecords.length > masterVisibleCount}
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => masterVisibleCount += 20}>
+                        {Language.translate("Show more")}
+                    </button>
+                {/if}
             </div>
         {/if}
     </div>
@@ -135,7 +142,7 @@
         {#if !stagingCollapsed}
             <div class="panel-body">
                 <ul class="record-list">
-                    {#each data.stagingRecords as record}
+                    {#each data.stagingRecords.slice(0, stagingVisibleCount) as record}
                         <li class="record-item">
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
@@ -147,6 +154,11 @@
                         </li>
                     {/each}
                 </ul>
+                {#if data.stagingRecords.length > stagingVisibleCount}
+                    <button class="btn btn-sm btn-default show-more-btn" on:click={() => stagingVisibleCount += 20}>
+                        {Language.translate("Show more")}
+                    </button>
+                {/if}
             </div>
         {/if}
     </div>
@@ -251,5 +263,10 @@
     .auto-icon {
         margin-inline-start: 0.4em;
         color: #888;
+    }
+
+    .show-more-btn {
+        width: 100%;
+        margin-top: 4px;
     }
 </style>
