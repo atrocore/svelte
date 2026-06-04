@@ -25,6 +25,7 @@
     export let showInsights: boolean = false;
     export let showDataQualities: boolean = false;
     export let showCluster: boolean = false;
+    export let clusterId: string = '';
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
 
@@ -264,7 +265,7 @@
 
         {#if showCluster}
             <div class="cluster" class:hidden={activeItem?.name !== 'cluster'}>
-                <ClusterPanel {scope} {id} />
+                <ClusterPanel {clusterId} />
             </div>
         {/if}
     </div>
