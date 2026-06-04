@@ -502,7 +502,7 @@
         let parts = field.split('_')
         if (parts.length >= 2 && ['attr', 'unitattr'].includes(parts[0])) {
             id = parts[1];
-            const endings = ["From", "To", "UnitId", "Id"];
+            const endings = ["From", "To", "UnitId", "PrefixId", "Id"];
             for (const ending of endings) {
                 if (id.endsWith(ending)) {
                     id = id.slice(0, -ending.length);
@@ -732,7 +732,7 @@
                 });
             }
         } else {
-            if (['int', 'float'].includes(attribute.type) && attribute.measureId) {
+            if (['int', 'float', 'varchar'].includes(attribute.type) && (attribute.measureId || attribute.prefixEnabled)) {
                 promises.push(createFieldView(name, fieldType, label + ' ' + Language.translate(`${fieldType}Part`), params, 1));
             } else {
                 promises.push(createFieldView(name, fieldType, label, params));
@@ -740,7 +740,7 @@
         }
 
         if (attribute.measureId) {
-            promises.push(createFieldView(name + 'UnitId', 'unit-link', label + ' ' + Language.translate('Unit'), {
+            promises.push(createFieldView(name + 'UnitId', 'unit-link', label + ' (' + Language.translate('Unit') + ')', {
                 ...params,
                 type: 'unit',
                 measureId: attribute.measureId
@@ -748,10 +748,10 @@
         }
 
         if (attribute.prefixEnabled) {
-            promises.push(createFieldView(name + 'PrefixId', 'link', label + ' ' + Language.translate('Prefix'), {
+            promises.push(createFieldView(name + 'PrefixId', 'link', label + ' (' + Language.translate('Prefix') + ')', {
                 ...params,
                 type: 'link',
-                entity: 'Prefix'
+                foreignScope: 'Prefix'
             }, 3));
         }
 
