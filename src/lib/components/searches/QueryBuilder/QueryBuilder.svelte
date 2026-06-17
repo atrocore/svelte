@@ -300,13 +300,13 @@
                               </label>
                             `).join('\n')}
                           </div>
-                          <div class="btn-group group-actions">
-                            <button type="button" class="btn btn-sm btn-default" data-add="rule">
-                              ${translate("add_rule")}
+                          <div class="button-group group-actions">
+                            <button type="button" class="small" title="${translate("add_rule")}" data-add="rule">
+                              <i class="ph ph-plus"></i>
                             </button>
                             ${settings.allow_groups === -1 || settings.allow_groups >= level ? `
-                              <button type="button" class="btn btn-sm btn-default" data-add="group">
-                                ${translate("add_group")}
+                              <button type="button" class="small" title="${translate("add_group")}" data-add="group">
+                                <i class="ph ph-brackets-square"></i>
                               </button>
                             ` : ''}
                           </div>
@@ -1398,17 +1398,16 @@
                         {#if Acl.check('SavedSearch', 'create')  }
                             <button class="small filter-button" on:click={saveFilter}
                                     disabled={advancedFilterDisabled || queryBuilderRulesChanged}
+                                    title={Language.translate('Save')}
                             >
                                 <i class="ph ph-floppy-disk-back"></i>
-                                <span>{Language.translate('Save')}</span>
                             </button>
                         {/if}
 
                         <button class="small filter-button" on:click={resetFilter}
-                                disabled={advancedFilterDisabled}
+                                disabled={advancedFilterDisabled} title={Language.translate('Clear')}
                         >
                             <i class="ph-fill ph-eraser"></i>
-                            <span>{Language.translate('Clear')}</span>
                         </button>
                     </div>
 
@@ -1425,10 +1424,6 @@
 <style>
     .query-builder-container :global(.checkboxes-filter) {
         margin-bottom: 10px;
-    }
-
-    button.small i {
-        font-size: 14px;
     }
 
     .filters-top-buttons {
