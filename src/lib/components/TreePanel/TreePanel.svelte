@@ -1411,13 +1411,11 @@
         text-overflow: ellipsis;
         border-bottom: 2px solid transparent;
         transition: border-color 0.15s ease, color 0.15s ease;
-        letter-spacing: 0.03em;
     }
 
     .tree-item.active {
         color: #06c;
         border-bottom-color: #06c;
-        font-weight: 500;
         letter-spacing: 0;
     }
 
