@@ -25,6 +25,10 @@
     let stagingCollapsed = false;
     let stagingTotal: number | null = null;
 
+    $: if (clusterId) {
+        load();
+    }
+
     function getStagingEntityTypes(masterEntity: string): string[] {
         const scopes: Record<string, any> = Metadata.get(['scopes']) ?? {};
         return Object.keys(scopes).filter(scope =>
