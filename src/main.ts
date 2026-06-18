@@ -32,6 +32,7 @@ import { default as WysiwygField } from "$lib/components/fields/Wysiwyg/Wysiwyg.
 import { default as CombinedVarcharField } from "$lib/components/fields/CombinedVarchar/CombinedVarchar.svelte";
 import { default as CombinedFloatField } from "$lib/components/fields/CombinedFloat/CombinedFloat.svelte";
 import { default as CombinedIntField } from "$lib/components/fields/CombinedInt/CombinedInt.svelte";
+import { default as UserField } from "$lib/components/fields/User/User.svelte";
 import Navigation from "$lib/components/layout-manager/layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/layout-manager/layouts/Favorites/Favorites.svelte";
 import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
@@ -96,6 +97,7 @@ export {
     CombinedVarcharField,
     CombinedFloatField,
     CombinedIntField,
+    UserField,
     SystemUpdatePanel,
     JobManagerButton,
     LayoutComponent,

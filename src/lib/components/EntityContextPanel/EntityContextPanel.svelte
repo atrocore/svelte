@@ -7,6 +7,7 @@
     import QueryBuilder from "$lib/components/searches/QueryBuilder/QueryBuilder.svelte";
     import DataQualityPanel from "$lib/components/EntityContextPanel/DataQualityPanel/DataQualityPanel.svelte";
     import ClusterPanel from "$lib/components/EntityContextPanel/ClusterPanel/ClusterPanel.svelte";
+    import VersionPanel from "$lib/components/EntityContextPanel/VersionPanel/VersionPanel.svelte";
 
     export let scope: string;
     export let mode: string;
@@ -26,6 +27,7 @@
     export let showDataQualities: boolean = false;
     export let showCluster: boolean = false;
     export let clusterId: string = '';
+    export let showVersions: boolean = false;
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
 
@@ -198,6 +200,17 @@
             ];
         }
 
+        if (showVersions) {
+            items = [
+                ...items,
+                {
+                    "name": "versions",
+                    "label": Language.translate('versions', 'labels'),
+                    iconClass: 'ph ph-clock-counter-clockwise'
+                }
+            ];
+        }
+
         let itemName = getStoredData('right-side-view-active-item', scopeKey);
 
         if (itemName && items.map(i => i.name).includes(itemName)) {
@@ -266,6 +279,12 @@
         {#if showCluster}
             <div class="cluster" class:hidden={activeItem?.name !== 'cluster'}>
                 <ClusterPanel {clusterId} />
+            </div>
+        {/if}
+
+        {#if showVersions}
+            <div class="versions" class:hidden={activeItem?.name !== 'versions'}>
+                <VersionPanel {scope} entityId="{id}" />
             </div>
         {/if}
     </div>
