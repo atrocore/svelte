@@ -283,22 +283,22 @@
     .sidebar-item {
         padding: 4px 8px;
         color: #333;
-        border-radius: 16px;
         text-decoration: none;
         line-height: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        border: 1px solid transparent;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.15s ease, color 0.15s ease;
     }
 
     .sidebar-item.active {
         color: #06c;
+        border-bottom-color: #06c;
     }
 
-    .sidebar-item.active,
     .sidebar-item:hover:not(.active) {
-        border-color: #06c;
+        border-bottom-color: rgba(0, 102, 204, 0.35);
     }
 
     .preloader {
