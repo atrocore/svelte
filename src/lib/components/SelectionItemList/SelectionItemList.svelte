@@ -19,6 +19,10 @@
     export let onUnSelectAll: (entityType: string) => void = () => {
     };
 
+    export let onMountRowActions: (element: HTMLElement, itemId: string, relationName: string) => void = () => {};
+
+    export let relationName: string = 'selectionItems';
+
     $: selectedIdSet = new Set(selectedIds);
 
     $: hasSelectedByType = calculateSelectedStatus(records, selectedIdSet);
@@ -35,6 +39,7 @@
 
     let isPinned: boolean = true;
     let data: GroupedItems = {};
+    let hoveredRowId: string | null = null;
 
     export function setSelectedIds(ids: string[]) {
         selectedIds = ids;
@@ -55,6 +60,11 @@
         });
     }
 
+
+    function mountRowActions(element: HTMLElement, params: { itemId: string; relationName: string }) {
+        onMountRowActions(element, params.itemId, params.relationName);
+        return {};
+    }
 
     function handledSelectAllButton(entityType: string): void {
         if (hasSelectedByType[entityType]) {
@@ -77,20 +87,22 @@
         <div>
             <div class="title">
                 <span class="title">{Language.translate(entityType, 'scopeNamesPlural')}</span>
-                {#if selectionViewMode !== 'standard'}
-                    <button class="small filter-button"
-                            on:click={() => handledSelectAllButton(entityType)}>{ hasSelectedByType[entityType] ? Language.translate('hideAll') : Language.translate('selectAll')}</button>
-                {/if}
             </div>
 
             <ul>
                 {#each data[entityType] as record }
                     <li title="{record.name}">
-                        <a href="#{record.entityType}/view/{record.id}" target="_blank"
-                           on:click={(e) => { onItemClicked(e, record.id) }}
-                           class:active="{selectionViewMode !== 'standard' && selectedIds.includes(record.id)}"><i
-                                class="ph" class:ph-eye={selectedIds.includes(record.id)}
-                                class:ph-eye-slash={!selectedIds.includes(record.id)}></i>{record.name}</a>
+                        <div class="item-row">
+                            <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                               on:click={(e) => { onItemClicked(e, record.id) }}
+                               on:mouseenter={() => hoveredRowId = record.id}
+                               on:mouseleave={() => hoveredRowId = null}
+                               class:active="{selectionViewMode !== 'standard' && selectedIds.includes(record.id)}">
+                                <span>{record.name}</span>
+                                <i class="ph-circle" class:ph={hoveredRowId !== record.id} class:ph-fill={hoveredRowId === record.id}></i>
+                            </a>
+                            <span class="row-actions-container" use:mountRowActions={{ itemId: record.id, relationName }}></span>
+                        </div>
                     </li>
                 {/each}
             </ul>
@@ -99,9 +111,14 @@
 </div>
 
 <style>
+    .records > div {
+        margin-bottom: 25px;
+    }
+
     .title {
         display: flex;
         justify-content: space-between;
+        align-items: center;
     }
 
     .records {
@@ -115,33 +132,66 @@
 
     div ul {
         list-style: none;
-        padding: 8px 0;
+        padding: 0 0 0 10px;
+        margin: 10px 0;
     }
 
     div ul li {
         padding: 0;
     }
 
-    div ul li a {
-        text-overflow: ellipsis;
+    div ul li:not(:first-child) {
+        margin-top: 10px;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 6px;
+    }
+
+    .item-row a {
+        flex: 1;
+        min-width: 0;
+        color: #777;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .item-row a > span {
         white-space: nowrap;
         overflow: hidden;
-        display: inline-block;
-        max-width: 100%;
-        text-decoration: none;
-        color: #777;
-        line-height: normal;
+        text-overflow: ellipsis;
+        margin-inline-end: 1em;
     }
 
-    div ul li a > i {
+    .item-row a > i {
+        margin-inline-start: auto;
         margin-inline-end: .5em;
+        font-size: .95em;
+        flex-shrink: 0;
     }
 
-    div ul li a:hover, div ul li a:focus {
+    .item-row a:hover,
+    .item-row a:focus {
         text-decoration: none;
     }
 
-    div ul li a.active {
+    .item-row a.active {
         color: var(--primary-font-color);
+    }
+
+    .item-row .row-actions-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .item-row .row-actions-container :global(.dropdown-toggle) {
+        padding: 2px 0;
+    }
+
+    .item-row .row-actions-container :global(.dropdown-toggle i) {
+        font-size: 16px;
     }
 </style>

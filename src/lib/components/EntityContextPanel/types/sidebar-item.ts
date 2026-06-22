@@ -11,6 +11,7 @@
 type Item = {
     name: string;
     label: string;
+    title?: string;
     iconClass?: string;
 }
 
