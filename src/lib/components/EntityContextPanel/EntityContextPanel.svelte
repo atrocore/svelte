@@ -27,6 +27,7 @@
     export let showDataQualities: boolean = false;
     export let showCluster: boolean = false;
     export let clusterId: string = '';
+    export let loadClusterDetail: ((element: HTMLElement, attributes: Record<string, any>) => void) | null = null;
     export let showVersions: boolean = false;
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
@@ -226,6 +227,13 @@
         }
     });
 
+    function updateItemTitle(name: string, title: string): void {
+        items = items.map(i => i.name === name ? { ...i, title } : i);
+        if (activeItem?.name === name) {
+            activeItem = { ...activeItem, title };
+        }
+    }
+
     onDestroy(() => {
         window.removeEventListener('record:save', refreshStream as EventListener)
     });
@@ -249,7 +257,7 @@
         <div class="sidebar-header">
             <h5>
                 {#if activeItem?.iconClass}<i class={activeItem?.iconClass}
-                                              style="margin-inline-end: 10px; font-size: 20px;"></i>{/if}{activeItem?.label ?? ''}</h5>
+                                              style="margin-inline-end: 10px; font-size: 20px;"></i>{/if}{@html activeItem?.title ?? activeItem?.label ?? ''}</h5>
             <div class="layout-editor-container" class:hidden={activeItem?.name !== 'insights'}></div>
         </div>
 
@@ -278,7 +286,7 @@
 
         {#if showCluster}
             <div class="cluster" class:hidden={activeItem?.name !== 'cluster'}>
-                <ClusterPanel {clusterId} />
+                <ClusterPanel {clusterId} {loadClusterDetail} on:title-change={(e) => updateItemTitle('cluster', e.detail)} />
             </div>
         {/if}
 
@@ -291,6 +299,16 @@
 </CollapsibleSidebar>
 
 <style>
+    .sidebar-header :global(a) {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .sidebar-header :global(a:hover) {
+        color: inherit;
+        text-decoration: underline;
+    }
+
     .sidebar-items-container {
         display: flex;
         flex-wrap: wrap;
@@ -360,6 +378,7 @@
     }
 
     .activities :global(.panel-default > .panel-heading),
+    .cluster :global(.panel-default > .panel-heading),
     .insights :global(.panel-default > .panel-heading) {
         background-color: transparent;
         border-bottom: transparent;
@@ -370,6 +389,7 @@
     }
 
     .activities :global(.panel-title),
+    .cluster :global(.panel-title),
     .insights :global(.panel-title) {
         text-transform: none;
         font-size: 10px !important;
@@ -381,10 +401,12 @@
     }
 
     .activities :global(.panel-default),
+    .cluster :global(.panel-default),
     .insights :global(.panel-default) {
         background-color: inherit;
     }
 
+    .cluster :global(.panel-default),
     .insights :global(.panel-default) {
         margin-bottom: 10px;
     }
@@ -400,6 +422,7 @@
     }
 
     .activities :global(.panel-body),
+    .cluster :global(.panel-body),
     .insights :global(.panel-body) {
         padding-top: 0;
         padding-left: 0;

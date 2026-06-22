@@ -1,12 +1,16 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language";
     import { Notifier } from "$lib/dom/notifier";
     import { Metadata } from "$lib/core/metadata";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
+
+    const dispatch = createEventDispatcher<{ 'title-change': { text: string; href: string } }>();
 
     export let clusterId: string = '';
     export let maxVisibleCount: number = 20;
+    export let loadClusterDetail: ((element: HTMLElement, attributes: Record<string, any>) => void) | null = null;
 
     let cluster: any = null;
     let loading = false;
@@ -102,6 +106,7 @@
 
         try {
             cluster = await ApiClient.get(`/Cluster/${clusterId}`, { select: 'id,number,state,createdAt,masterEntity' });
+            dispatch('title-change', `<a href="#Cluster/view/${cluster.id}" target="_blank" class="sidebar-title-link">${Language.translate('Cluster', 'scopeNames')} ${cluster.number}</a>`);
 
             const masterEntity: string = cluster.masterEntity;
             const stagingTypes = getStagingEntityTypes(masterEntity);
@@ -185,6 +190,12 @@
         return 'transparent';
     }
 
+    function mountDetail(element: HTMLElement) {
+        element.id = 'cluster-detail-' + clusterId;
+        loadClusterDetail?.(element, cluster);
+        return {};
+    }
+
     onMount(() => {
         load();
     });
@@ -192,59 +203,24 @@
 
 {#if loading}
     <div style="text-align:center;margin-top:10px">
-        <img style="width:40px" class="preloader" src="client/img/atro-loader.svg" alt="loader">
+        <Preloader />
     </div>
 {:else if !cluster}
     <p class="no-cluster">{Language.translate('noClusterFound', 'messages', 'Cluster')}</p>
 {:else}
-    <div class="panel panel-cluster" data-name="cluster">
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a href="#{`Cluster/view/${cluster.id}`}" target="_blank" class="cluster-name">
-                    <span>{cluster.number}</span>
-                </a>
-                <span class="panel-title-text">{Language.translate('Cluster', 'scopeNames')}</span>
-            </h4>
-        </div>
-        <div class="panel-body panel-collapse collapse in" data-name="cluster">
-            <div class="list list-expanded">
-                <ul class="list-group">
-                    <li class="list-group-item list-row">
-                        <table style="margin-bottom:9px;width:100%">
-                            <tbody>
-                            <tr>
-                                <th class="cell-label">{Language.translate('state', 'fields', 'Cluster')}</th>
-                                <td class="cell-value">
-                                    <span class="label colored-enum">
-                                        <i style="background-color:{getStateColor(cluster.state)}"></i>
-                                        <span>{Language.translateOption(cluster.state, 'state', 'Cluster')}</span>
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="cell-label">{Language.translate('createdAt', 'fields', 'Global')}</th>
-                                <td class="cell-value">{cluster.createdAt ?? ''}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <div use:mountDetail></div>
 
     <div class="panel panel-master-records" data-name="master-records">
-        <div class="panel-heading"
-             on:click={() => masterCollapsed = !masterCollapsed}
-             on:keydown={(e) => e.key === 'Enter' && (masterCollapsed = !masterCollapsed)}
-             role="button"
-             tabindex="0">
-            <h4 class="panel-title">
-                <i class="ph" class:ph-caret-up={!masterCollapsed} class:ph-caret-down={masterCollapsed}></i>
-                <span class="panel-title-text">
-                    {Language.translate('masterRecordsPanel', 'labels', 'Cluster')} ({masterTotal ?? masterRecords.length})
-                </span>
-            </h4>
+        <div class="panel-heading">
+            <span class="label-badge count-badge">{masterTotal ?? masterRecords.length} item(s)</span>
+            <span class="label-badge"
+                  on:click={() => masterCollapsed = !masterCollapsed}
+                  on:keydown={(e) => e.key === 'Enter' && (masterCollapsed = !masterCollapsed)}
+                  role="button"
+                  tabindex="0">
+                {Language.translate('masterRecordsPanel', 'labels', 'Cluster')}
+                <i class="ph" class:ph-caret-down={!masterCollapsed} class:ph-caret-left={masterCollapsed}></i>
+            </span>
         </div>
         {#if !masterCollapsed}
             <div class="panel-body">
@@ -275,17 +251,16 @@
     </div>
 
     <div class="panel panel-staging-records" data-name="staging-records">
-        <div class="panel-heading"
-             on:click={() => stagingCollapsed = !stagingCollapsed}
-             on:keydown={(e) => e.key === 'Enter' && (stagingCollapsed = !stagingCollapsed)}
-             role="button"
-             tabindex="0">
-            <h4 class="panel-title">
-                <i class="ph" class:ph-caret-up={!stagingCollapsed} class:ph-caret-down={stagingCollapsed}></i>
-                <span class="panel-title-text">
-                    {Language.translate('stagingRecordsPanel', 'labels', 'Cluster')} ({stagingTotal ?? stagingRecords.length})
-                </span>
-            </h4>
+        <div class="panel-heading">
+            <span class="label-badge count-badge">{stagingTotal ?? stagingRecords.length} item(s)</span>
+            <span class="label-badge"
+                  on:click={() => stagingCollapsed = !stagingCollapsed}
+                  on:keydown={(e) => e.key === 'Enter' && (stagingCollapsed = !stagingCollapsed)}
+                  role="button"
+                  tabindex="0">
+                {Language.translate('stagingRecordsPanel', 'labels', 'Cluster')}
+                <i class="ph" class:ph-caret-down={!stagingCollapsed} class:ph-caret-left={stagingCollapsed}></i>
+            </span>
         </div>
         {#if !stagingCollapsed}
             <div class="panel-body">
@@ -337,18 +312,58 @@
         padding: 10px 0;
     }
 
-    .panel-title {
-        display: flex;
-        justify-content: space-between
-    }
-
     .panel {
         background-color: transparent;
-        margin-bottom: 15px;
+        margin-bottom: 25px;
     }
 
     .panel-heading {
-        border-top: 1px solid var(--primary-border-color);
+        display: flex;
+        justify-content: space-between;
+        border-top: 2px solid #e8eced;
+        padding: 5px 0 3px;
+    }
+
+    .label-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: #e8eced;
+        cursor: pointer;
+        user-select: none;
+        font-size: 11px;
+        line-height: 1;
+        color: #333;
+        white-space: nowrap;
+    }
+
+    .label-badge:hover {
+        background: #e0e5e7;
+    }
+
+    .label-badge:active {
+        background: #d8dee1;
+        color: #222;
+    }
+
+    .label-badge i {
+        font-size: 12px;
+    }
+
+    .count-badge {
+        cursor: default;
+        background-color: transparent;
+        color: #000;
+        padding-left: 0;
+    }
+
+    .count-badge:hover {
+        background-color: transparent;
+    }
+
+    .count-badge:active {
+        background-color: transparent;
     }
 
     .no-cluster {
@@ -357,41 +372,10 @@
         margin-top: 10px;
     }
 
-    .list-group-item {
-        padding: 0;
-        background-color: transparent;
-        border: none;
-    }
-
-    .cluster-name {
-        font-size: 16px;
-        font-weight: bold;
-        color: var(--link-color);
-        text-decoration: none;
-    }
-
-    .cell-label {
-        color: var(--label-color);
-        font-weight: normal;
-        padding: 3px 5px;
-        border: 1px solid #ccc;
-        white-space: nowrap;
-    }
-
-    .cell-value {
-        padding: 3px 5px;
-        border: 1px solid #ccc;
-    }
-
-    .panel-heading {
-        cursor: pointer;
-        user-select: none;
-    }
-
     .record-list {
         list-style: none;
         padding: 0;
-        margin: 0;
+        margin: 10px 0 0;
     }
 
     .record-item {
