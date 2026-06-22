@@ -11,7 +11,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import type ClusterItem from "./types/cluster-item";
-    import type GroupedItems from "./types/grouped-items";
     import { Language } from "$lib/core/language";
 
     export let records: ClusterItem[] = [];
@@ -26,31 +25,19 @@
     export let hasMoreByType: Record<string, boolean> = {};
     export let loadingMoreByType: Record<string, boolean> = {};
 
-    let data: GroupedItems = {};
     let collapsed: Record<string, boolean> = {};
+    let hoveredCircleId: string | null = null;
 
     $: selectedIdSet = new Set(selectedIds);
-    $: hasSelectedByType = calculateSelectedStatus(records, selectedIdSet);
-
-    function calculateSelectedStatus(recs: ClusterItem[], ids: Set<string>): Record<string, boolean> {
-        const status: Record<string, boolean> = {};
-        recs.forEach(r => {
-            if (!status[r.entityType] && ids.has(r.id)) {
-                status[r.entityType] = true;
-            }
-        });
-        return status;
-    }
+    $: subGroups = {
+        unconfirmed: records.filter(i => !i.confirm && !i.rejected),
+        confirmed: records.filter(i => i.confirm === true),
+        rejected: records.filter(i => i.rejected === true)
+    };
+    $: hasMoreEntries = Object.entries(hasMoreByType).filter(([, v]) => v);
 
     export function setRecords(value: ClusterItem[]): void {
         records = value;
-        data = {};
-        records.forEach((record: ClusterItem) => {
-            if (!data[record.entityType]) {
-                data[record.entityType] = [];
-            }
-            data[record.entityType].push(record);
-        });
     }
 
     export function setSelectedIds(ids: string[]): void {
@@ -69,25 +56,9 @@
         loadingMoreByType = value;
     }
 
-    function getSubGroups(items: ClusterItem[]) {
-        return {
-            notConfirmed: items.filter(i => !i.confirm && !i.rejected),
-            confirmed: items.filter(i => i.confirm === true),
-            rejected: items.filter(i => i.rejected === true)
-        };
-    }
-
     function toggleCollapsed(key: string): void {
         collapsed[key] = !collapsed[key];
         collapsed = { ...collapsed };
-    }
-
-    function handleSelectAll(entityType: string): void {
-        if (hasSelectedByType[entityType]) {
-            onUnSelectAll(entityType);
-        } else {
-            onSelectAll(entityType);
-        }
     }
 
     function mountRowActions(element: HTMLElement, params: { itemId: string; relationName: string }) {
@@ -101,98 +72,37 @@
 </script>
 
 <div class="records">
-    {#each Object.keys(data).sort((a, b) => a.localeCompare(b)) as entityType}
-        {@const subGroups = getSubGroups(data[entityType])}
-        <div>
-            <div class="title">
-                <span>{Language.translate(entityType, 'scopeNamesPlural')}</span>
-                {#if selectionViewMode !== 'standard'}
-                    <button class="small filter-button" on:click={() => handleSelectAll(entityType)}>
-                        {hasSelectedByType[entityType] ? Language.translate('hideAll') : Language.translate('selectAll')}
-                    </button>
-                {/if}
-            </div>
-
-            {#if subGroups.notConfirmed.length > 0}
-                <ul>
-                    {#each subGroups.notConfirmed as record}
-                        <li title="{record.name}">
-                            <div class="item-row">
-                                <a href="#{record.entityType}/view/{record.id}" target="_blank"
-                                   on:click={(e) => onItemClicked(e, record.id)}
-                                   class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
-                                    <i class="ph" class:ph-eye={selectedIdSet.has(record.id)} class:ph-eye-slash={!selectedIdSet.has(record.id)}></i>
-                                    {record.name}
-                                    {#if record.confirmedAutomatically}
-                                        <i class="ph ph-spark auto-icon"></i>
-                                    {/if}
-                                </a>
-                                <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
-                            </div>
-                        </li>
-                    {/each}
-                </ul>
-            {/if}
-
-            {#if subGroups.confirmed.length > 0}
-                <div class="sub-group-header"
-                     on:click={() => toggleCollapsed(`${entityType}_confirmed`)}
-                     on:keydown={(e) => e.key === 'Enter' && toggleCollapsed(`${entityType}_confirmed`)}
-                     role="button"
-                     tabindex="0">
-                    <i class="ph" class:ph-caret-up={!collapsed[`${entityType}_confirmed`]} class:ph-caret-down={collapsed[`${entityType}_confirmed`]}></i>
-                    <span class="label-badge">{Language.translate('confirmed', 'labels', 'Cluster')}</span>
-                </div>
-                {#if !collapsed[`${entityType}_confirmed`]}
-                    <ul>
-                        {#each subGroups.confirmed as record}
-                            <li title="{record.name}">
-                                <div class="item-row">
-                                    <a href="#{record.entityType}/view/{record.id}" target="_blank"
-                                       on:click={(e) => onItemClicked(e, record.id)}
-                                       class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
-                                        <i class="ph" class:ph-eye={selectedIdSet.has(record.id)} class:ph-eye-slash={!selectedIdSet.has(record.id)}></i>
-                                        {record.name}
-                                        {#if record.confirmedAutomatically}
-                                            <i class="ph ph-spark auto-icon"></i>
-                                        {/if}
-                                    </a>
-                                    <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
-                                </div>
-                            </li>
-                        {/each}
-                    </ul>
-                {/if}
-            {/if}
-
-            {#if subGroups.rejected.length > 0}
-                <div class="sub-group-header rejected-header"
-                     on:click={() => toggleCollapsed(`${entityType}_rejected`)}
-                     on:keydown={(e) => e.key === 'Enter' && toggleCollapsed(`${entityType}_rejected`)}
-                     role="button"
-                     tabindex="0">
-                    <i class="ph" class:ph-caret-up={!collapsed[`${entityType}_rejected`]} class:ph-caret-down={collapsed[`${entityType}_rejected`]}></i>
-                    <span class="label-badge">{Language.translate('rejected', 'labels', 'Cluster')}</span>
-                </div>
-                {#if !collapsed[`${entityType}_rejected`]}
-                    <ul>
-                        {#each subGroups.rejected as record}
-                            <li title="{record.name}">
-                                <div class="item-row">
-                                    <a href="#{record.entityType}/view/{record.id}" target="_blank" class="rejected-item"
-                                       on:click|preventDefault>
-                                        <i class="ph ph-eye-slash"></i>
-                                        {record.name}
-                                    </a>
-                                    <span use:mountRowActions={{ itemId: record.id, relationName: 'rejectedClusterItems' }}></span>
-                                </div>
-                            </li>
-                        {/each}
-                    </ul>
-                {/if}
-            {/if}
-
-            {#if hasMoreByType[entityType]}
+    {#if subGroups.unconfirmed.length > 0 || hasMoreEntries.length > 0}
+        <div class="sub-group-header">
+            <span class="label-badge"
+                  on:click={() => toggleCollapsed('unconfirmed')}
+                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('unconfirmed')}
+                  role="button"
+                  tabindex="0">
+                <i class="ph" class:ph-caret-down={!collapsed['unconfirmed']} class:ph-caret-right={collapsed['unconfirmed']}></i>
+                {Language.translate('unconfirmed', 'labels', 'Cluster')}
+            </span>
+        </div>
+        {#if !collapsed['unconfirmed']}
+            <ul>
+                {#each subGroups.unconfirmed as record}
+                    <li title="{record.name}">
+                        <div class="item-row">
+                            <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                               on:click={(e) => onItemClicked(e, record.id)}
+                               class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
+                                <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
+                                <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
+                            </a>
+                            <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
+            {#each hasMoreEntries as [entityType]}
                 <div class="load-more-container">
                     <button class="btn btn-sm btn-default load-more-btn" on:click={() => onLoadMoreForType(entityType)} disabled={loadingMoreByType[entityType]}>
                         {#if loadingMoreByType[entityType]}
@@ -202,26 +112,79 @@
                         {/if}
                     </button>
                 </div>
-            {/if}
+            {/each}
+        {/if}
+    {/if}
+
+    {#if subGroups.confirmed.length > 0}
+        <div class="sub-group-header">
+            <span class="label-badge"
+                  on:click={() => toggleCollapsed('confirmed')}
+                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('confirmed')}
+                  role="button"
+                  tabindex="0">
+                <i class="ph" class:ph-caret-down={!collapsed['confirmed']} class:ph-caret-right={collapsed['confirmed']}></i>
+                {Language.translate('confirmed', 'labels', 'Cluster')}
+            </span>
         </div>
-    {/each}
+        {#if !collapsed['confirmed']}
+            <ul>
+                {#each subGroups.confirmed as record}
+                    <li title="{record.name}">
+                        <div class="item-row">
+                            <a href="#{record.entityType}/view/{record.id}" target="_blank"
+                               on:click={(e) => onItemClicked(e, record.id)}
+                               class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
+                                <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
+                                <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
+                            </a>
+                            <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
+        {/if}
+    {/if}
+
+    {#if subGroups.rejected.length > 0}
+        <div class="sub-group-header">
+            <span class="label-badge"
+                  on:click={() => toggleCollapsed('rejected')}
+                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('rejected')}
+                  role="button"
+                  tabindex="0">
+                <i class="ph" class:ph-caret-down={!collapsed['rejected']} class:ph-caret-right={collapsed['rejected']} style="font-size: 12px;margin-left: -2px;"></i>
+                {Language.translate('rejected', 'labels', 'Cluster')}
+            </span>
+        </div>
+        {#if !collapsed['rejected']}
+            <ul>
+                {#each subGroups.rejected as record}
+                    <li title="{record.name}">
+                        <div class="item-row">
+                            <a href="#{record.entityType}/view/{record.id}" target="_blank" class="rejected-item"
+                               on:click|preventDefault>
+                                <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
+                                <span>{record.name}</span>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
+                            </a>
+                            <span use:mountRowActions={{ itemId: record.id, relationName: 'rejectedClusterItems' }}></span>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
+        {/if}
+    {/if}
 </div>
 
 <style>
     .records {
-        margin-top: 20px;
-    }
-
-    .title {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        font-size: 16px;
-        font-weight: 500;
-    }
-
-    .filter-button {
-        align-self: flex-start;
+        margin-top: 10px;
     }
 
     div ul {
@@ -238,21 +201,38 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        padding-left: 6px;
+        margin-top: 10px;
     }
 
     .item-row a {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
         flex: 1;
         min-width: 0;
+        display: inline-flex;
+        align-items: center;
         text-decoration: none;
         color: #777;
         line-height: normal;
     }
 
-    .item-row a > i {
+    .item-row a > span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-inline-end: 1em;
+    }
+
+    .item-row a > .type-icon {
         margin-inline-end: .5em;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .item-row a > i:not(.type-icon) {
+        margin-inline-start: auto;
+        margin-inline-end: .25em;
+        font-size: .95em;
+        flex-shrink: 0;
     }
 
     .item-row a:hover,
@@ -271,42 +251,48 @@
 
     .auto-icon {
         margin-inline-start: .4em;
+        flex-shrink: 0;
     }
 
     .sub-group-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         border-top: 2px solid #e8eced;
-        margin-top: 4px;
-        padding: 4px 0 2px;
-        cursor: pointer;
-        user-select: none;
-        color: #777;
+        padding: 5px 0 3px;
     }
 
-    .sub-group-header:hover {
-        color: var(--primary-font-color);
+    .sub-group-header:not(:first-of-type) {
+        margin-top: 25px;
     }
 
-    .sub-group-header .label-badge {
-        background: #e8eced;
-        border-radius: 3px;
-        padding: 3px 10px;
-        font-size: 12px;
-        color: #333;
-        white-space: nowrap;
-        width: 80px;
-        text-align: center;
+    .label-badge:hover {
+        background: #e0e5e7;
+    }
+
+    .label-badge:active {
+        background: #d8dee1;
+        color: #222;
     }
 
     .label-badge {
         display: inline-block;
-        padding: 5px 10px;
+        padding: 4px 10px;
         background: #e8eced;
-        text-transform: none;
-        letter-spacing: 0.03em;
+        cursor: pointer;
+        user-select: none;
+        font-size: 11px;
+        line-height: 1;
         color: #333;
+        white-space: nowrap;
+        text-align: center;
+        text-transform: none;
+        letter-spacing: 0.02em;
+    }
+
+    .label-badge i {
+        margin-inline-end: 4px;
+        font-size: 12px;
+        margin-inline-start: -2px;
     }
 
     .load-more-container {

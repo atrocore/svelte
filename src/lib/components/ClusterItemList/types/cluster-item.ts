@@ -12,6 +12,7 @@ type ClusterItem = {
     id: string;
     name: string;
     entityType: string;
+    isMaster: boolean;
     confirm: boolean;
     confirmedAutomatically: boolean;
     rejected: boolean;
