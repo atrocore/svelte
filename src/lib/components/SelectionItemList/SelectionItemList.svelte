@@ -39,6 +39,7 @@
 
     let isPinned: boolean = true;
     let data: GroupedItems = {};
+    let hoveredRowId: string | null = null;
 
     export function setSelectedIds(ids: string[]) {
         selectedIds = ids;
@@ -94,9 +95,11 @@
                         <div class="item-row">
                             <a href="#{record.entityType}/view/{record.id}" target="_blank"
                                on:click={(e) => { onItemClicked(e, record.id) }}
+                               on:mouseenter={() => hoveredRowId = record.id}
+                               on:mouseleave={() => hoveredRowId = null}
                                class:active="{selectionViewMode !== 'standard' && selectedIds.includes(record.id)}">
                                 <span>{record.name}</span>
-                                <i class="ph ph-circle"></i>
+                                <i class="ph-circle" class:ph={hoveredRowId !== record.id} class:ph-fill={hoveredRowId === record.id}></i>
                             </a>
                             <span class="row-actions-container" use:mountRowActions={{ itemId: record.id, relationName }}></span>
                         </div>

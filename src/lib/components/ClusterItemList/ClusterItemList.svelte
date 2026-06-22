@@ -26,6 +26,7 @@
     export let loadingMoreByType: Record<string, boolean> = {};
 
     let collapsed: Record<string, boolean> = {};
+    let hoveredCircleId: string | null = null;
 
     $: selectedIdSet = new Set(selectedIds);
     $: subGroups = {
@@ -92,7 +93,9 @@
                                class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
                                 <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
                                 <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
-                                <i class="ph ph-circle"></i>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
                             </a>
                             <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
                         </div>
@@ -134,7 +137,9 @@
                                class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
                                 <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
                                 <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
-                                <i class="ph ph-circle"></i>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
                             </a>
                             <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
                         </div>
@@ -164,7 +169,9 @@
                                on:click|preventDefault>
                                 <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
                                 <span>{record.name}</span>
-                                <i class="ph ph-circle"></i>
+                                <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}
+                                   on:mouseenter={() => hoveredCircleId = record.id}
+                                   on:mouseleave={() => hoveredCircleId = null}></i>
                             </a>
                             <span use:mountRowActions={{ itemId: record.id, relationName: 'rejectedClusterItems' }}></span>
                         </div>
@@ -252,8 +259,6 @@
         align-items: center;
         border-top: 2px solid #e8eced;
         padding: 5px 0 3px;
-        cursor: pointer;
-        user-select: none;
     }
 
     .sub-group-header:not(:first-of-type) {
