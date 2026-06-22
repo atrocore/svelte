@@ -89,6 +89,8 @@
             treeIcon = getTabIcon(treeScope);
         } else if (activeItem?.name === '_admin') {
             treeIcon = getSystemIconUrl('gear');
+        } else if (activeItem?.name === '_items') {
+            treeIcon = getSystemIconUrl('copy');
         } else {
             treeIcon = null;
         }
