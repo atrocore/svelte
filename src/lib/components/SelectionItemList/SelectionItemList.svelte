@@ -90,7 +90,7 @@
             </div>
 
             <ul>
-                {#each data[entityType] as record }
+                {#each data[entityType] as record (record.id)}
                     <li title="{record.name}">
                         <div class="item-row">
                             <a href="#{record.entityType}/view/{record.id}" target="_blank"
