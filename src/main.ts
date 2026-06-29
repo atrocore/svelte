@@ -53,6 +53,7 @@ import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
+import DynamicExportModal from "$lib/components/modals/DynamicExportModal/DynamicExportModal.svelte";
 
 declare global {
     interface Window {
@@ -123,5 +124,6 @@ export {
     Administration,
     SelectionItemList,
     ClusterItemList,
-    RowActions
+    RowActions,
+    DynamicExportModal
 };
