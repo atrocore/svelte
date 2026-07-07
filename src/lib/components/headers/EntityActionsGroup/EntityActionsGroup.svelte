@@ -27,7 +27,7 @@
     let dynamicDropdownActions: ActionParams[] = [];
     let hasFavoriteButton: boolean = false;
     let primaryEntityId: string | null = null;
-    let stagingEntityId: string | null = null;
+    let contributorEntityId: string | null = null;
 
     $: {
         actions = [...entityActions.buttons ?? [], ...dynamicActions];
@@ -69,10 +69,10 @@
         dynamicDropdownActions = Array.from(dropdown.values());
     }
 
-    function getStagingEntity(code: string): string | null {
+    function getContributorEntity(code: string): string | null {
         const scopes: Record<string, any> = Metadata.get(['scopes']);
         for (const [key, defs] of Object.entries(scopes)) {
-            if (defs.primaryEntityId === code && defs.role === 'staging') {
+            if (defs.primaryEntityId === code && defs.role === 'contributor') {
                 return key;
             }
         }
@@ -82,7 +82,7 @@
 
     onMount(() => {
         primaryEntityId = Metadata.get(['scopes', scope, 'primaryEntityId']);
-        stagingEntityId = primaryEntityId ? null : getStagingEntity(scope);
+        contributorEntityId = primaryEntityId ? null : getContributorEntity(scope);
 
         hasFavoriteButton = Metadata.get(['scopes', scope, 'tab']);
         loadDynamicActions();
@@ -97,13 +97,15 @@
     <div class="right-group">
         <div class="entity-buttons">
             <TourButton {scope} mode="list"/>
-            {#if Acl.check(stagingEntityId, 'read') && stagingEntityId}
-                <a role="button" title={Language.translate('openStagingEntity')} href="#{stagingEntityId}"><i
-                        class="ph ph-signpost"></i></a>
+            {#if Acl.check(contributorEntityId, 'read') && contributorEntityId}
+                <a role="button" title={Language.translate('openStagingEntity')} href="#{contributorEntityId}">
+                    <i class="ph ph-signpost"></i>
+                </a>
             {/if}
             {#if Acl.check(primaryEntityId, 'read') && primaryEntityId}
-                <a role="button" title={Language.translate('openPrimaryEntity')} href="#{primaryEntityId}"><i
-                        class="ph ph-crown"></i></a>
+                <a role="button" title={Language.translate('openPrimaryEntity')} href="#{primaryEntityId}">
+                    <i class="ph ph-crown"></i>
+                </a>
             {/if}
             {#if hasFavoriteButton}
                 <FavoriteEntityButton
