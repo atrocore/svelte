@@ -98,7 +98,7 @@
         <div class="entity-buttons">
             <TourButton {scope} mode="list"/>
             {#if Acl.check(contributorEntityId, 'read') && contributorEntityId}
-                <a role="button" title={Language.translate('openStagingEntity')} href="#{contributorEntityId}">
+                <a role="button" title={Language.translate('openContributorEntity')} href="#{contributorEntityId}">
                     <i class="ph ph-signpost"></i>
                 </a>
             {/if}
