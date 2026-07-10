@@ -258,7 +258,7 @@
                   on:keydown={(e) => e.key === 'Enter' && (stagingCollapsed = !stagingCollapsed)}
                   role="button"
                   tabindex="0">
-                {Language.translate('stagingRecordsPanel', 'labels', 'Cluster')}
+                {Language.translate('contributorRecordsPanel', 'labels', 'Cluster')}
                 <i class="ph" class:ph-caret-down={!stagingCollapsed} class:ph-caret-left={stagingCollapsed}></i>
             </span>
         </div>
