@@ -6,6 +6,7 @@
     export let userName: string = '';
     export let valueIsSet: boolean = true;
     export let meta: { actor: { id: string; name: string; isSystem: boolean }; delegator: { id: string; name: string; isSystem: boolean } } | null = null;
+    export let avatarPath: string = '';
 </script>
 
 {#if meta?.actor}
@@ -21,6 +22,9 @@
         <a href="#User/view/{meta.delegator.id}" title={meta.delegator.name}>{meta.delegator.name}</a>
     {/if}
 {:else if userId}
+    {#if avatarPath}
+        <img class="avatar avatar-link" style="max-width:26px; max-height:26px;" src={avatarPath} alt="">
+    {/if}
     <a href="#User/view/{userId}" title={userName}>{userName}</a>
 {:else if userName}
     {userName}

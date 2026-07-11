@@ -7,8 +7,9 @@
     export let userName: string = '';
     export let valueIsSet: boolean = true;
     export let meta: { actor: { id: string; name: string; isSystem: boolean }; delegator: { id: string; name: string; isSystem: boolean } } | null = null;
+    export let avatarPath: string = '';
 </script>
 
 {#if mode === 'detail' || mode === 'list'}
-    <UserDetail {mode} {userId} {userName} {valueIsSet} {meta} />
+    <UserDetail {mode} {userId} {userName} {valueIsSet} {meta} {avatarPath}/>
 {/if}
