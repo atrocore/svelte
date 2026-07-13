@@ -29,11 +29,12 @@
     };
 
     export let name: string = '';
-    export let value: string = '';
+    export let value: string | null = null;
     export let mode: FieldMode = 'detail';
     export let params: TextParams = {};
     export let entityName: string = '';
     export let entityId: string|null = '';
+    export let notNull: boolean = false;
 
     // Individual props — fallback when used directly without a params object
     export let rowsMin: number = 2;
@@ -127,6 +128,7 @@
             maxLength={p.maxLength}
             countBytesInsteadOfCharacters={p.countBytesInsteadOfCharacters}
             autoHeightDisabled={p.autoHeightDisabled}
+            {notNull}
             on:change={handleChange}
         />
     {:else if mode === 'search'}

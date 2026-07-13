@@ -14,7 +14,7 @@
     import { truncate } from '../utils/truncate';
 
     export let name: string = '';
-    export let value: string = '';
+    export let value: string | null = null;
     export let rows: number = 2;
     export let useDisabledTextareaInViewMode: boolean = false;
     export let seeMoreDisabled: boolean = false;
@@ -23,10 +23,12 @@
 
     let seeMoreText = false;
 
+    $: isNull = value === null || value === undefined;
+    $: isNotEmpty = !isNull && value !== '';
     $: canTruncate = !seeMoreText && !seeMoreDisabled;
     $: ({ text: displayedText, isCut } = canTruncate
-        ? truncate(value, detailMaxLength, detailMaxNewLineCount)
-        : { text: value || '', isCut: false });
+        ? truncate(value ?? '', detailMaxLength, detailMaxNewLineCount)
+        : { text: value ?? '', isCut: false });
 
     function handleSeeMore() {
         seeMoreText = true;
@@ -35,16 +37,18 @@
 
 {#if useDisabledTextareaInViewMode}
     <textarea {name} value={displayedText} {rows} disabled class="form-control"></textarea>
-{:else}
-    {#if displayedText}
-        <!-- svelte-ignore a11y-invalid-attribute -->
-        <span>{@html breaklines(displayedText)}</span>
-        {#if isCut}
-            <a href="javascript:" on:click={handleSeeMore}>
-                {Language.translate('See more') || 'See more'}
-            </a>
-        {/if}
+{:else if isNotEmpty}
+    <!-- svelte-ignore a11y-invalid-attribute -->
+    <span>{@html breaklines(displayedText)}</span>
+    {#if isCut}
+        <a href="javascript:" on:click={handleSeeMore}>
+            {Language.translate('See more') || 'See more'}
+        </a>
     {/if}
+{:else if isNull}
+    <span class="text-gray">{Language.translate('Null')}</span>
+{:else}
+    <span class="pre-label"></span>
 {/if}
 
 <style>
