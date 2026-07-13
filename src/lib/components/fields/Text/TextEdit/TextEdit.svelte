@@ -10,25 +10,30 @@
 
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
+    import { Language } from '$lib/core/language';
     import type { FieldFetchResult } from '$lib/types/ui/field';
 
     export let name: string = '';
-    export let value: string = '';
+    export let value: string | null = null;
     export let rows: number = 2;
     export let rowsMin: number = 2;
     export let rowsMax: number = 10;
     export let maxLength: number | null = null;
     export let countBytesInsteadOfCharacters: boolean = false;
     export let autoHeightDisabled: boolean = false;
+    export let notNull: boolean = false;
 
     const dispatch = createEventDispatcher();
 
     let textElement: HTMLTextAreaElement | undefined;
-    let currentValue = value;
+    let currentValue = value ?? '';
+    let isNull = value === null || value === undefined;
     let currentLength = 0;
     let hasError = false;
 
-    $: currentValue = value;
+    $: currentValue = value ?? '';
+    $: isNull = value === null || value === undefined;
+    $: placeholder = isNull ? 'Null' : Language.translate('None');
 
     onMount(() => {
         if (!autoHeightDisabled && textElement) controlTextareaHeight();
@@ -72,13 +77,44 @@
 
     function handleInput(event: Event) {
         currentValue = (event.target as HTMLTextAreaElement).value;
+        if (currentValue !== '') {
+            isNull = false;
+        }
         dispatch('change', { name, value: currentValue });
         updateTextCounter();
         if (!autoHeightDisabled) controlTextareaHeight();
     }
 
+    function handleKeydown(event: KeyboardEvent) {
+        if (currentValue !== '') {
+            return;
+        }
+
+        if (event.keyCode === 8) {
+            // backspace on empty value marks it as null (unless notNull)
+            if (!isNull && !notNull) {
+                event.preventDefault();
+                isNull = true;
+            }
+        } else if (event.keyCode === 32) {
+            // space on empty null value switches back to an empty string
+            if (isNull) {
+                event.preventDefault();
+                isNull = false;
+            }
+        } else if (![17, 18].includes(event.keyCode) && !(event.ctrlKey && event.key === 's')) {
+            isNull = false;
+        }
+    }
+
     export function fetch(): FieldFetchResult {
-        return { [name]: currentValue === '' ? null : currentValue };
+        if (currentValue === '') {
+            if (!notNull && isNull) {
+                return { [name]: null };
+            }
+            return { [name]: '' };
+        }
+        return { [name]: currentValue };
     }
 </script>
 
@@ -87,7 +123,9 @@
     {name}
     bind:value={currentValue}
     {rows}
+    {placeholder}
     on:input={handleInput}
+    on:keydown={handleKeydown}
     class="form-control"
     class:with-text-length={maxLength}
     class:error={hasError}

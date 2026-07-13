@@ -9,17 +9,26 @@
 -->
 
 <script lang="ts">
+    import { Language } from '$lib/core/language';
     import { breaklines } from '../utils/breaklines';
     import { truncate } from '../utils/truncate';
 
-    export let value: string = '';
+    export let value: string | null = null;
     export let detailMaxLength: number = 400;
     export let detailMaxNewLineCount: number = 10;
     export let seeMoreDisabled: boolean = false;
 
+    $: isNull = value === null || value === undefined;
+    $: isNotEmpty = !isNull && value !== '';
     $: ({ text: displayedText } = seeMoreDisabled
-        ? { text: value || '' }
-        : truncate(value, detailMaxLength, detailMaxNewLineCount));
+        ? { text: value ?? '' }
+        : truncate(value ?? '', detailMaxLength, detailMaxNewLineCount));
 </script>
 
-<span>{@html breaklines(displayedText)}</span>
+{#if isNotEmpty}
+    <span>{@html breaklines(displayedText)}</span>
+{:else if isNull}
+    <span class="text-gray">{Language.translate('Null')}</span>
+{:else}
+    <span class="pre-label"></span>
+{/if}
