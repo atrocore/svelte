@@ -6,9 +6,9 @@
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
     import { Acl } from "$lib/core/acl";
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import type Floating from "$lib/dom/floating";
-    import {Dropdown} from "$lib/dom/dropdown";
+    import { Dropdown } from "$lib/dom/dropdown";
 
     export let checkConfirmLeaveOut: Function;
 
@@ -85,9 +85,16 @@
 
             LayoutManager.clearListAndDetailCache()
 
-            await ApiClient.patch('/UserProfile/' + userData.user.id, {
-                disabledLanguages: Object.keys(languages).filter(item => item !== newDefaultCode)
-            })
+            try {
+                await ApiClient.patch('/UserProfile/' + userData.user.id, {
+                    disabledLanguages: Object.keys(languages).filter(item => item !== newDefaultCode)
+                })
+            } catch (e) {
+                if (e.status !== 304) {
+                    throw e
+                }
+            }
+
 
             window.location.reload();
         })
@@ -96,9 +103,15 @@
     async function onLanguageChange() {
         const userData = UserData.get()!
         const disabledLanguages = Object.keys(languages).filter(item => item !== defaultLanguageCode && !enabledLanguages.includes(item));
-        await ApiClient.patch('/UserProfile/' + userData.user.id, {
-            disabledLanguages: disabledLanguages
-        })
+        try {
+            await ApiClient.patch('/UserProfile/' + userData.user.id, {
+                disabledLanguages: disabledLanguages
+            })
+        } catch (e) {
+            if (e.status !== 304) {
+                throw e
+            }
+        }
 
         LayoutManager.clearListAndDetailCache();
 
@@ -135,14 +148,16 @@
 <div class="button-group input-group">
     {#if Object.keys(locales).length > 1}
         <div class="dropdown">
-            <button class="locale-switcher dropdown-toggle" data-toggle="dropdown" aria-expanded="false" bind:this={localeTrigger}>
+            <button class="locale-switcher dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+                    bind:this={localeTrigger}>
                 <span>{locales[locale]?.name ?? locale}</span>
                 <i class="ph ph-caret-down"></i>
             </button>
             <ul class="dropdown-menu small" bind:this={localeDropdown}>
                 {#each Object.entries(locales) as [id, loc]}
                     <li class:disabled={id === locale}>
-                        <a href="javascript:" on:click|preventDefault={e => locale !== id ? onLocaleSelected(id) : null }>
+                        <a href="javascript:"
+                           on:click|preventDefault={e => locale !== id ? onLocaleSelected(id) : null }>
                             {loc.name}
                         </a>
                     </li>
