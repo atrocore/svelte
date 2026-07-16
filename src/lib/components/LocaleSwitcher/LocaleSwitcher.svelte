@@ -25,7 +25,10 @@
         }
     }
 
-    let locales: Record<string, any> = Config.get('locales') || {}
+    const allLocales: Record<string, any> = Config.get('locales') || {}
+    let locales: Record<string, any> = Object.fromEntries(
+        Object.entries(allLocales).filter(([, loc]) => !loc.disableForUi)
+    )
     const forbiddenLanguages: string[] = Acl.getForbiddenLanguageList('read') || []
     let languages: Record<string, any> = [mainLanguageCode, ...(Config.get('inputLanguageList') || [])].reduce((res, item) => {
         if (!forbiddenLanguages.includes(item)) {
