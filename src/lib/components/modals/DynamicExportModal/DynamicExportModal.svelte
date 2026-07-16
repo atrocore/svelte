@@ -16,11 +16,17 @@
     import Modal from '$lib/components/modals/Modal/Modal.svelte';
     import PartSelect from '$lib/components/fields/PartSelect/PartSelect.svelte';
 
-    export let onExport: (contentLanguageId: string | null) => void = () => {};
+    export let onExport: (contentLanguageId: string | null, localeId: string | null) => void = () => {};
     export let onClose: () => void = () => {};
 
     let contentLanguageId: string | null = null;
+    let localeId: string | null = null;
     let languageOptions: Array<{ id: string; label: string }> = [];
+    let localeOptions: Array<{ id: string; label: string }> = [];
+    let loadingLanguages = true;
+    let loadingLocales = true;
+
+    $: loading = loadingLanguages || loadingLocales;
 
     const buttons = [
         {
@@ -42,11 +48,23 @@
             asc: true
         }).then(res => {
             languageOptions = (res?.list ?? []).map(l => ({ id: l.id, label: l.name }));
-        }).catch(() => {});
+        }).catch(() => {}).finally(() => { loadingLanguages = false; });
+
+        ApiClient.get<{ list: Array<{ id: string; name: string }> }>('Locale', {
+            select: 'id,name',
+            maxSize: 200,
+            sortBy: 'name',
+            asc: true
+        }).then(res => {
+            localeOptions = (res?.list ?? []).map(l => ({ id: l.id, label: l.name }));
+        }).catch(() => {}).finally(() => { loadingLocales = false; });
     });
 
     function handleButton(name: string): void {
         if (name === 'export') {
+            if (loading) {
+                return;
+            }
             if (!contentLanguageId) {
                 Notifier.notify(
                     Language.translate('contentLanguageRequired', 'messages', 'ExportFeed'),
@@ -54,7 +72,7 @@
                 );
                 return;
             }
-            onExport(contentLanguageId);
+            onExport(contentLanguageId, localeId);
         }
         onClose();
     }
@@ -67,17 +85,35 @@
     {onClose}
     fitHeight={true}
 >
-    <div class="row">
-        <div class="cell col-sm-6 form-group">
-            <label class="control-label">
-                {Language.translate('contentLanguage', 'labels', 'ExportFeed')}
-            </label>
-            <PartSelect
-                name="contentLanguage"
-                value={contentLanguageId}
-                options={languageOptions}
-                on:change={e => { contentLanguageId = e.detail; }}
-            />
+    {#if loading}
+        <div class="text-center" style="padding: 1em;">
+            <span class="fas fa-spinner fa-spin"></span>
+            {Language.translate('pleaseWait', 'messages')}
         </div>
-    </div>
+    {:else}
+        <div class="row">
+            <div class="cell col-sm-6 form-group">
+                <label class="control-label">
+                    {Language.translate('contentLanguage', 'labels', 'ExportFeed')}
+                </label>
+                <PartSelect
+                    name="contentLanguage"
+                    value={contentLanguageId}
+                    options={languageOptions}
+                    on:change={e => { contentLanguageId = e.detail; }}
+                />
+            </div>
+            <div class="cell col-sm-6 form-group">
+                <label class="control-label">
+                    {Language.translate('locale', 'fields', 'ExportFeed')}
+                </label>
+                <PartSelect
+                    name="locale"
+                    value={localeId}
+                    options={localeOptions}
+                    on:change={e => { localeId = e.detail; }}
+                />
+            </div>
+        </div>
+    {/if}
 </Modal>
