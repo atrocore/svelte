@@ -961,7 +961,7 @@
         deletedFilterIds.add(id);
         return {
             id,
-            label: id,
+            label: Language.translate(id, 'fields', scope),
             type: 'string',
             __deleted: true,
             validation: {callback: () => Language.translate('deletedFilterTooltip', 'messages').replace('%s', id)}
