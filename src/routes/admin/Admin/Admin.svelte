@@ -18,8 +18,6 @@
     import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
     import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
 
-    import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
-
     export let cacheDate: string | null = null;
 
     const breadcrumbs: BreadcrumbsItem[] = [
@@ -31,7 +29,6 @@
     const groups: AdminCardGroup[] = getAdminCardGroups(cacheDate);
 </script>
 
-<TreePanel isAdminPage={true} scope="Administration" mode="detail"/>
 <main>
     <div class="admin-page">
         <div class="page-header">

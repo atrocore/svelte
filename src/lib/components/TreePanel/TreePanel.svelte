@@ -26,29 +26,36 @@
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
     import type { SelectedNode } from './types/selected-node';
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
+    import { createEmptyLeftSidebarContext, pageContextStore } from '$lib/stores/page-context.store';
+    import type { LeftSidebarContext, PageContext, PageMode } from '$lib/types/page/page-context';
     import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
 
-    export let scope: string;
     export let uniqueKey: string = 'default';
-    export let model: any = null;
-    export let collection: any = null;
-    export let callbacks: object = {};
     export let minWidth: number = 300;
     export let maxWidth: number = 600;
     export let currentWidth: number = minWidth;
     export let isCollapsed: boolean = false;
-    export let mode: string;
     export let maxSize: number = Config.get('recordsPerPageSmall') || 20;
 
-    export let showItems: boolean = true;
-    export let hasItems: boolean = false;
-
-    export let renderLayoutEditor: (element: HTMLElement) => void = () => {
-    };
-
-    export let isAdminPage: boolean = false;
-
     export let showApplySortOrder: boolean = true
+
+    // Everything below is pushed by the current page through the page context store, not by props:
+    // the panel is mounted once in the master view and outlives every page it describes.
+    let scope: string = '';
+    let mode: PageMode = 'list';
+    let model: any = null;
+    let collection: any = null;
+    let isAdminPage: boolean = false;
+    let pageId: string | null = null;
+    let sidebar: LeftSidebarContext = createEmptyLeftSidebarContext();
+    // mirrors sidebar.showItemsTab, but the page may also toggle it through setShowItems()
+    let showItems: boolean = true;
+
+    // what the navigation layout currently on screen was loaded for, and a token to discard outdated loads
+    let loadedScope: string | null = null;
+    let loadedIsAdminPage: boolean = false;
+    let loadedHasItemsTab: boolean = false;
+    let layoutToken: number = 0;
 
     export function setShowItems(value: string[]) {
         showItems = value;
@@ -80,17 +87,21 @@
     const generalFilterStore = getGeneralFilterStore(uniqueKey);
     const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
+    // the jqTree config the current tree was built with, and the record the page has already marked
+    // through the treeLoad callback — both needed to re-run that callback without rebuilding the tree
+    let builtTreeData: any = null;
+    let treeLoadRecordId: string | null = null;
     let selectedNodes: SelectedNode[] = [];
     let updatingFromTree = false;
 
-    treeNodeRules.subscribe(rules => {
+    function onTreeNodeRulesChanged(rules: any[]): void {
         if (!mounted || updatingFromTree) return;
         const filtered = filterStaleNodes(selectedNodes, rules);
         if (filtered.length !== selectedNodes.length) {
             selectedNodes = filtered;
             saveNodes(scope, filtered);
         }
-    });
+    }
 
     $: if (mounted) { selectedNodes; refreshTreeSelection(); }
 
@@ -124,11 +135,19 @@
         buildTree();
     }
 
+    function isTreeBuilt(): boolean {
+        return !!treeElement && !!window.$(treeElement).data('simple_widget_tree');
+    }
+
     function destroyTree() {
-        let tree = window.$(treeElement);
-        if (tree) {
-            tree.tree('destroy');
+        if (!isTreeBuilt()) {
+            return;
         }
+
+        const $tree = window.$(treeElement);
+        $tree.tree('destroy');
+        // buildTree() re-binds these on every call, so drop the previous handlers to keep them from stacking up
+        $tree.off('tree.load_data tree.refresh tree.move tree.click tree.open tree.close');
     }
 
     function getSortFields() {
@@ -316,12 +335,13 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
-                    $li.addClass('jqtree-selected');
+                // inside a sub-tree the record is surrounded by records of the linked entity, so mark
+                // the one the page is showing separately from the selection
+                if (mode === 'detail' && model && model.get('id') === node.id && isNodeInSubTree(node)) {
+                    $li.addClass('current-record');
                 }
 
-                if (callbacks?.shouldBeSelected && callbacks.shouldBeSelected(activeItem.name, node.id)) {
-                    $tree.tree('addToSelection', node);
+                if (!['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name) && selectedNodes.some(n => n.id === node.id && n.link === activeItem.name)) {
                     $li.addClass('jqtree-selected');
                 }
 
@@ -392,25 +412,12 @@
                 return
             }
 
-            if (callbacks?.treeLoad) {
-                callbacks.treeLoad(treeScope, treeData);
-            }
+            runTreeLoadCallback(treeData);
             dataLoaded = true;
         })
         $tree.on('tree.refresh', e => {
             showEmptyPlaceholder = $tree.tree('getTree')?.children?.length === 0
-
-            if (activeItem.name === '_admin') {
-                let hashScope = getHashScope();
-                if (Metadata.get(['scopes', hashScope])) {
-                    selectTreeNode('#' + hashScope, [])
-                }
-                return;
-            }
-
-            if (mode === 'detail' && model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-                selectTreeNode(model.get('id'), (model.get('routesNames')?.[0]?.map(item => item.id) || []).reverse())
-            }
+            selectCurrentRecord();
         })
         $tree.on('tree.move', e => {
             e.preventDefault();
@@ -478,8 +485,8 @@
                     if (route.length > 0) {
                         data.route = '|' + route.reverse().join('|') + '|';
                     }
-                    if (callbacks?.selectNode) {
-                        callbacks.selectNode(data);
+                    if (sidebar.onNodeSelect) {
+                        sidebar.onNodeSelect(data);
                     }
                     return;
                 }
@@ -495,8 +502,8 @@
                     data['route'] = "|" + route.reverse().join('|') + "|";
                 }
 
-                if (callbacks?.selectNode) {
-                    callbacks.selectNode(data);
+                if (sidebar.onNodeSelect) {
+                    sidebar.onNodeSelect(data);
                 }
             }
         });
@@ -531,7 +538,22 @@
             }
         });
 
+        builtTreeData = treeData;
         $tree.tree(treeData);
+    }
+
+    /**
+     * Lets the page mark its own nodes — such as the categories of the product being shown. It is bound to
+     * the record, not to the tree, so it has to run again when the user opens another record even though
+     * the tree itself stays as it is.
+     */
+    function runTreeLoadCallback(treeData: any): void {
+        if (!sidebar.onTreeLoad) {
+            return;
+        }
+
+        sidebar.onTreeLoad(treeScope, treeData);
+        treeLoadRecordId = model?.get('id') ?? null;
     }
 
     function getDataWithoutSubTree(node) {
@@ -718,15 +740,94 @@
         openNodes($tree, ids, onFinished);
     }
 
+    function getCurrentRecordRoute(): string[] {
+        return (model?.get('routesNames')?.[0]?.map((item: any) => item.id) || []).reverse();
+    }
+
+    /**
+     * Highlights the record — or the admin page — the tree has just been built for.
+     */
+    function selectCurrentRecord(): void {
+        if (!activeItem) {
+            return;
+        }
+
+        if (activeItem.name === '_admin') {
+            const hashScope = getHashScope();
+            if (Metadata.get(['scopes', hashScope])) {
+                selectTreeNode('#' + hashScope, [])
+            }
+            return;
+        }
+
+        if (mode === 'detail' && model && ['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
+            selectTreeNode(model.get('id'), getCurrentRecordRoute())
+        }
+    }
+
+    /**
+     * Brings an already built tree in line with the page the user navigated to, without rebuilding it.
+     * Only when the opened record lies outside the slice currently loaded is a rebuild unavoidable.
+     */
+    function syncSelectionAfterNavigation(): void {
+        if (!activeItem || !isTreeBuilt()) {
+            return;
+        }
+
+        if (activeItem.name === '_admin') {
+            selectCurrentRecord();
+            return;
+        }
+
+        if (!['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
+            refreshTreeSelection();
+
+            if ((model?.get('id') ?? null) !== treeLoadRecordId) {
+                runTreeLoadCallback(builtTreeData);
+            }
+            return;
+        }
+
+        const id = mode === 'detail' ? model?.get('id') : null;
+        if (!id) {
+            clearTreeSelection();
+            return;
+        }
+
+        const $tree = window.$(treeElement);
+        const route = getCurrentRecordRoute();
+
+        if (!$tree.tree('getNodeById', id) && !route.some(nodeId => $tree.tree('getNodeById', nodeId))) {
+            rebuildTree();
+            return;
+        }
+
+        selectTreeNode(id, route);
+    }
+
+    function clearTreeSelection(): void {
+        if (!isTreeBuilt()) {
+            return;
+        }
+
+        const $tree = window.$(treeElement);
+        ($tree.tree('getSelectedNodes') || []).forEach((node: any) => $tree.tree('removeFromSelection', node));
+        $tree.find('li.jqtree-selected').removeClass('jqtree-selected');
+    }
+
     function refreshTreeSelection(): void {
         if (!treeElement || !activeItem || ['_self', '_bookmark', '_lastViewed', '_admin'].includes(activeItem.name)) return;
 
         const $tree = window.$(treeElement);
+        const currentRecordId = mode === 'detail' ? model?.get('id') : null;
+
         $tree.find('li.jqtree_common').each((_, el) => {
             const $li = window.$(el);
             const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
             const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
             $li.toggleClass('jqtree-selected', isSelected);
+            // on a linked tab only sub-tree nodes can carry the current record's id
+            $li.toggleClass('current-record', !!currentRecordId && nodeId === currentRecordId + '');
         });
     }
 
@@ -943,8 +1044,8 @@
 
         tick().then(() => {
             if (treeItem.name === '_items') {
-                if (callbacks?.onActiveItems) {
-                    callbacks?.onActiveItems(selectionItemElement);
+                if (sidebar.onItemsTabActivated) {
+                    sidebar.onItemsTabActivated(selectionItemElement);
                 }
                 return;
             }
@@ -1004,7 +1105,11 @@
         rebuildTree()
     }
 
-    function loadLayout(callback) {
+    /**
+     * @param token guards against a response arriving after the user has navigated on — the panel is shared
+     *              by every page, so a late layout would otherwise overwrite the one already on screen
+     */
+    function loadLayout(token: number, callback) {
         if (isAdminPage) {
             activeItem = {
                 name: '_admin',
@@ -1014,6 +1119,10 @@
             callback()
         } else {
             LayoutManager.get(scope, 'navigation', null, null, (data: any) => {
+                if (token !== layoutToken) {
+                    return;
+                }
+
                 layoutData = data
                 treeItems = data.layout.map((item: any) => {
                     let label: string = ''
@@ -1059,7 +1168,7 @@
                     }
                 })
 
-                if (!hasItems) {
+                if (!sidebar.hasItemsTab) {
                     treeItems = treeItems.filter(item => item.name !== '_items');
                 }
                 let treeItem = Storage.get('treeItem', scope);
@@ -1122,37 +1231,43 @@
     }
 
     export function refreshLayout() {
-        loadLayout(() => {
+        const token = ++layoutToken;
+
+        loadLayout(token, () => {
             tick().then(() => {
+                if (token !== layoutToken) {
+                    return;
+                }
                 rebuildTree()
             })
         })
     }
 
-    onMount(() => {
-        mounted = true;
+    /**
+     * Loads everything that is tied to the current entity: stored preferences, the navigation layout and the
+     * tree itself. Only ever called when the context changes in a way that invalidates the tabs, never on
+     * plain navigation within one entity.
+     */
+    function reload(): void {
+        const token = ++layoutToken;
 
-        const storedNodes = loadNodes(scope, getLinkScope);
-        if (storedNodes.length > 0) {
-            setSelectedNodes(storedNodes);
-        }
+        loadedScope = scope;
+        loadedIsAdminPage = isAdminPage;
+        loadedHasItemsTab = sidebar.hasItemsTab;
+
+        isHidden = false;
+        showEmptyPlaceholder = false;
+        searchValue = '';
+
+        setSelectedNodes(loadNodes(scope, getLinkScope));
 
         const savedWidth = Storage.get('panelWidth', scope);
-        if (savedWidth) {
-            currentWidth = parseInt(savedWidth) || minWidth;
-        }
+        currentWidth = savedWidth ? (parseInt(savedWidth) || minWidth) : minWidth;
 
-        if (window.innerWidth <= 767 || Storage.get('catalog-tree-panel', scope)) {
-            isCollapsed = true;
-        }
-
+        isCollapsed = window.innerWidth <= 767 || !!Storage.get('catalog-tree-panel', scope);
         isPinned = Storage.get('catalog-tree-panel-pin', scope) !== 'not-pinned';
 
-        if (collection) {
-            Storage.set('treeWhereData', scope, collection.where)
-        }
-
-        loadLayout(() => {
+        loadLayout(token, () => {
             if (treeItems.length === 0) {
                 isCollapsed = true
                 if (!UserData.get()?.user?.isAdmin) {
@@ -1161,40 +1276,100 @@
                 }
             }
             tick().then(() => {
+                if (token !== layoutToken) {
+                    return;
+                }
 
                 if (activeItem?.name === '_admin') {
                     searchValue = Storage.get('treeSearchValue', '_admin') || null;
                 } else {
                     searchValue = Storage.get('treeSearchValue', scope) || null;
                 }
-                if (searchValue) {
-                    searchInputElement.value = searchValue;
+                if (searchInputElement) {
+                    searchInputElement.value = searchValue ?? '';
                 }
 
-                if (activeItem.name === '_items' && callbacks?.onActiveItems) {
-                    callbacks?.onActiveItems(selectionItemElement);
+                if (activeItem?.name === '_items' && sidebar.onItemsTabActivated) {
+                    sidebar.onItemsTabActivated(selectionItemElement);
                 } else if (!isCollapsed) {
-                    buildTree();
+                    rebuildTree();
                 }
 
-                if (renderLayoutEditor) {
-                    renderLayoutEditor(layoutEditorElement);
+                mountLayoutEditor();
+
+                if (sidebar.onReady) {
+                    sidebar.onReady();
                 }
             })
         });
+    }
 
-        if (callbacks?.afterMounted) {
-            callbacks.afterMounted();
+    /**
+     * The layout editor is a BackboneJS view owned by the page, so it dies together with it.
+     * Re-create it into our own container whenever a new page takes over.
+     */
+    function mountLayoutEditor(): void {
+        if (sidebar.renderLayoutEditor && layoutEditorElement) {
+            sidebar.renderLayoutEditor(layoutEditorElement);
+        }
+    }
+
+    function applyContext(context: PageContext): void {
+        const pageChanged = context.pageId !== pageId;
+        const previousCollection = collection;
+
+        pageId = context.pageId;
+        scope = context.scope ?? '';
+        mode = context.mode;
+        model = context.model;
+        collection = context.collection;
+        isAdminPage = context.isAdminPage;
+        sidebar = context.leftSidebar;
+        showItems = sidebar.showItemsTab;
+
+        if (!mounted || !sidebar.enabled || !scope) {
+            return;
         }
 
-        return () => {};
+        if (collection && collection !== previousCollection) {
+            Storage.set('treeWhereData', scope, collection.where)
+        }
+
+        // these three decide which tabs exist at all, so the layout on screen is only good while they hold
+        if (scope !== loadedScope || isAdminPage !== loadedIsAdminPage || sidebar.hasItemsTab !== loadedHasItemsTab) {
+            reload();
+            return;
+        }
+
+        // Same entity — the tree stays as it is, only what the page points at changes.
+        if (pageChanged) {
+            mountLayoutEditor();
+
+            if (sidebar.onReady) {
+                sidebar.onReady();
+            }
+        }
+
+        tick().then(() => syncSelectionAfterNavigation());
+    }
+
+    onMount(() => {
+        mounted = true;
+
+        const unsubscribeRules = treeNodeRules.subscribe(onTreeNodeRulesChanged);
+        const unsubscribeContext = pageContextStore.subscribe(applyContext);
+
+        return () => {
+            unsubscribeContext();
+            unsubscribeRules();
+        };
     });
 
     function onSidebarResize(e: CustomEvent): void {
         Storage.set('panelWidth', scope, currentWidth.toString());
 
-        if (callbacks?.treeWidthChanged) {
-            callbacks.treeWidthChanged(currentWidth);
+        if (sidebar.onWidthChange) {
+            sidebar.onWidthChange(currentWidth);
         }
     }
 
@@ -1213,7 +1388,8 @@
 
 </script>
 
-<CollapsibleSidebar className="catalog-tree-panel" position="left" bind:width={currentWidth} bind:isCollapsed={isCollapsed}
+<CollapsibleSidebar className="catalog-tree-panel" position="left" hidden={!sidebar.enabled || isHidden}
+             bind:width={currentWidth} bind:isCollapsed={isCollapsed}
              bind:isPinned={isPinned} {minWidth} {maxWidth} on:sidebar-resize={onSidebarResize}
              on:sidebar-collapse={onSidebarCollapse} on:sidebar-pin={onSidebarPin}>
     <div class="category-panel" class:hidden={isCollapsed}>
@@ -1421,6 +1597,10 @@
 
     :global(ul.jqtree-tree li.jqtree_common) {
         position: relative;
+    }
+
+    :global(ul.jqtree-tree li.current-record > .jqtree-element .jqtree-title) {
+        font-weight: 700;
     }
 
     :global(.tree-_admin ul.jqtree-tree .jqtree_common.disabled > div > span) {

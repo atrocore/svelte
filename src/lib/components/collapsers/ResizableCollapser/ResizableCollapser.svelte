@@ -14,6 +14,8 @@
     import { Language } from "$lib/core/language"
 
     export let className: string = '';
+    /** Keeps the sidebar mounted — and therefore its state intact — while taking it out of the layout. */
+    export let hidden: boolean = false;
     export let isCollapsed: boolean = false;
     export let isPinned: boolean = true;
     export let minWidth: number = 250;
@@ -168,7 +170,8 @@
     })
 </script>
 
-<aside class={computedClassName} class:collapsed={isCollapsed} class:pinned={isPinned && !isMobile} transition:fade
+<aside class={computedClassName} class:collapsed={isCollapsed} class:hidden-sidebar={hidden}
+       class:pinned={isPinned && !isMobile} transition:fade
        style:width={computedWidth} on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
     <div class="sidebar-inner">
         <slot/>
@@ -214,6 +217,10 @@
         overflow-y: auto;
         overflow-x: clip;
         position: relative;
+    }
+
+    .sidebar.hidden-sidebar {
+        display: none;
     }
 
     .sidebar.sidebar-left {
@@ -377,9 +384,7 @@
         display: none;
     }
 
-    .sidebar.sidebar-left:not(.pinned):not(.collapsed) :global(~ main) {
-        margin-left: 26px;
-    }
+    /* the left sidebar sits in its own container, so its effect on #main is defined in the theme stylesheet */
 
     :global(#main main:has(~ .sidebar.sidebar-right:not(.pinned):not(.collapsed))) {
         margin-right: 26px;
