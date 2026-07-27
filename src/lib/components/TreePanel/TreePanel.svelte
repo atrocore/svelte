@@ -21,6 +21,7 @@
     import CollapsibleSidebar from "$lib/components/collapsers/ResizableCollapser/ResizableCollapser.svelte";
     import { ApiClient } from '$lib/core/api-client';
     import { getTabIcon, getSystemIconUrl } from '$lib/helpers/icon';
+    import { getAdminTreeData, isAdminLinkUnique } from './utils/admin-tree';
     import { Acl } from "$lib/core/acl";
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
     import type { SelectedNode } from './types/selected-node';
@@ -240,7 +241,7 @@
         }
 
         if (activeItem.name === '_admin') {
-            data = getAdminTreeData();
+            data = getAdminTreeData(searchValue);
         }
         let $tree = window.$(treeElement);
         let whereData = getWhereData();
@@ -327,7 +328,7 @@
                 if (activeItem.name === '_admin'
                     && ((Metadata.get(['scopes', getHashScope()])
                         && (node.id.includes('#' + getHashScope() + '/'))
-                        && isLinkExistsOnce(getHashScope())) || node.id === window.location.hash)) {
+                        && isAdminLinkUnique(getHashScope(), searchValue)) || node.id === window.location.hash)) {
                     $tree.tree('addToSelection', node);
                     $li.addClass('jqtree-selected');
                 }
@@ -1001,64 +1002,6 @@
         sortAsc = !sortAsc;
         Storage.set('treeItemSorting', scope, {sortBy, sortAsc})
         rebuildTree()
-    }
-
-    function isLinkExistsOnce(scope: string) {
-        let count = 0;
-        for (const treeItem of getAdminTreeData()) {
-            for (const child of treeItem.children) {
-                if (child.id.includes('#' + scope)) {
-                    count += 1;
-                }
-            }
-        }
-
-        return count == 1;
-    }
-
-    function getAdminTreeData() {
-        let data = Metadata.get(['app', 'adminPanel']);
-        let total = Object.keys(data).length;
-        let result: any[] = [];
-        let i = 0;
-        Object.entries(data).forEach(([k, v]) => {
-            let treeItem = {
-                id: k,
-                name: Language.get('Admin', 'labels', v['label']) ?? v['label'],
-                offset: i,
-                total: total,
-                disabled: true,
-                load_on_demand: false,
-                children: []
-            }
-            let j = 0;
-            let totalItem = v['itemList'].length;
-            for (const item of v['itemList']) {
-                if (item.listDisabled) {
-                    continue;
-                }
-                const label = Language.translate(item['label'], 'labels', 'Admin');
-                if ((searchValue ?? '').length < 3 || (label.toLowerCase().includes(searchValue.toLowerCase()))) {
-                    treeItem.children.push({
-                        id: item['url'],
-                        name: label,
-                        offset: j,
-                        total: totalItem,
-                        disabled: false,
-                        load_on_demand: false,
-                    });
-                    j++;
-                }
-
-            }
-            if (treeItem.children.length === 0) {
-                return;
-            }
-            result.push(treeItem);
-            i++;
-        });
-
-        return result;
     }
 
     function loadLayout(callback) {

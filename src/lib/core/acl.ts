@@ -25,6 +25,8 @@ interface AclInterface {
 
     check(subject: any, action: any, precise: any): boolean
 
+    checkScopeHasAcl(scope: string): boolean
+
     getScopeForbiddenFieldList(scope: string, action: string): any
 
     getForbiddenLanguageList(action: string): any
@@ -103,6 +105,16 @@ export const Acl = {
         data.subscribe((current: AclInterface) => {
             if (current) {
                 res = current.check(subject, action, precise);
+            }
+        })();
+        return res;
+    },
+
+    checkScopeHasAcl(scope: string) {
+        let res = null
+        data.subscribe((current: AclInterface) => {
+            if (current) {
+                res = current.checkScopeHasAcl(scope);
             }
         })();
         return res;

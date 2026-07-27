@@ -8,12 +8,14 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import AdminMetadataItem from "./admin-metadata-item";
-
-type AdminMetadataGroup = {
-    itemList: AdminMetadataItem[];
+type AdminPanelItem = {
     label: string;
-    order?: number;
+    url: string;
+    scope?: string;
+    description?: string;
+    docsUrl?: string;
+    icon?: string;
+    listDisabled?: boolean;
 };
 
-export default AdminMetadataGroup;
+export default AdminPanelItem;
