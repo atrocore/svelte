@@ -9,19 +9,17 @@
  */
 
 import { Language } from "$lib/core/language";
-import { Metadata } from "$lib/core/metadata";
+import { getAdminPanelGroups } from "$lib/core/administration";
 
 import type AdminCard from "../types/admin-card";
 import type AdminCardGroup from "../types/admin-card-group";
-import type AdminMetadataGroup from "../types/admin-metadata-group";
 
 export function getAdminCardGroups(cacheDate: string | null): AdminCardGroup[] {
     const groups: AdminCardGroup[] = [];
 
-    const entries = Object.entries(Metadata.get(['app', 'adminPanel']) || {}) as [string, AdminMetadataGroup][];
-    for (let [id, data] of entries) {
+    for (let data of getAdminPanelGroups()) {
         const group = {
-            id,
+            id: data.id,
             title: Language.translate(data.label, 'labels', 'Admin')
         } as AdminCardGroup;
 
