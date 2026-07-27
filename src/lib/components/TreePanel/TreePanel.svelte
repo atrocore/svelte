@@ -29,6 +29,10 @@
     import { createEmptyLeftSidebarContext, pageContextStore } from '$lib/stores/page-context.store';
     import type { LeftSidebarContext, PageContext, PageMode } from '$lib/types/page/page-context';
     import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
+    import { loadLinkedRecords, parseRoute } from './utils/linked-records';
+
+    /** Tabs that stand for something other than a link to another entity. */
+    const PSEUDO_ITEMS = ['_self', '_bookmark', '_lastViewed', '_admin', '_items'];
 
     export let uniqueKey: string = 'default';
     export let minWidth: number = 300;
@@ -87,10 +91,11 @@
     const generalFilterStore = getGeneralFilterStore(uniqueKey);
     const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
-    // the jqTree config the current tree was built with, and the record the page has already marked
-    // through the treeLoad callback — both needed to re-run that callback without rebuilding the tree
+    // the jqTree config the current tree was built with, needed to re-mark the tree without rebuilding it
     let builtTreeData: any = null;
-    let treeLoadRecordId: string | null = null;
+    // the record whose relations are on screen, and the nodes they resolved to
+    let markedRecordId: string | null = null;
+    let linkedNodeIds: string[] = [];
     let selectedNodes: SelectedNode[] = [];
     let updatingFromTree = false;
 
@@ -412,7 +417,7 @@
                 return
             }
 
-            runTreeLoadCallback(treeData);
+            markRecordRelations(treeData);
             dataLoaded = true;
         })
         $tree.on('tree.refresh', e => {
@@ -543,32 +548,120 @@
     }
 
     /**
-     * Lets the page mark its own nodes — such as the categories of the product being shown. It is bound to
-     * the record, not to the tree, so it has to run again when the user opens another record even though
-     * the tree itself stays as it is.
+     * Marks what the record on screen relates to. Bound to the record rather than to the tree, so it runs
+     * again when the user opens another record even though the tree itself stays as it is.
      */
-    function runTreeLoadCallback(treeData: any): void {
-        if (!sidebar.onTreeLoad) {
+    function markRecordRelations(treeData: any): void {
+        markLinkedNodes();
+
+        if (sidebar.onTreeLoad) {
+            sidebar.onTreeLoad(treeScope, treeData);
+        }
+    }
+
+    /**
+     * While a tab standing for a link is open, the nodes the record is linked to through it get marked —
+     * the categories a product sits in, the classifications it carries, its brand.
+     */
+    async function markLinkedNodes(): Promise<void> {
+        if (mode !== 'detail' || !model || !activeItem || !treeScope || !isTreeBuilt()) {
             return;
         }
 
-        sidebar.onTreeLoad(treeScope, treeData);
-        treeLoadRecordId = model?.get('id') ?? null;
+        const link = activeItem.name;
+        const recordId = model.get('id');
+        if (!recordId || PSEUDO_ITEMS.includes(link)) {
+            return;
+        }
+
+        const isHierarchy = Metadata.get(['scopes', treeScope, 'type']) === 'Hierarchy';
+        const linked = await loadLinkedRecords(scope, link, model, isHierarchy);
+
+        // the user may have switched tab or record while the request was in flight
+        if (!isTreeBuilt() || activeItem?.name !== link || model?.get('id') !== recordId) {
+            return;
+        }
+
+        linkedNodeIds = linked.map(record => record.id);
+
+        if (linked.length === 0) {
+            // An unfetched model answers "no links" for a link field, which is indistinguishable from a record
+            // that really has none. Leave the record unmarked so that the publish after the fetch tries again.
+            return;
+        }
+
+        markedRecordId = recordId;
+        const $tree = window.$(treeElement);
+
+        if (isHierarchy) {
+            await addMissingRootNodes($tree, linked.map(record => record.id));
+        }
+
+        for (const record of linked) {
+            const routes = record.routes.length > 0 ? record.routes : [''];
+            for (const route of routes) {
+                await openRoute($tree, parseRoute(route));
+                selectNodeById($tree, record.id);
+            }
+        }
+    }
+
+    /**
+     * A linked record may sit outside the slice of the tree that is loaded. Its branch is fetched and put at
+     * the end of the roots, so that the record can be revealed at all.
+     */
+    async function addMissingRootNodes($tree: any, ids: string[]): Promise<void> {
+        // the endpoint reads ids as a query array, which ApiClient would otherwise JSON-encode into one string
+        const response = await ApiClient.get<Record<string, any>>(`${treeScope}/treeData?${window.$.param({ ids })}`);
+
+        (response?.tree || []).forEach((node: any) => {
+            const roots = $tree.tree('getTree').children || [];
+            if (roots.findIndex((root: any) => root.id === node.id) !== -1) {
+                return;
+            }
+
+            const lastRoot = roots.slice().reverse().find((root: any) => !String(root.id).includes('show-more'));
+            if (lastRoot) {
+                $tree.tree('addNodeAfter', node, $tree.tree('getNodeById', lastRoot.id));
+            }
+        });
+    }
+
+    function openRoute($tree: any, route: string[]): Promise<void> {
+        return new Promise(resolve => {
+            const openNext = (parent: any): void => {
+                if (route.length === 0) {
+                    resolve();
+                    return;
+                }
+
+                const id = route.shift();
+                const node = parent
+                    ? (parent.children || []).find((child: any) => child.id === id)
+                    : $tree.tree('getNodeById', id);
+
+                if (!node) {
+                    resolve();
+                } else if (node.is_open) {
+                    openNext(node);
+                } else {
+                    $tree.tree('openNode', node, false, openNext);
+                }
+            };
+
+            openNext(null);
+        });
+    }
+
+    function selectNodeById($tree: any, id: string): void {
+        const node = $tree.tree('getNodeById', id);
+        if (node) {
+            $tree.tree('addToSelection', node, false);
+        }
     }
 
     function getDataWithoutSubTree(node) {
         return node.getData().filter(item => !node.subTreeData.find(i => i.id === item.id))
-    }
-
-    function parseRoute(routeStr) {
-        let route = [];
-        (routeStr || '').split('|').forEach(item => {
-            if (item) {
-                route.push(item);
-            }
-        });
-
-        return route;
     }
 
     function loadMore(node) {
@@ -780,11 +873,14 @@
         }
 
         if (!['_self', '_bookmark', '_lastViewed'].includes(activeItem.name)) {
-            refreshTreeSelection();
-
-            if ((model?.get('id') ?? null) !== treeLoadRecordId) {
-                runTreeLoadCallback(builtTreeData);
+            const recordId = model?.get('id') ?? null;
+            if (recordId !== markedRecordId) {
+                // whatever is marked belongs to the record we are leaving
+                linkedNodeIds = [];
+                markRecordRelations(builtTreeData);
             }
+
+            refreshTreeSelection();
             return;
         }
 
@@ -824,7 +920,9 @@
         $tree.find('li.jqtree_common').each((_, el) => {
             const $li = window.$(el);
             const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
-            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name);
+            // nodes picked as filters, plus the ones the record is linked to through this tab
+            const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === activeItem.name)
+                || linkedNodeIds.includes(nodeId);
             $li.toggleClass('jqtree-selected', isSelected);
             // on a linked tab only sub-tree nodes can carry the current record's id
             $li.toggleClass('current-record', !!currentRecordId && nodeId === currentRecordId + '');
@@ -1039,6 +1137,9 @@
         }
 
         activeItem = treeItem
+        // what was marked belongs to the link of the tab being left
+        markedRecordId = null;
+        linkedNodeIds = [];
         Storage.set('treeItem', scope, treeItem.name)
 
 
@@ -1258,6 +1359,8 @@
         isHidden = false;
         showEmptyPlaceholder = false;
         searchValue = '';
+        markedRecordId = null;
+        linkedNodeIds = [];
 
         setSelectedNodes(loadNodes(scope, getLinkScope));
 
