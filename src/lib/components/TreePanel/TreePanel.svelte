@@ -229,9 +229,14 @@
         }
 
         if (!node.subTreeData) {
-            Notifier.notify('Loading...')
-            const respData = await ApiClient.get<any[]>(generateSubTreeUrl(node))
-            node.subTreeData = filterResponse(respData).map(item => ({...item, scope: scope}))
+            setSubTreeIcon(node, 'loading');
+            try {
+                const respData = await ApiClient.get<any[]>(generateSubTreeUrl(node))
+                node.subTreeData = filterResponse(respData).map(item => ({...item, scope: scope}))
+            } catch (e) {
+                setSubTreeIcon(node, 'closed');
+                throw e;
+            }
         }
 
         if (!node.subTreeLoaded) {
@@ -242,20 +247,41 @@
             }
             node.subTreeLoaded = true;
             if (!node.is_open) {
-                $tree.tree('openNode', node, true, () => {
-                    window.$(node.element).find('> .jqtree-element .load-items').removeClass('ph-plus-square').addClass('ph-minus-square');
-                });
+                $tree.tree('openNode', node, true, () => setSubTreeIcon(node, 'open'));
             } else {
-                window.$(node.element).find('> .jqtree-element .load-items').removeClass('ph-plus-square').addClass('ph-minus-square');
+                setSubTreeIcon(node, 'open');
             }
         } else {
             node.subTreeLoaded = false;
             if (!node.has_children) {
                 $tree.tree('closeNode', node, true)
             } else {
-                window.$(node.element).find('> .jqtree-element .load-items').removeClass('ph-minus-square').addClass('ph-plus-square');
+                setSubTreeIcon(node, 'closed');
                 $tree.tree('loadData', getDataWithoutSubTree(node), node);
             }
+        }
+    }
+
+    function getSubTreeToggler(node: any) {
+        return window.$(node.element).find('> .jqtree-element .load-items');
+    }
+
+    /**
+     * The toggler doubles as the progress indicator for the sub-tree hanging off this node: while its records
+     * are being fetched it spins in place of the plus.
+     */
+    function setSubTreeIcon(node: any, state: 'open' | 'closed' | 'loading'): void {
+        const $toggler = getSubTreeToggler(node);
+        if ($toggler.length === 0) {
+            return;
+        }
+
+        $toggler.removeClass('ph-plus-square ph-minus-square ph-circle-notch ph-spin');
+
+        if (state === 'loading') {
+            $toggler.addClass('ph-circle-notch ph-spin');
+        } else {
+            $toggler.addClass(state === 'open' ? 'ph-minus-square' : 'ph-plus-square');
         }
     }
 
@@ -518,12 +544,8 @@
                 return;
             }
 
-            const $element = window.$(e.node.element);
-            const $el = $element.find('> .jqtree-element .load-items');
-            if ($el.length > 0) {
-                if (!e.node.has_children) {
-                    $el.removeClass('ph-plus-square').addClass('ph-minus-square');
-                }
+            if (!e.node.has_children) {
+                setSubTreeIcon(e.node, 'open');
             }
         });
 
@@ -532,10 +554,8 @@
                 return;
             }
             const node = e.node
-            const $element = window.$(node.element);
-            const $el = $element.find('> .jqtree-element .load-items');
-            if ($el.length > 0) {
-                $el.removeClass('ph-minus-square').addClass('ph-plus-square');
+            if (getSubTreeToggler(node).length > 0) {
+                setSubTreeIcon(node, 'closed');
                 if (node.subTreeData && node.subTreeLoaded && node.has_children) {
                     node.subTreeLoaded = false;
                     $tree.tree('loadData', getDataWithoutSubTree(node), node);
@@ -684,10 +704,7 @@
                 $tree.tree('removeNode', node);
                 if (parentNode) {
                     // Fix caret loader
-                    const $el = window.$(parentNode.element).find('.load-items');
-                    if ($el.length > 0) {
-                        $el.removeClass('ph-plus-square').addClass('ph-minus-square');
-                    }
+                    setSubTreeIcon(parentNode, 'open');
                 }
             }
         });
@@ -1703,7 +1720,12 @@
     }
 
     :global(ul.jqtree-tree li.current-record > .jqtree-element .jqtree-title) {
-        font-weight: 700;
+        color: #06c;
+        font-weight: 500;
+    }
+
+    :global(ul.jqtree-tree .load-items.ph-spin) {
+        cursor: default;
     }
 
     :global(.tree-_admin ul.jqtree-tree .jqtree_common.disabled > div > span) {
