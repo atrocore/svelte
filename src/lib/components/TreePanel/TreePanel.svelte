@@ -91,11 +91,11 @@
     const generalFilterStore = getGeneralFilterStore(uniqueKey);
     const treeNodeRules = generalFilterStore.treeNodeRules;
     let mounted = false;
-    // the jqTree config the current tree was built with, needed to re-mark the tree without rebuilding it
     let builtTreeData: any = null;
-    // the record whose relations are on screen, and the nodes they resolved to
     let markedRecordId: string | null = null;
     let linkedNodeIds: string[] = [];
+    let insertedRootIds: string[] = [];
+    let scrolledToNodeId: string | null = null;
     let selectedNodes: SelectedNode[] = [];
     let updatingFromTree = false;
 
@@ -145,13 +145,15 @@
     }
 
     function destroyTree() {
+        insertedRootIds = [];
+        scrolledToNodeId = null;
+
         if (!isTreeBuilt()) {
             return;
         }
 
         const $tree = window.$(treeElement);
         $tree.tree('destroy');
-        // buildTree() re-binds these on every call, so drop the previous handlers to keep them from stacking up
         $tree.off('tree.load_data tree.refresh tree.move tree.click tree.open tree.close');
     }
 
@@ -362,7 +364,7 @@
                 }
 
                 if (model && model.get('id') === node.id && (['_self', '_bookmark', '_lastViewed'].includes(activeItem.name) || node.scope === model.name)) {
-                    $tree.tree('addToSelection', node);
+                    $tree.tree('addToSelection', node, false);
                     $li.addClass('jqtree-selected');
                 }
 
@@ -380,7 +382,7 @@
                     && ((Metadata.get(['scopes', getHashScope()])
                         && (node.id.includes('#' + getHashScope() + '/'))
                         && isAdminLinkUnique(getHashScope(), searchValue)) || node.id === window.location.hash)) {
-                    $tree.tree('addToSelection', node);
+                    $tree.tree('addToSelection', node, false);
                     $li.addClass('jqtree-selected');
                 }
 
@@ -584,13 +586,17 @@
      * the categories a product sits in, the classifications it carries, its brand.
      */
     async function markLinkedNodes(): Promise<void> {
-        if (mode !== 'detail' || !model || !activeItem || !treeScope || !isTreeBuilt()) {
+        if (!activeItem || !treeScope || !isTreeBuilt()) {
             return;
         }
 
         const link = activeItem.name;
-        const recordId = model.get('id');
+        const recordId = mode === 'detail' ? model?.get('id') : null;
+
         if (!recordId || PSEUDO_ITEMS.includes(link)) {
+            // there is no record to reveal, so the branches pulled in for the previous one can go
+            markedRecordId = null;
+            removeInsertedRootNodes(window.$(treeElement));
             return;
         }
 
@@ -603,18 +609,19 @@
         }
 
         linkedNodeIds = linked.map(record => record.id);
+        const $tree = window.$(treeElement);
 
         if (linked.length === 0) {
             // An unfetched model answers "no links" for a link field, which is indistinguishable from a record
             // that really has none. Leave the record unmarked so that the publish after the fetch tries again.
+            removeInsertedRootNodes($tree);
             return;
         }
 
         markedRecordId = recordId;
-        const $tree = window.$(treeElement);
 
         if (isHierarchy) {
-            await addMissingRootNodes($tree, linked.map(record => record.id));
+            await syncInsertedRootNodes($tree, linked.map(record => record.id));
         }
 
         for (const record of linked) {
@@ -629,12 +636,20 @@
     /**
      * A linked record may sit outside the slice of the tree that is loaded. Its branch is fetched and put at
      * the end of the roots, so that the record can be revealed at all.
+     *
+     * Since the tree outlives the page, the branches pulled in this way would pile up as the user walks through
+     * records — and a later "Show more" would fetch them a second time, by offset, next to the copy already
+     * there. So the ones this record does not need go away again; the ones it shares with the record before it
+     * stay untouched, keeping whatever the user had expanded inside them.
      */
-    async function addMissingRootNodes($tree: any, ids: string[]): Promise<void> {
+    async function syncInsertedRootNodes($tree: any, ids: string[]): Promise<void> {
         // the endpoint reads ids as a query array, which ApiClient would otherwise JSON-encode into one string
         const response = await ApiClient.get<Record<string, any>>(`${treeScope}/treeData?${window.$.param({ ids })}`);
+        const branches = response?.tree || [];
 
-        (response?.tree || []).forEach((node: any) => {
+        removeInsertedRootNodes($tree, branches.map((node: any) => String(node.id)));
+
+        branches.forEach((node: any) => {
             const roots = $tree.tree('getTree').children || [];
             if (roots.findIndex((root: any) => root.id === node.id) !== -1) {
                 return;
@@ -643,8 +658,24 @@
             const lastRoot = roots.slice().reverse().find((root: any) => !String(root.id).includes('show-more'));
             if (lastRoot) {
                 $tree.tree('addNodeAfter', node, $tree.tree('getNodeById', lastRoot.id));
+                insertedRootIds = [...insertedRootIds, String(node.id)];
             }
         });
+    }
+
+    function removeInsertedRootNodes($tree: any, keepIds: string[] = []): void {
+        insertedRootIds.forEach(id => {
+            if (keepIds.includes(id)) {
+                return;
+            }
+
+            const node = $tree.tree('getNodeById', id);
+            if (node) {
+                $tree.tree('removeNode', node);
+            }
+        });
+
+        insertedRootIds = insertedRootIds.filter(id => keepIds.includes(id));
     }
 
     function openRoute($tree: any, route: string[]): Promise<void> {
@@ -685,19 +716,24 @@
     }
 
     function loadMore(node) {
-        Notifier.notify('Loading...')
+        setShowMoreLoading(node, true);
         ApiClient.get<Record<string, any>>(generateUrl(node)).then(response => {
             if (response['list']) {
                 const $tree = window.$(treeElement);
                 const parentNode = node.getParent();
+                const items = filterResponse(JSON.parse(JSON.stringify(response)), node.showMoreDirection);
+
+                // this page covers those nodes now, so they are no longer ours to take away again
+                insertedRootIds = insertedRootIds.filter(id => !items.some(item => String(item.id) === id));
+
                 if (node.showMoreDirection === 'up') {
                     // prepend
-                    filterResponse(JSON.parse(JSON.stringify(response)), 'up').reverse().forEach(item => {
+                    items.reverse().forEach(item => {
                         prependNode($tree, item, parentNode);
                     });
                 } else if (node.showMoreDirection === 'down') {
                     // append
-                    filterResponse(JSON.parse(JSON.stringify(response)), 'down').forEach(item => {
+                    items.forEach(item => {
                         appendNode($tree, item, parentNode);
                     });
                 }
@@ -707,7 +743,26 @@
                     setSubTreeIcon(parentNode, 'open');
                 }
             }
-        });
+        }).finally(() => setShowMoreLoading(node, false));
+    }
+
+    /**
+     * The arrow on a "Show more" node gives way to a spinner while its page is on the way. Nothing to undo once
+     * the page arrives — the node is replaced by the records it brought.
+     */
+    function setShowMoreLoading(node: any, loading: boolean): void {
+        const $li = window.$(node.element);
+        if ($li.length === 0) {
+            return;
+        }
+
+        $li.toggleClass('show-more-loading', loading);
+        $li.find('.show-more-loader').remove();
+
+        if (loading) {
+            // inside the label, because the element around it is a flex row that orders its children itself
+            $li.find('.jqtree-title').append('<i class="ph ph-circle-notch ph-spin show-more-loader"></i>');
+        }
     }
 
     function appendNode($tree, item, parent) {
@@ -829,7 +884,14 @@
         const onFinished = () => {
             let node = $tree.tree('getNodeById', id);
             if (node) {
-                $tree.tree('addToSelection', node);
+                $tree.tree('addToSelection', node, false);
+
+                // the slice around the record can be long, so the record has to be brought into view — but only
+                // when the user has moved to it, never while they are loading more nodes around it
+                if (id !== scrolledToNodeId) {
+                    scrolledToNodeId = id;
+                    node.element?.scrollIntoView({ block: 'nearest' });
+                }
             }
 
             $tree.find(`.jqtree-title`).each((k, el) => {
@@ -1726,6 +1788,19 @@
 
     :global(ul.jqtree-tree .load-items.ph-spin) {
         cursor: default;
+    }
+
+    :global(ul.jqtree-tree li.show-more-loading:after) {
+        content: none;
+    }
+
+    :global(ul.jqtree-tree li.show-more .show-more-loader) {
+        display: inline-block;
+        line-height: 1;
+        font-size: 12px;
+        font-style: normal;
+        margin-left: 4px;
+        vertical-align: middle;
     }
 
     :global(.tree-_admin ul.jqtree-tree .jqtree_common.disabled > div > span) {
