@@ -1781,11 +1781,6 @@
         position: relative;
     }
 
-    :global(ul.jqtree-tree li.current-record > .jqtree-element .jqtree-title) {
-        color: #06c;
-        font-weight: 500;
-    }
-
     :global(ul.jqtree-tree .load-items.ph-spin) {
         cursor: default;
     }
