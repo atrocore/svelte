@@ -14,7 +14,6 @@
     import { Language } from "$lib/core/language"
 
     export let className: string = '';
-    /** Keeps the sidebar mounted — and therefore its state intact — while taking it out of the layout. */
     export let hidden: boolean = false;
     export let isCollapsed: boolean = false;
     export let isPinned: boolean = true;
@@ -170,7 +169,8 @@
     })
 </script>
 
-<aside class={computedClassName} class:collapsed={isCollapsed} class:hidden-sidebar={hidden}
+{#if !hidden}
+<aside class={computedClassName} class:collapsed={isCollapsed}
        class:pinned={isPinned && !isMobile} transition:fade
        style:width={computedWidth} on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
     <div class="sidebar-inner">
@@ -203,6 +203,7 @@
         <div class="sidebar-resizer" on:mousedown={startResize}></div>
     {/if}
 </aside>
+{/if}
 
 <style>
     .sidebar {
@@ -217,10 +218,6 @@
         overflow-y: auto;
         overflow-x: clip;
         position: relative;
-    }
-
-    .sidebar.hidden-sidebar {
-        display: none;
     }
 
     .sidebar.sidebar-left {
