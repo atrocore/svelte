@@ -17,10 +17,8 @@ export function createEmptyLeftSidebarContext(): LeftSidebarContext {
         hasItemsTab: false,
         showItemsTab: true,
         onNodeSelect: null,
-        onTreeLoad: null,
         onWidthChange: null,
-        onItemsTabActivated: null,
-        onReady: null,
+        itemsProps: null,
         renderLayoutEditor: null
     };
 }

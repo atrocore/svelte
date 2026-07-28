@@ -46,7 +46,7 @@ import { default as CombinedIntField } from "$lib/components/fields/CombinedInt/
 import { default as UserField } from "$lib/components/fields/User/User.svelte";
 import Navigation from "$lib/components/layout-manager/layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/layout-manager/layouts/Favorites/Favorites.svelte";
-import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
+import LeftSidebar from "$lib/components/LeftSidebar/LeftSidebar.svelte";
 import EntityContextPanel from "$lib/components/EntityContextPanel/EntityContextPanel.svelte";
 import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
 import ListHeader from "$lib/components/headers/ListHeader/ListHeader.svelte";
@@ -116,7 +116,7 @@ export {
     JobManagerButton,
     LayoutComponent,
     EntityContextPanel,
-    TreePanel,
+    LeftSidebar,
     ApiRequestComponent,
     FuzzySearchComponent,
     Navigation,
