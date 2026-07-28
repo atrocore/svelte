@@ -10,7 +10,6 @@
 
 <script lang="ts">
 
-    import { onMount } from "svelte";
     import type SelectionItem from "./types/selection-item";
     import type GroupedItems from "./types/grouped-items";
     import { Language } from "$lib/core/language"
@@ -48,26 +47,21 @@
     }
 
     let isPinned: boolean = true;
-    let data: GroupedItems = {};
     let hoveredRowId: string | null = null;
 
-    export function setSelectedIds(ids: string[]) {
-        selectedIds = ids;
-    }
+    $: data = groupByEntityType(records);
 
-    export function setSelectionViewMode(value: string) {
-        selectionViewMode = value;
-    }
+    function groupByEntityType(recs: SelectionItem[]): GroupedItems {
+        const grouped: GroupedItems = {};
 
-    export function setRecords(value: SelectionItem[]) {
-        records = value;
-        data = {};
-        records.forEach((record: SelectionItem) => {
-            if (!data[record.entityType]) {
-                data[record.entityType] = [];
+        recs.forEach((record: SelectionItem) => {
+            if (!grouped[record.entityType]) {
+                grouped[record.entityType] = [];
             }
-            data[record.entityType].push(record);
+            grouped[record.entityType].push(record);
         });
+
+        return grouped;
     }
 
 
@@ -83,11 +77,6 @@
             onSelectAll(entityType);
         }
     }
-
-    onMount(() => {
-
-        setRecords(records);
-    });
 
 </script>
 
