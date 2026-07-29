@@ -1014,7 +1014,7 @@
 
         // FIXME: _scope filtering is needed because the shared treeNodeRules store is never cleared on navigation.
         // When the user switches between entities, the previous list view is not destroyed --
-        // LeftSidebar and QueryBuilder instances remain in memory and stay subscribed to the store.
+        // NavigationSidebar and QueryBuilder instances remain in memory and stay subscribed to the store.
         // Without the scope check, rules from entity A would leak into entity B's QB
         // if both happen to have a filter with the same field ID.
         const applicableRules = treeRules.filter((r: any) =>
