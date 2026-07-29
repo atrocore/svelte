@@ -613,6 +613,11 @@
             const routes = record.routes.length > 0 ? record.routes : [''];
             for (const route of routes) {
                 await openRoute($tree, parseRoute(route));
+
+                if (!hasNodes() || model?.get('id') !== recordId) {
+                    return;
+                }
+
                 selectNodeById($tree, record.id);
             }
         }
@@ -620,12 +625,17 @@
 
     async function syncInsertedRootNodes($tree: any, ids: string[]): Promise<void> {
         const response = await ApiClient.get<Record<string, any>>(`${recordScope}/treeData?${window.$.param({ ids })}`);
+
+        if (!hasNodes()) {
+            return;
+        }
+
         const branches = response?.tree || [];
 
         removeInsertedRootNodes($tree, branches.map((node: any) => String(node.id)));
 
         branches.forEach((node: any) => {
-            const roots = $tree.tree('getTree').children || [];
+            const roots = $tree.tree('getTree')?.children || [];
             if (roots.findIndex((root: any) => root.id === node.id) !== -1) {
                 return;
             }
@@ -656,7 +666,7 @@
     function openRoute($tree: any, route: string[]): Promise<void> {
         return new Promise(resolve => {
             const openNext = (parent: any): void => {
-                if (route.length === 0) {
+                if (route.length === 0 || !hasNodes()) {
                     resolve();
                     return;
                 }
