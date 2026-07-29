@@ -26,13 +26,17 @@ export type TreeNodeSelection = {
  */
 export type LeftSidebarContext = {
     enabled: boolean;
-    /** Changing this rebuilds the tabs from the navigation layout. */
-    hasItemsTab: boolean;
-    showItemsTab: boolean;
+    /**
+     * Tab the page asks to be shown, until the user picks another one. Not remembered as the user's choice.
+     */
+    activeTab: string | null;
+    /**
+     * Data the page supplies to the tabs that need it, by tab name. A tab whose content asks for props the page
+     * does not supply is not shown at all.
+     */
+    tabProps: Record<string, Record<string, any>>;
     onNodeSelect: ((node: TreeNodeSelection) => void) | null;
     onWidthChange: ((width: number) => void) | null;
-    /** What the "Items" tab lists, for pages that have one. */
-    itemsProps: Record<string, any> | null;
     /** Admins only. */
     renderLayoutEditor: ((container: HTMLElement) => void) | null;
 };

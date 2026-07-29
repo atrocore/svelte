@@ -14,11 +14,10 @@ import type { LeftSidebarContext, PageContext } from '$lib/types/page/page-conte
 export function createEmptyLeftSidebarContext(): LeftSidebarContext {
     return {
         enabled: false,
-        hasItemsTab: false,
-        showItemsTab: true,
+        activeTab: null,
+        tabProps: {},
         onNodeSelect: null,
         onWidthChange: null,
-        itemsProps: null,
         renderLayoutEditor: null
     };
 }

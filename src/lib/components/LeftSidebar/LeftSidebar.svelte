@@ -24,6 +24,7 @@
     import { createEmptyLeftSidebarContext, pageContextStore } from '$lib/stores/page-context.store';
     import type { LeftSidebarContext, PageContext, PageMode } from '$lib/types/page/page-context';
     import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
+    import { clearTreeSearch, saveTreeFilter } from './utils/tree-state';
 
     export let uniqueKey: string = 'default';
     export let minWidth: number = 300;
@@ -44,7 +45,6 @@
 
     let loadedScope: string | null = null;
     let loadedIsAdminPage: boolean = false;
-    let loadedHasItemsTab: boolean = false;
     let layoutToken: number = 0;
     let tabsScope: string | null = null;
 
@@ -55,6 +55,7 @@
     let tabItems: Tab[] = [];
     let tabsLoading: boolean = false;
     let activeTab: Tab | null = null;
+    let askedTab: string | null = null;
     let layoutData: any;
 
     let isHidden: boolean = false;
@@ -71,23 +72,16 @@
         maxSize,
         selectedNodes,
         showSort: showApplySortOrder,
-        showItems: sidebar.showItemsTab,
         sidebar,
         onNodeToggle: toggleSelectedNode
     };
 
-    export function activateTab(name: string) {
-        setActiveTab(tabItems.find(tab => tab.name === name));
-    }
-
     export function handleCollectionSearch(searchedCollection) {
         if (collection && searchedCollection.name === scope) {
-            Storage.set('treeWhereData', scope, searchedCollection.where)
-            Storage.set('useDataRequest', scope, searchedCollection.length < 50 ? 'yes' : 'no')
+            saveTreeFilter(scope, searchedCollection.where)
         }
-        if (!isCollapsed) {
-            rebuildTree()
-        }
+
+        rebuildTree()
     }
 
     export function rebuildTree() {
@@ -100,10 +94,6 @@
 
     export function unSelectTreeNode(id) {
         tabContent?.unselectNode?.(id);
-    }
-
-    export function getTreeEl() {
-        return tabContent?.getElement?.();
     }
 
     export function reloadIfShowing(entity: string) {
@@ -165,28 +155,27 @@
     }
 
     function onTabSelect(tab: Tab): void {
-        setActiveTab(tabItems.find(item => item.name === tab.name));
+        setActiveTab(tabItems.find(item => item.name === tab.name), true);
     }
 
-    function setActiveTab(tab: Tab | undefined) {
+    function setActiveTab(tab: Tab | undefined, remember: boolean) {
         if (!tab || activeTab?.name === tab.name) {
             return
         }
 
-        // the search belongs to the tab being left
-        Storage.clear('treeSearchValue', scope)
-        Storage.clear('treeSearchValue', '_admin')
+        clearTreeSearch(scope)
 
         activeTab = tab
-        Storage.set('treeItem', scope, tab.name)
+
+        if (remember) {
+            Storage.set('treeItem', scope, tab.name)
+        }
     }
 
-    /** @param token discards tabs that arrive after the user has navigated on. */
     function loadLayout(token: number, callback: () => void = () => {}) {
         tabsLoading = true;
 
-        loadTabs(scope, isAdminPage, sidebar.hasItemsTab).then(loaded => {
-            // a newer load is already under way and owns the indicator
+        loadTabs(scope, isAdminPage).then(loaded => {
             if (token !== layoutToken) {
                 return;
             }
@@ -195,11 +184,13 @@
             layoutData = loaded.layoutData;
             tabItems = loaded.tabs;
             tabsScope = scope;
+            askedTab = sidebar.activeTab;
 
             if (tabItems.length > 0) {
+                const asked = tabItems.find(tab => tab.name === sidebar.activeTab);
                 const stored = tabItems.find(tab => tab.name === Storage.get('treeItem', scope));
-                activeTab = stored ?? tabItems[0];
-                if (!stored) {
+                activeTab = asked ?? stored ?? tabItems[0];
+                if (!asked && !stored) {
                     Storage.set('treeItem', scope, activeTab.name);
                 }
             }
@@ -214,7 +205,6 @@
 
         loadedScope = scope;
         loadedIsAdminPage = isAdminPage;
-        loadedHasItemsTab = sidebar.hasItemsTab;
 
         isHidden = false;
 
@@ -230,44 +220,45 @@
             if (tabItems.length === 0) {
                 isCollapsed = true
                 if (!UserData.get()?.user?.isAdmin) {
-                    // hide panel if user cannot configure
                     isHidden = true
                 }
             }
         });
     }
 
-    // The editor is a BackboneJS view that delegates its events to the container itself, so a page that keeps
-    // its view alive would keep answering clicks in it. Hence a container per page, and one editor per container.
     $: if (layoutEditorElement && sidebar.renderLayoutEditor && layoutEditorElement !== mountedEditorElement) {
         mountedEditorElement = layoutEditorElement;
         sidebar.renderLayoutEditor(layoutEditorElement);
     }
 
     function applyContext(context: PageContext): void {
-        const pageChanged = context.pageId !== pageId;
+        sidebar = context.leftSidebar;
+
+        if (!mounted || !sidebar.enabled || !context.scope) {
+            return;
+        }
+
         const previousCollection = collection;
 
         pageId = context.pageId;
-        scope = context.scope ?? '';
+        scope = context.scope;
         mode = context.mode;
         model = context.model;
         collection = context.collection;
         isAdminPage = context.isAdminPage;
-        sidebar = context.leftSidebar;
-
-        if (!mounted || !sidebar.enabled || !scope) {
-            return;
-        }
 
         if (collection && collection !== previousCollection) {
-            Storage.set('treeWhereData', scope, collection.where)
+            saveTreeFilter(scope, collection.where)
         }
 
-        // these three decide which tabs exist at all
-        if (scope !== loadedScope || isAdminPage !== loadedIsAdminPage || sidebar.hasItemsTab !== loadedHasItemsTab) {
+        if (scope !== loadedScope || isAdminPage !== loadedIsAdminPage) {
             reload();
             return;
+        }
+
+        if (sidebar.activeTab !== askedTab) {
+            askedTab = sidebar.activeTab;
+            setActiveTab(tabItems.find(tab => tab.name === askedTab), false);
         }
 
         tick().then(() => tabContent?.syncAfterNavigation?.());

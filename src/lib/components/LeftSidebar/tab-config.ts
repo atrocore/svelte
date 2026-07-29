@@ -32,7 +32,6 @@ export type TabContext = {
     maxSize: number;
     selectedNodes: SelectedNode[];
     showSort: boolean;
-    showItems: boolean;
     sidebar: LeftSidebarContext;
     onNodeToggle: (node: Omit<SelectedNode, 'icon'>) => void;
 };
@@ -91,8 +90,8 @@ function tree(behaviour: (ctx: TabContext) => TreeBehaviour): SidebarTabContent<
 
 const SELECTION_ITEMS: SidebarTabContent<TabContext> = {
     component: SelectionItemList,
-    props: (tab, ctx) => ctx.sidebar.itemsProps ?? { scope: ctx.scope, records: [], selectedIds: [] },
-    isVisible: (tab, ctx) => ctx.showItems,
+    props: (tab, ctx) => ctx.sidebar.tabProps[tab.name] ?? { scope: ctx.scope, records: [], selectedIds: [] },
+    isVisible: (tab, ctx) => !!ctx.sidebar.tabProps[tab.name],
     keepCollapsed: true
 };
 
@@ -155,23 +154,22 @@ export function getTabScope(name: string, pageScope: string): string | null {
     return definition.scope?.(name, pageScope) ?? null;
 }
 
-export function loadTabs(pageScope: string, isAdminPage: boolean, hasItemsTab: boolean): Promise<LoadedTabs> {
+export function loadTabs(pageScope: string, isAdminPage: boolean): Promise<LoadedTabs> {
     if (isAdminPage) {
         return Promise.resolve({ tabs: [buildTab(ADMIN_TAB, pageScope) as Tab], layoutData: null });
     }
 
     return new Promise(resolve => {
         LayoutManager.get(pageScope, 'navigation', null, null, (data: any) => {
-            resolve({ tabs: buildTabs(pageScope, data.layout, hasItemsTab), layoutData: data });
+            resolve({ tabs: buildTabs(pageScope, data.layout), layoutData: data });
         });
     });
 }
 
-function buildTabs(pageScope: string, layout: any[], hasItemsTab: boolean): Tab[] {
+function buildTabs(pageScope: string, layout: any[]): Tab[] {
     const tabs = (layout || [])
         .map((item: any) => buildTab(item.name, pageScope))
-        .filter((tab: Tab | null): tab is Tab => tab !== null)
-        .filter((tab: Tab) => hasItemsTab || tab.name !== ITEMS_TAB);
+        .filter((tab: Tab | null): tab is Tab => tab !== null);
 
     return tabs.map((tab: Tab) => tabs.filter((other: Tab) => other.label === tab.label).length > 1
         ? { ...tab, label: `${tab.label} (${tab.name})` }
