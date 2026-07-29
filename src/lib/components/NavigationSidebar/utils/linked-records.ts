@@ -1,0 +1,53 @@
+/*
+ * AtroCore Software
+ *
+ * This source file is available under GNU General Public License version 3 (GPLv3).
+ * Full copyright and license information is available in LICENSE.txt, located in the root directory.
+ *
+ * @copyright  Copyright (c) AtroCore GmbH (https://www.atrocore.com)
+ * @license    GPLv3 (https://www.gnu.org/licenses/)
+ */
+
+import { ApiClient } from '$lib/core/api-client';
+import { Metadata } from '$lib/core/metadata';
+
+export type LinkedRecord = {
+    id: string;
+    routes: string[];
+};
+
+export async function loadLinkedRecords(scope: string, link: string, model: any, needsRoutes: boolean): Promise<LinkedRecord[]> {
+    const fromModel = readFromModel(scope, link, model);
+    if (fromModel && !needsRoutes) {
+        return fromModel;
+    }
+
+    const response = await ApiClient.get<Record<string, any>>('entityRelation', {
+        entityName: scope,
+        id: model.get('id'),
+        link
+    });
+
+    return (response?.list || []).map((item: any) => ({
+        id: item.id,
+        routes: item.routes || []
+    }));
+}
+
+function readFromModel(scope: string, link: string, model: any): LinkedRecord[] | null {
+    if (Metadata.get(['entityDefs', scope, 'fields', link, 'type']) === 'link') {
+        const id = model.get(`${link}Id`);
+        return id ? [{ id, routes: [] }] : [];
+    }
+
+    const ids = model.get(`${link}Ids`);
+    if (ids === undefined || ids === null) {
+        return null;
+    }
+
+    return (ids as string[]).map(id => ({ id, routes: [] }));
+}
+
+export function parseRoute(route: string): string[] {
+    return (route || '').split('|').filter(id => !!id);
+}

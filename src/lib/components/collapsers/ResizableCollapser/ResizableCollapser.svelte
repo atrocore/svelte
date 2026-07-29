@@ -14,6 +14,7 @@
     import { Language } from "$lib/core/language"
 
     export let className: string = '';
+    export let hidden: boolean = false;
     export let isCollapsed: boolean = false;
     export let isPinned: boolean = true;
     export let minWidth: number = 250;
@@ -168,7 +169,9 @@
     })
 </script>
 
-<aside class={computedClassName} class:collapsed={isCollapsed} class:pinned={isPinned && !isMobile} transition:fade
+{#if !hidden}
+<aside class={computedClassName} class:collapsed={isCollapsed}
+       class:pinned={isPinned && !isMobile} transition:fade
        style:width={computedWidth} on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
     <div class="sidebar-inner">
         <slot/>
@@ -200,6 +203,7 @@
         <div class="sidebar-resizer" on:mousedown={startResize}></div>
     {/if}
 </aside>
+{/if}
 
 <style>
     .sidebar {
@@ -377,9 +381,7 @@
         display: none;
     }
 
-    .sidebar.sidebar-left:not(.pinned):not(.collapsed) :global(~ main) {
-        margin-left: 26px;
-    }
+    /* the left sidebar sits in its own container, so its effect on #main is defined in the theme stylesheet */
 
     :global(#main main:has(~ .sidebar.sidebar-right:not(.pinned):not(.collapsed))) {
         margin-right: 26px;

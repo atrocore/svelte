@@ -22,6 +22,7 @@ import { Config } from '$lib/core/config';
 import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
 import { CollectionFactory } from "$lib/core/collection-factory";
+import { PageContextBridge } from "$lib/stores/page-context.store";
 
 import { Tooltip } from "$lib/dom/tooltip";
 import { Dropdown } from "$lib/dom/dropdown";
@@ -45,7 +46,7 @@ import { default as CombinedIntField } from "$lib/components/fields/CombinedInt/
 import { default as UserField } from "$lib/components/fields/User/User.svelte";
 import Navigation from "$lib/components/layout-manager/layouts/Navigation/Navigation.svelte";
 import Favorites from "$lib/components/layout-manager/layouts/Favorites/Favorites.svelte";
-import TreePanel from "$lib/components/TreePanel/TreePanel.svelte";
+import NavigationSidebar from "$lib/components/NavigationSidebar/NavigationSidebar.svelte";
 import EntityContextPanel from "$lib/components/EntityContextPanel/EntityContextPanel.svelte";
 import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
 import ListHeader from "$lib/components/headers/ListHeader/ListHeader.svelte";
@@ -77,6 +78,7 @@ declare global {
         SvelteStorage: typeof Storage;
         SvelteAcl: typeof Acl;
         SvelteCollectionFactory: typeof CollectionFactory;
+        SveltePageContext: typeof PageContextBridge;
         Tooltip: typeof Tooltip;
         Dropdown: typeof Dropdown;
         Popover: typeof Popover;
@@ -94,6 +96,7 @@ window.SvelteConfig = Config;
 window.SvelteStorage = Storage;
 window.SvelteAcl = Acl;
 window.SvelteCollectionFactory = CollectionFactory;
+window.SveltePageContext = PageContextBridge;
 window.Dropdown = Dropdown;
 window.Popover = Popover;
 window.Tooltip = Tooltip;
@@ -113,7 +116,7 @@ export {
     JobManagerButton,
     LayoutComponent,
     EntityContextPanel,
-    TreePanel,
+    NavigationSidebar,
     ApiRequestComponent,
     FuzzySearchComponent,
     Navigation,

@@ -30,7 +30,7 @@ export function buildRuleForNode(node: SelectedNode, scope: string) {
             _treeNodeKey: `${node.link}__${node.id}`,
             // FIXME: _scope is needed because the shared treeNodeRules store is never cleared on navigation.
             // When the user switches between entities, the previous list view is not destroyed --
-            // TreePanel and QueryBuilder instances remain in memory and stay subscribed to the store.
+            // NavigationSidebar and QueryBuilder instances remain in memory and stay subscribed to the store.
             // Each rule must carry its entity scope so that each QB instance can ignore rules from other entities.
             _scope: scope
         }
