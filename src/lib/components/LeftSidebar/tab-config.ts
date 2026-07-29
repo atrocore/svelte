@@ -84,7 +84,10 @@ function tree(behaviour: (ctx: TabContext) => TreeBehaviour): SidebarTabContent<
                 onNodeToggle: ctx.onNodeToggle,
                 ...behaviour(ctx)
             };
-        }
+        },
+        key: props => props.source === 'adminMenu'
+            ? 'adminMenu'
+            : [props.link, props.scope, props.treeScope, props.recordScope].join('/')
     };
 }
 

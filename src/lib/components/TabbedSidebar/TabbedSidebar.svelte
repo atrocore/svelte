@@ -28,22 +28,25 @@
 
     export let activeName: string | null = null;
     export let onSelect: ((tab: SidebarTab) => void) | null = null;
-    export let contentKey: string = '';
-    export let contentReady: boolean = true;
     export let content: any = null;
 
     $: resolvedTabs = resolve(tabs, context);
     $: activeTab = resolvedTabs.find(tab => tab.name === activeName) ?? null;
     $: if (activeTab?.hidden) { select(resolvedTabs.find(tab => !tab.hidden)); }
-    $: showContent = contentReady && !!activeTab && !activeTab.hidden
+    $: showContent = !!activeTab && !activeTab.hidden
         && (!isCollapsed || activeTab.content.keepCollapsed);
 
     function resolve(tabList: SidebarTab[], ctx: any): ResolvedSidebarTab[] {
-        return tabList.map(tab => ({
-            ...tab,
-            props: tab.content.props(tab, ctx),
-            hidden: tab.content.isVisible ? !tab.content.isVisible(tab, ctx) : !!tab.hidden
-        }));
+        return tabList.map(tab => {
+            const props = tab.content.props(tab, ctx);
+
+            return {
+                ...tab,
+                props,
+                key: tab.content.key ? tab.content.key(props) : tab.name,
+                hidden: tab.content.isVisible ? !tab.content.isVisible(tab, ctx) : !!tab.hidden
+            };
+        });
     }
 
     function select(tab: SidebarTab | undefined): void {
@@ -58,7 +61,7 @@
                     bind:width={width} bind:isCollapsed={isCollapsed} bind:isPinned={isPinned}
                     on:sidebar-resize on:sidebar-collapse on:sidebar-pin>
     <div class="tabbed-content" class:hidden={isCollapsed}>
-        {#if loading}
+        {#if loading && resolvedTabs.length === 0}
             <div class="tabs-loading">
                 <Preloader heightPx={14}/>
             </div>
@@ -80,7 +83,7 @@
                 </div>
 
                 {#if showContent}
-                    {#key contentKey}
+                    {#key activeTab.key}
                         <svelte:component this={activeTab.content.component} bind:this={content} {...activeTab.props}/>
                     {/key}
                 {/if}

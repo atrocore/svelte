@@ -22,6 +22,7 @@ export type SidebarTabInfo = {
 export type SidebarTabContent<TContext = any> = {
     component: ComponentType;
     props: (tab: SidebarTabInfo, ctx: TContext) => Record<string, any>;
+    key?: (props: Record<string, any>) => string;
     isVisible?: (tab: SidebarTabInfo, ctx: TContext) => boolean;
     keepCollapsed?: boolean;
 };
@@ -32,5 +33,6 @@ export type SidebarTab<TContext = any> = SidebarTabInfo & {
 
 export type ResolvedSidebarTab<TContext = any> = SidebarTab<TContext> & {
     props: Record<string, any>;
+    key: string;
     hidden: boolean;
 };

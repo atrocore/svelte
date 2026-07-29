@@ -18,7 +18,7 @@
     import { isMobileViewport } from '$lib/helpers/viewport';
     import SelectedNodesBadges from './SelectedNodesBadges/SelectedNodesBadges.svelte';
     import type { SelectedNode } from './types/selected-node';
-    import type { Tab } from './tab-config';
+    import type { Tab, TabContext } from './tab-config';
     import { getTabScope, loadTabs } from './tab-config';
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
     import { createEmptyLeftSidebarContext, pageContextStore } from '$lib/stores/page-context.store';
@@ -65,16 +65,20 @@
     let selectedNodes: SelectedNode[] = [];
     let updatingFromTree = false;
 
-    $: tabContext = {
-        scope,
-        mode,
-        model,
-        maxSize,
-        selectedNodes,
-        showSort: showApplySortOrder,
-        sidebar,
-        onNodeToggle: toggleSelectedNode
-    };
+    let tabContext: TabContext | null = null;
+
+    $: if (tabsScope === scope) {
+        tabContext = {
+            scope,
+            mode,
+            model,
+            maxSize,
+            selectedNodes,
+            showSort: showApplySortOrder,
+            sidebar,
+            onNodeToggle: toggleSelectedNode
+        };
+    }
 
     export function handleCollectionSearch(searchedCollection) {
         if (collection && searchedCollection.name === scope) {
@@ -196,6 +200,8 @@
             }
 
             callback();
+
+            tick().then(() => tabContent?.syncAfterNavigation?.());
         })
     }
 
@@ -299,8 +305,7 @@
                on:sidebar-collapse={onSidebarCollapse} on:sidebar-pin={onSidebarPin}
                tabs={tabItems} context={tabContext} loading={tabsLoading}
                activeName={activeTab?.name} onSelect={onTabSelect}
-               bind:content={tabContent} contentReady={tabsScope === scope}
-               contentKey={`${scope}/${activeTab?.name}`}>
+               bind:content={tabContent}>
     <svelte:fragment slot="strip">
         {#key pageId}
             <span bind:this={layoutEditorElement} class="layout-editor-container"></span>
