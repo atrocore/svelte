@@ -16,7 +16,8 @@
     import { Metadata } from '$lib/core/metadata';
     import { Storage } from '$lib/core/storage';
     import { Notifier } from '$lib/dom/notifier';
-    import type { PageMode, TreeNodeSelection } from '$lib/types/page/page-context';
+    import type { PageMode } from '$lib/types/page/page-mode';
+    import type { TreeNodeSelection } from '$lib/types/ui/tree-node-selection';
     import type { SelectedNode } from '../types/selected-node';
     import { getAdminTreeData, isAdminLinkUnique } from '../utils/admin-tree';
     import { loadLinkedRecords, parseRoute } from '../utils/linked-records';
@@ -30,13 +31,9 @@
         saveTreeSearch
     } from '../utils/tree-state';
 
-    /** Entity the page showing this tree is about. */
     export let scope: string;
-    /** Relation the nodes belong to, as the API names it — `_self`, `_bookmark`, or a link name. */
     export let link: string;
-    /** Entity the tree asks for its data. Null for the administration menu, which comes from metadata. */
     export let treeScope: string | null = null;
-    /** Entity the nodes stand for. Parts from `treeScope` for bookmarks, where the two differ. */
     export let recordScope: string | null = null;
     export let mode: PageMode = 'list';
     export let model: any = null;
@@ -45,9 +42,7 @@
 
     export let selectable: boolean = false;
     export let marksPageRecord: boolean = false;
-    /** The filter of the list applies to these records rather than to the ones they relate to. */
     export let filtersOwnRecords: boolean = false;
-    /** Whole branches can be asked for at once. */
     export let hierarchical: boolean = true;
     export let searchable: boolean = true;
     export let showSort: boolean = true;
@@ -82,7 +77,6 @@
 
         initSorting();
         mounted = true;
-        // cleared by the tree.load_data handler once the nodes arrive
         Notifier.notify('Loading...')
         buildTree();
 
@@ -111,7 +105,6 @@
         }
     }
 
-    /** A rebuild is only unavoidable when the opened record lies outside the slice currently loaded. */
     export function syncAfterNavigation(): void {
         if (!hasNodes()) {
             return;
@@ -161,7 +154,6 @@
             if (node) {
                 $tree.tree('addToSelection', node, false);
 
-                // brought into view when the user moves to it, never while they load more nodes around it
                 if (id !== scrolledToNodeId) {
                     scrolledToNodeId = id;
                     node.element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -195,7 +187,6 @@
         $tree.find('li.jqtree_common').each((_, el) => {
             const $li = window.$(el);
             const nodeId = $li.find('> .jqtree-element .jqtree-title').data('id') + '';
-            // picked as a filter, or linked to the record on screen
             const isSelected = selectedNodes.some(n => n.id === nodeId && n.link === link)
                 || linkedNodeIds.includes(nodeId);
             $li.toggleClass('jqtree-selected', isSelected);
@@ -207,7 +198,6 @@
         return !!treeElement && !!window.$(treeElement).data('simple_widget_tree');
     }
 
-    /** The widget only answers questions about nodes once they have arrived. */
     function hasNodes(): boolean {
         return isTreeBuilt() && treeLoaded;
     }
@@ -301,7 +291,6 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                // inside a sub-tree the record sits among records of the linked entity, so it is marked apart
                 if (mode === 'detail' && model && model.get('id') === node.id && isNodeInSubTree(node)) {
                     $li.addClass('current-record');
                 }
@@ -429,7 +418,6 @@
                     return loadMore(node);
                 }
 
-                // here a node is a filter as well as a destination
                 if (selectable && !isNodeInSubTree(node)) {
                     if (onNodeToggle) {
                         onNodeToggle({
@@ -543,7 +531,6 @@
         return window.$(node.element).find('> .jqtree-element .load-items');
     }
 
-    /** The toggler doubles as the progress indicator: while the sub-tree is fetched it spins in place. */
     function setSubTreeIcon(node: any, state: 'open' | 'closed' | 'loading'): void {
         const $toggler = getSubTreeToggler(node);
         if ($toggler.length === 0) {
@@ -588,7 +575,6 @@
         return null
     }
 
-    /** Marks the nodes the record on screen is linked to — the categories a product sits in, its brand. */
     async function markLinkedNodes(): Promise<void> {
         if (!recordScope || !hasNodes()) {
             return;
@@ -597,7 +583,6 @@
         const recordId = mode === 'detail' ? model?.get('id') : null;
 
         if (!recordId || !selectable) {
-            // there is no record to reveal, so the branches pulled in for the previous one can go
             markedRecordId = null;
             removeInsertedRootNodes(window.$(treeElement));
             return;
@@ -606,7 +591,6 @@
         const isHierarchy = Metadata.get(['scopes', recordScope, 'type']) === 'Hierarchy';
         const linked = await loadLinkedRecords(scope, link, model, isHierarchy);
 
-        // the user may have moved on to another record while the request was in flight
         if (!hasNodes() || model?.get('id') !== recordId) {
             return;
         }
@@ -615,8 +599,6 @@
         const $tree = window.$(treeElement);
 
         if (linked.length === 0) {
-            // An unfetched model answers "no links" for a link field, which is indistinguishable from a record
-            // that really has none. Leave the record unmarked so that the publish after the fetch tries again.
             removeInsertedRootNodes($tree);
             return;
         }
@@ -636,13 +618,7 @@
         }
     }
 
-    /**
-     * A linked record may sit outside the loaded slice, so its branch is fetched and appended to the roots.
-     * Branches this record does not need go away again — left in place they would pile up as the user walks
-     * through records, and a later "Show more" would fetch them a second time next to the copy already there.
-     */
     async function syncInsertedRootNodes($tree: any, ids: string[]): Promise<void> {
-        // the endpoint reads ids as a query array, which ApiClient would otherwise JSON-encode into one string
         const response = await ApiClient.get<Record<string, any>>(`${recordScope}/treeData?${window.$.param({ ids })}`);
         const branches = response?.tree || [];
 
@@ -714,7 +690,6 @@
         return (model?.get('routesNames')?.[0]?.map((item: any) => item.id) || []).reverse();
     }
 
-    /** Highlights the record — or the admin page — the tree has just been built for. */
     function selectCurrentRecord(): void {
         if (source === 'adminMenu') {
             selectNode(getCurrentAdminNodeId(), [])
@@ -766,30 +741,25 @@
                 const parentNode = node.getParent();
                 const items = filterResponse(JSON.parse(JSON.stringify(response)), node.showMoreDirection);
 
-                // this page covers those nodes now, so they are no longer ours to take away again
                 insertedRootIds = insertedRootIds.filter(id => !items.some(item => String(item.id) === id));
 
                 if (node.showMoreDirection === 'up') {
-                    // prepend
                     items.reverse().forEach(item => {
                         prependNode($tree, item, parentNode);
                     });
                 } else if (node.showMoreDirection === 'down') {
-                    // append
                     items.forEach(item => {
                         appendNode($tree, item, parentNode);
                     });
                 }
                 $tree.tree('removeNode', node);
                 if (parentNode) {
-                    // Fix caret loader
                     setSubTreeIcon(parentNode, 'open');
                 }
             }
         }).finally(() => setShowMoreLoading(node, false));
     }
 
-    /** The arrow gives way to a spinner while the page is on the way; the node itself is then replaced. */
     function setShowMoreLoading(node: any, loading: boolean): void {
         const $li = window.$(node.element);
         if ($li.length === 0) {
@@ -800,7 +770,6 @@
         $li.find('.show-more-loader').remove();
 
         if (loading) {
-            // inside the label, because the element around it is a flex row that orders its children itself
             $li.find('.jqtree-title').append('<i class="ph ph-circle-notch ph-spin show-more-loader"></i>');
         }
     }
@@ -858,7 +827,6 @@
     }
 
     function generateUrl(node) {
-        // only a tab standing for a relation shows records of another entity hanging off a node
         if (isNodeInSubTree(node) && selectable) {
             return generateSubTreeUrl(node)
         }
@@ -960,8 +928,6 @@
     function getForeignWhereData() {
         let whereData = filtersOwnRecords ? [] : loadTreeFilter(scope);
 
-        // When a node is selected in the current linked tab — exclude its rule from tree filtering
-        // (the node is highlighted but the tree shows all items unfiltered)
         const activeNode = selectedNodes.find(n => n.link === link);
         if (activeNode && Array.isArray(whereData)) {
             const rule = buildRuleForNode(activeNode, scope);
@@ -1087,7 +1053,6 @@
         return source === 'adminMenu' ? ADMIN_SEARCH_SCOPE : scope;
     }
 
-    /** Sorting is remembered per tab: each one lists a different set of records. */
     function sortStorageKey(): string {
         return `${scope}/${link}`;
     }

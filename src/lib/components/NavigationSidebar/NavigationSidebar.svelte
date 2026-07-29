@@ -22,7 +22,8 @@
     import { getTabScope, loadTabs } from './tab-config';
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store';
     import { createEmptyLeftSidebarContext, pageContextStore } from '$lib/stores/page-context.store';
-    import type { LeftSidebarContext, PageContext, PageMode } from '$lib/types/page/page-context';
+    import type { LeftSidebarContext, PageContext } from '$lib/types/page/page-context';
+    import type { PageMode } from '$lib/types/page/page-mode';
     import { buildRuleForNode, saveNodes, loadNodes, filterStaleNodes } from './utils/tree-node-rule';
     import { clearTreeSearch, saveTreeFilter } from './utils/tree-state';
 
@@ -274,6 +275,7 @@
         mounted = true;
 
         const unsubscribeRules = treeNodeRules.subscribe(onTreeNodeRulesChanged);
+        // TODO: temporary. The context is to arrive as a prop, with the host subscribing for both sidebars at once — to be moved once the right sidebar is implemented the same way.
         const unsubscribeContext = pageContextStore.subscribe(applyContext);
 
         return () => {
