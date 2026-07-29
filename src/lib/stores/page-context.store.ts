@@ -36,15 +36,8 @@ export function createEmptyPageContext(): PageContext {
 
 export const pageContextStore = writable<PageContext>(createEmptyPageContext());
 
-/**
- * Bridge between the BackboneJS page views and the shell-level Svelte components.
- *
- * Pages publish through it on every render; components mounted in the master view — the sidebars, and in time
- * the header — subscribe instead of being re-created by each page, so they survive navigation.
- *
- * Both writers accept a partial description: whatever a page leaves out falls back to the empty context, which
- * hides the shell parts the page does not want.
- */
+let ownerPageId: string | null = null;
+
 export const PageContextBridge = {
     subscribe: pageContextStore.subscribe,
 
@@ -52,18 +45,17 @@ export const PageContextBridge = {
         return get(pageContextStore);
     },
 
-    /** Replaces the description — used when a page takes over. */
-    set(context: Partial<PageContext>): void {
-        pageContextStore.set(merge(createEmptyPageContext(), context));
-    },
-
-    /** Updates part of the description — used when something changes within the page that is already open. */
-    patch(context: Partial<PageContext>): void {
-        pageContextStore.update(current => merge(current, context));
-    },
-
-    reset(): void {
+    claim(pageId: string): void {
+        ownerPageId = pageId;
         pageContextStore.set(createEmptyPageContext());
+    },
+
+    set(context: Partial<PageContext>): void {
+        if (!context.pageId || context.pageId !== ownerPageId) {
+            return;
+        }
+
+        pageContextStore.set(merge(createEmptyPageContext(), context));
     }
 };
 
