@@ -58,6 +58,7 @@
     let showEmptyPlaceholder: boolean = false;
     let mounted = false;
 
+    let treeLoaded = false;
     let markedRecordId: string | null = null;
     let linkedNodeIds: string[] = [];
     let insertedRootIds: string[] = [];
@@ -90,6 +91,10 @@
     }
 
     export function unselectNode(id: string): void {
+        if (!hasNodes()) {
+            return;
+        }
+
         const $tree = getElement();
         const node = $tree.tree('getNodeById', id);
 
@@ -100,7 +105,7 @@
 
     /** A rebuild is only unavoidable when the opened record lies outside the slice currently loaded. */
     export function syncAfterNavigation(): void {
-        if (!isTreeBuilt()) {
+        if (!hasNodes()) {
             return;
         }
 
@@ -138,6 +143,10 @@
     }
 
     export function selectNode(id, ids) {
+        if (!hasNodes()) {
+            return;
+        }
+
         const $tree = window.$(treeElement);
         const onFinished = () => {
             let node = $tree.tree('getNodeById', id);
@@ -190,9 +199,15 @@
         return !!treeElement && !!window.$(treeElement).data('simple_widget_tree');
     }
 
+    /** The widget only answers questions about nodes once they have arrived. */
+    function hasNodes(): boolean {
+        return isTreeBuilt() && treeLoaded;
+    }
+
     function destroyTree() {
         insertedRootIds = [];
         scrolledToNodeId = null;
+        treeLoaded = false;
 
         if (!isTreeBuilt()) {
             return;
@@ -348,6 +363,7 @@
 
         $tree.on('tree.load_data', e => {
             Notifier.clearRegular()
+            treeLoaded = true;
             if (dataLoaded) {
                 return
             }
@@ -567,7 +583,7 @@
 
     /** Marks the nodes the record on screen is linked to — the categories a product sits in, its brand. */
     async function markLinkedNodes(): Promise<void> {
-        if (!recordScope || !isTreeBuilt()) {
+        if (!recordScope || !hasNodes()) {
             return;
         }
 
@@ -584,7 +600,7 @@
         const linked = await loadLinkedRecords(scope, link, model, isHierarchy);
 
         // the user may have moved on to another record while the request was in flight
-        if (!isTreeBuilt() || model?.get('id') !== recordId) {
+        if (!hasNodes() || model?.get('id') !== recordId) {
             return;
         }
 
@@ -707,7 +723,7 @@
     }
 
     function clearSelection(): void {
-        if (!isTreeBuilt()) {
+        if (!hasNodes()) {
             return;
         }
 

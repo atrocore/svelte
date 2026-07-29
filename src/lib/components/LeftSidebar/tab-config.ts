@@ -106,7 +106,6 @@ const TABS: Record<string, TabDefinition> = {
     [BOOKMARK_TAB]: {
         scope: () => 'Bookmark',
         label: () => plural('Bookmark'),
-        // the requests go to Bookmark, but every node is a record of the entity the page is about
         content: tree(ctx => ({
             recordScope: ctx.scope,
             marksPageRecord: true,

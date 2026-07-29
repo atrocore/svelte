@@ -34,7 +34,6 @@
 
     export let showApplySortOrder: boolean = true
 
-    // The sidebar is mounted once in the master view, so the page it describes comes from the context store.
     let scope: string = '';
     let mode: PageMode = 'list';
     let model: any = null;
@@ -43,19 +42,15 @@
     let pageId: string | null = null;
     let sidebar: LeftSidebarContext = createEmptyLeftSidebarContext();
 
-    // what the tabs on screen were loaded for, and a token to discard outdated loads
     let loadedScope: string | null = null;
     let loadedIsAdminPage: boolean = false;
     let loadedHasItemsTab: boolean = false;
     let layoutToken: number = 0;
-    // while a layout is on its way the tabs still belong to the previous entity, and its relations with them
     let tabsScope: string | null = null;
 
     let isPinned: boolean = true;
     let layoutEditorElement: HTMLElement;
     let mountedEditorElement: HTMLElement | null = null;
-    let mountedEditorPageId: string | null = null;
-    /** Whatever the active tab renders. Only a tree answers the methods the BackboneJS side calls. */
     let tabContent: any = null;
     let tabItems: Tab[] = [];
     let tabsLoading: boolean = false;
@@ -81,7 +76,6 @@
         onNodeToggle: toggleSelectedNode
     };
 
-    /** The page asks for a tab to be shown. A tab that has nothing to show hands over on its own. */
     export function activateTab(name: string) {
         setActiveTab(tabItems.find(tab => tab.name === name));
     }
@@ -112,7 +106,6 @@
         return tabContent?.getElement?.();
     }
 
-    /** Records of an entity changed elsewhere; the tab listing them, if it is the one open, reloads. */
     export function reloadIfShowing(entity: string) {
         if (activeTab && getTabScope(activeTab.name, scope) === entity) {
             rebuildTree()
@@ -215,7 +208,7 @@
         })
     }
 
-    /** Called when the context changes in a way that invalidates the tabs, never on plain navigation. */
+
     function reload(): void {
         const token = ++layoutToken;
 
@@ -244,12 +237,10 @@
         });
     }
 
-    // The editor belongs to the page and dies with it; the container is ours and may be replaced under it.
-    // Hence both keys — and hence at most once per pair: two editors on one element answer one click twice.
-    $: if (layoutEditorElement && sidebar.renderLayoutEditor
-            && (layoutEditorElement !== mountedEditorElement || pageId !== mountedEditorPageId)) {
+    // The editor is a BackboneJS view that delegates its events to the container itself, so a page that keeps
+    // its view alive would keep answering clicks in it. Hence a container per page, and one editor per container.
+    $: if (layoutEditorElement && sidebar.renderLayoutEditor && layoutEditorElement !== mountedEditorElement) {
         mountedEditorElement = layoutEditorElement;
-        mountedEditorPageId = pageId;
         sidebar.renderLayoutEditor(layoutEditorElement);
     }
 
@@ -319,7 +310,11 @@
                activeName={activeTab?.name} onSelect={onTabSelect}
                bind:content={tabContent} contentReady={tabsScope === scope}
                contentKey={`${scope}/${activeTab?.name}`}>
-    <span slot="strip" bind:this={layoutEditorElement} class="layout-editor-container"></span>
+    <svelte:fragment slot="strip">
+        {#key pageId}
+            <span bind:this={layoutEditorElement} class="layout-editor-container"></span>
+        {/key}
+    </svelte:fragment>
     <svelte:fragment slot="footer">
         {#if mode === 'list'}
             <SelectedNodesBadges nodes={selectedNodes} onRemove={removeSelectedNode}

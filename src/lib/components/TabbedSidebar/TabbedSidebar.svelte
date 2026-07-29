@@ -32,7 +32,6 @@
     export let contentReady: boolean = true;
     export let content: any = null;
 
-    // both named here, so that a change of context reaches the props
     $: resolvedTabs = resolve(tabs, context);
     $: activeTab = resolvedTabs.find(tab => tab.name === activeName) ?? null;
     $: if (activeTab?.hidden) { select(resolvedTabs.find(tab => !tab.hidden)); }
@@ -54,6 +53,7 @@
     }
 </script>
 
+<!--TODO: move ResizableCollapser to the current component on RightSidebar refactoring -->
 <ResizableCollapser {className} {position} {hidden} {minWidth} {maxWidth}
                     bind:width={width} bind:isCollapsed={isCollapsed} bind:isPinned={isPinned}
                     on:sidebar-resize on:sidebar-collapse on:sidebar-pin>
