@@ -21,6 +21,14 @@
     import { getAdminTreeData, isAdminLinkUnique } from '../utils/admin-tree';
     import { loadLinkedRecords, parseRoute } from '../utils/linked-records';
     import { buildRuleForNode } from '../utils/tree-node-rule';
+    import {
+        ADMIN_SEARCH_SCOPE,
+        clearTreeFilter,
+        clearTreeSearch,
+        loadTreeFilter,
+        loadTreeSearch,
+        saveTreeSearch
+    } from '../utils/tree-state';
 
     /** Entity the page showing this tree is about. */
     export let scope: string;
@@ -67,7 +75,7 @@
     $: if (mounted) { selectedNodes; refreshSelection(); }
 
     onMount(() => {
-        searchValue = Storage.get('treeSearchValue', searchStorageKey()) || '';
+        searchValue = loadTreeSearch(searchStorageKey());
         if (searchInputElement) {
             searchInputElement.value = searchValue;
         }
@@ -949,20 +957,12 @@
         return url;
     }
 
-    function getWhereData(): [] {
-        let whereData = Storage.get('treeWhereData', scope) || [];
-        if (!filtersOwnRecords) {
-            whereData = [];
-        }
-
-        return JSON.parse(JSON.stringify(whereData))
+    function getWhereData(): any[] {
+        return filtersOwnRecords ? loadTreeFilter(scope) : [];
     }
 
     function getForeignWhereData() {
-        let whereData = Storage.get('treeWhereData', scope) || [];
-        if (filtersOwnRecords) {
-            whereData = [];
-        }
+        let whereData = filtersOwnRecords ? [] : loadTreeFilter(scope);
 
         // When a node is selected in the current linked tab — exclude its rule from tree filtering
         // (the node is highlighted but the tree shows all items unfiltered)
@@ -985,7 +985,7 @@
             }).filter((item: any) => !(item.condition && item.rules?.length === 0));
         }
 
-        return JSON.parse(JSON.stringify(whereData))
+        return whereData
     }
 
     function canUseDataRequest() {
@@ -1069,7 +1069,7 @@
     }
 
     function searchStorageKey(): string {
-        return source === 'adminMenu' ? '_admin' : scope;
+        return source === 'adminMenu' ? ADMIN_SEARCH_SCOPE : scope;
     }
 
     /** Sorting is remembered per tab: each one lists a different set of records. */
@@ -1080,10 +1080,9 @@
     function applySearch() {
         searchValue = searchInputElement.value
         if (searchValue) {
-            Storage.set('treeSearchValue', searchStorageKey(), searchValue)
+            saveTreeSearch(searchStorageKey(), searchValue)
         } else {
-            Storage.clear('treeSearchValue', scope)
-            Storage.clear('treeSearchValue', '_admin')
+            clearTreeSearch(scope)
         }
         Notifier.notify('Loading...')
         rebuild()
@@ -1092,7 +1091,7 @@
     function treeReset() {
         searchInputElement.value = ''
         if (mode === 'detail') {
-            Storage.clear('treeWhereData', scope)
+            clearTreeFilter(scope)
         }
         applySearch()
     }
