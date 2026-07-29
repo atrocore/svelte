@@ -164,7 +164,7 @@
                 // brought into view when the user moves to it, never while they load more nodes around it
                 if (id !== scrolledToNodeId) {
                     scrolledToNodeId = id;
-                    node.element?.scrollIntoView({ block: 'nearest' });
+                    node.element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                 }
             }
 
@@ -258,6 +258,8 @@
             return;
         }
 
+        const currentAdminNodeId = source === 'adminMenu' ? getCurrentAdminNodeId() : null;
+
         let treeData = {
             dataUrl: generateUrl,
             dataFilter: response => filterResponse(response),
@@ -308,10 +310,7 @@
                     $li.addClass('jqtree-selected');
                 }
 
-                if (source === 'adminMenu'
-                    && ((Metadata.get(['scopes', getHashScope()])
-                        && (node.id.includes('#' + getHashScope() + '/'))
-                        && isAdminLinkUnique(getHashScope(), searchValue)) || node.id === window.location.hash)) {
+                if (source === 'adminMenu' && node.id === currentAdminNodeId) {
                     $tree.tree('addToSelection', node, false);
                     $li.addClass('jqtree-selected');
                 }
@@ -718,10 +717,7 @@
     /** Highlights the record — or the admin page — the tree has just been built for. */
     function selectCurrentRecord(): void {
         if (source === 'adminMenu') {
-            const hashScope = getHashScope();
-            if (Metadata.get(['scopes', hashScope])) {
-                selectNode('#' + hashScope, [])
-            }
+            selectNode(getCurrentAdminNodeId(), [])
             return;
         }
 
@@ -1066,6 +1062,25 @@
     function getHashScope() {
         let locationHash = window.location.hash;
         return locationHash.split('/').shift().replace('#', '');
+    }
+
+    function getCurrentAdminNodeId(): string | null {
+        const hash = window.location.hash;
+        const hashScope = getHashScope();
+        const bySubPath = !!Metadata.get(['scopes', hashScope]) && isAdminLinkUnique(hashScope, searchValue);
+        let currentId = '';
+
+        getAdminTreeData(searchValue).forEach((group: any) => (group.children || []).forEach((child: any) => {
+            const matches = hash === child.id
+                || hash.startsWith(child.id + '/')
+                || (bySubPath && child.id.includes('#' + hashScope + '/'));
+
+            if (matches && child.id.length > currentId.length) {
+                currentId = child.id;
+            }
+        }));
+
+        return currentId || null;
     }
 
     function searchStorageKey(): string {
