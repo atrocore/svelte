@@ -274,6 +274,7 @@
                 {type: 'today', nb_inputs: 0, apply_to: ['date', 'datetime']},
                 {type: 'similar', nb_inputs: 1, apply_to: ['string']},
                 {type: 'word_similar', nb_inputs: 1, apply_to: ['string']},
+                ...(Metadata.get(['app', 'queryBuilderOperators']) || []),
             ],
             rules: rules,
             filters: filters,
