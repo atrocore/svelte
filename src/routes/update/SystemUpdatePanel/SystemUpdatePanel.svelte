@@ -123,6 +123,42 @@
 </div>
 
 <style>
+    #login {
+        background: #fff;
+        color: #424242;
+        margin-top: 50px;
+        border-radius: 10px;
+    }
+
+    #login.panel > .panel-heading {
+        text-align: center;
+        padding: 6px;
+        margin: 0;
+        background-color: #f5f5f5;
+        border: 1px solid #c0c0c0;
+        border-bottom: 0;
+        box-shadow: 0 -8px 10px -10px;
+        border-radius: 10px 10px 0 0;
+    }
+
+    #login.panel > .panel-body {
+        border: 1px solid #c0c0c0;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .logo-container {
+        display: inline-block;
+        width: 181px;
+        height: 43px;
+    }
+
+    .logo-container img.logo {
+        max-height: 100%;
+        max-width: 100%;
+        height: 25px;
+        margin-top: 9px;
+    }
+
     .progress-section {
         margin: 4em 0 3em;
         text-align: center;

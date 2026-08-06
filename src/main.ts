@@ -61,6 +61,7 @@ import FieldStateFilter from "$lib/components/filters/FieldStateFilter/FieldStat
 import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNavigation.svelte";
 import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
+import { default as Login } from "./routes/login/Login/Login.svelte";
 import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
@@ -135,6 +136,7 @@ export {
     AnchorNavigation,
     RebuildDatabaseModal,
     Administration,
+    Login,
     SelectionItemList,
     ClusterItemList,
     RowActions,
