@@ -132,6 +132,11 @@
             return;
         }
 
+        if (recordScope === 'LastViewed') {
+            bringToTop(id);
+            return;
+        }
+
         const $tree = window.$(treeElement);
         const route = getCurrentRecordRoute();
 
@@ -141,6 +146,30 @@
         }
 
         selectNode(id, route);
+    }
+
+    function bringToTop(id: string): void {
+        const $tree = window.$(treeElement);
+        const roots = ($tree.tree('getTree')?.children || []).filter((n: any) => !String(n.id).includes('show-more'));
+        const firstNode = roots[0];
+        const node = $tree.tree('getNodeById', id);
+
+        if (node) {
+            if (firstNode && firstNode.id !== id) {
+                $tree.tree('moveNode', node, firstNode, 'before');
+            }
+        } else if (model) {
+            const nameField = Metadata.get(['scopes', model.name, 'nameField']) || 'name';
+            prependNode($tree, {
+                id,
+                name: model.get(nameField) ?? id,
+                scope: model.name,
+                disabled: false,
+                load_on_demand: false
+            }, null);
+        }
+
+        selectNode(id, []);
     }
 
     export function selectNode(id, ids) {
