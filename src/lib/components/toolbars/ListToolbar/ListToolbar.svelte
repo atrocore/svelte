@@ -14,6 +14,7 @@
     import FilterSearch from "$lib/components/searches/FilterSearch/FilterSearch.svelte";
     import SearchBar from "$lib/components/searches/SearchBar/SearchBar.svelte";
     import { Notifier } from "$lib/dom/notifier";
+    import EntityStatusIndicator from "$lib/components/EntityStatusIndicator/EntityStatusIndicator.svelte";
     import type Counter from "$lib/components/toolbars/ListToolbar/types/counter";
     import type MassAction from "$lib/components/toolbars/ListToolbar/types/mass-action";
 
@@ -42,11 +43,13 @@
     let refreshDisabled: boolean = false;
     let search: any;
     let filter: any;
+    let statusIndicator: EntityStatusIndicator;
 
     function onRefreshClick(): void {
         refreshDisabled = true;
         Notifier.notify(Language.translate('loading', 'messages'));
         searchManager.fetchCollection();
+        statusIndicator?.reload();
 
         window.Backbone.once('after:search', () => {
             Notifier.clearRegular();
@@ -118,6 +121,8 @@
     {#if !isRelationship}
         <div class="list-details">
             <slot></slot>
+
+            <EntityStatusIndicator {scope} bind:this={statusIndicator}/>
 
             {#if counters.length > 0}
                 <div class="counters-container">
