@@ -38,7 +38,7 @@
     onMount(load);
 </script>
 
-{#if status}
+{#if status && status.value}
     <span class="entity-status"
           class:style-success={status.style === 'success'}
           class:style-danger={status.style === 'danger'}

@@ -10,9 +10,8 @@
 
 type ListStatus = {
     label: string;
-    value: string;
-    style?: 'success' | 'danger' | 'warning' | 'info';
-    details?: string;
+    value: string | null;
+    style: 'success' | 'danger' | 'warning' | 'info';
 }
 
 export default ListStatus;
