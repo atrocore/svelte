@@ -30,14 +30,14 @@
 <div class="button-group {className}">
     {#each actions as action}
         {#if 'dropdownItems' in action && action.dropdownItems?.length}
-            <DropdownActionButton params={action} on:execute={executeAction}/>
+            <DropdownActionButton params={action} {entityName} on:execute={executeAction}/>
         {:else}
             <ActionButton params={action} entityName={entityName} on:execute={executeAction}/>
         {/if}
     {/each}
 
     <DropdownActionButton dropdownItems={dropdownActions} dynamicItems={dynamicActionsDropdown}
-                          loading={loadingActions} {hasMoreButton} {dropdownPosition}
+                          loading={loadingActions} {hasMoreButton} {dropdownPosition} {entityName}
                           on:execute={executeAction}/>
 
     <slot></slot>

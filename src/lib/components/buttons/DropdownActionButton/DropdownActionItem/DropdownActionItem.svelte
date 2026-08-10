@@ -17,9 +17,10 @@
 
     export let params: ActionButtonParams;
     export let className: string = '';
+    export let entityName: string = '';
 
     function runAction(e: Event) {
-        const el = e.target as HTMLElement;
+        const el = e.currentTarget as HTMLElement;
 
         dispatch('execute', {
             data: el.dataset,
@@ -31,5 +32,19 @@
 
 <a href="javascript:" class="action {className}" data-name={params.name} data-action={params.action || params.name}
    data-id={params.id} title={params.tooltip} on:click={runAction}>
-    {#if params.html}{@html params.html}{:else}{Language.translate(params.label ?? '')}{/if}
+    {#if params.html}
+        {@html params.html}
+    {:else}
+        {#if params.iconClass}
+            <i class="{params.iconClass} action-icon"></i>
+        {/if}
+        {Language.translate(params.label ?? params.name ?? '', 'labels', entityName)}
+    {/if}
 </a>
+
+<style>
+    .action-icon {
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+</style>

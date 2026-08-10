@@ -25,6 +25,7 @@
     export let hasMoreButton: boolean = false;
     export let dropdownPosition: string = 'left';
     export let className: string = '';
+    export let entityName: string = '';
 
     const dispatch = createEventDispatcher();
 
@@ -55,7 +56,7 @@
 
 {#if params && !params.hidden}
     <div class="btn-group">
-        <ActionButton params={params} {className} on:execute/>
+        <ActionButton params={params} {className} {entityName} on:execute/>
 
         <button class={toggleClasses} data-toggle="dropdown">
             <i class="ph ph-caret-down"></i>
@@ -64,7 +65,7 @@
         <ul class={menuClass}>
             {#each items as item}
                 <li data-name={item.name}>
-                    <DropdownActionItem params={item} on:execute={handleExecute}/>
+                    <DropdownActionItem params={item} {entityName} on:execute={handleExecute}/>
                 </li>
             {/each}
         </ul>
@@ -83,7 +84,7 @@
     <ul class={menuClass}>
         {#each items as item}
             <li>
-                <DropdownActionItem params={item} on:execute={handleExecute}/>
+                <DropdownActionItem params={item} {entityName} on:execute={handleExecute}/>
             </li>
         {/each}
 
@@ -99,7 +100,7 @@
 
         {#each dynamicItems as item}
             <li class="dynamic-action">
-                <DropdownActionItem params={item} on:execute={handleExecute}/>
+                <DropdownActionItem params={item} {entityName} on:execute={handleExecute}/>
             </li>
         {/each}
     </ul>
