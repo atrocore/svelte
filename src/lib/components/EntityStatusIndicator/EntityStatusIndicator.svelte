@@ -11,9 +11,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { ApiClient } from '$lib/core/api-client';
-    import { Language } from '$lib/core/language';
     import { Metadata } from '$lib/core/metadata';
-    import StatusDetailsModal from '$lib/components/EntityStatusIndicator/StatusDetailsModal/StatusDetailsModal.svelte';
     import type ListStatus from '$lib/components/EntityStatusIndicator/types/list-status';
 
     export let scope: string;
@@ -23,7 +21,6 @@
     }
 
     let status: ListStatus | null = null;
-    let showDetails: boolean = false;
 
     async function load(): Promise<void> {
         const url = scope ? Metadata.get(['clientDefs', scope, 'listStatus', 'url']) : null;
@@ -42,20 +39,13 @@
 </script>
 
 {#if status}
-    <span class="entity-status">
-        <span class="status-label">{status.label}</span>: <span
-            class="status-value style-{status.style ?? 'info'}">{status.value}</span>
-
-        {#if status.details}
-            <a href="javascript:" class="status-details" on:click={() => showDetails = true}>
-                {Language.translate('viewDetails')}
-            </a>
-        {/if}
+    <span class="entity-status"
+          class:style-success={status.style === 'success'}
+          class:style-danger={status.style === 'danger'}
+          class:style-warning={status.style === 'warning'}
+          class:style-info={!status.style || status.style === 'info'}>
+        <span class="status-label">{status.label}</span>: <span class="status-value">{status.value}</span>
     </span>
-{/if}
-
-{#if showDetails && status?.details}
-    <StatusDetailsModal header={status.label} details={status.details} onClose={() => showDetails = false}/>
 {/if}
 
 <style>
@@ -64,23 +54,19 @@
     }
 
     /* The shades are taken from stream/notes/composer-update.tpl and from the usage field optionColors */
-    .style-success {
+    .style-success .status-value {
         color: #08cc08;
     }
 
-    .style-danger {
+    .style-danger .status-value {
         color: #ff8080;
     }
 
-    .style-warning {
+    .style-warning .status-value {
         color: #ffbb3d;
     }
 
-    .style-info {
+    .style-info .status-value {
         color: #6fb8ff;
-    }
-
-    .status-details {
-        margin-left: 5px;
     }
 </style>
