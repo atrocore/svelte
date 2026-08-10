@@ -20,6 +20,7 @@ type ActionButtonParams = {
     disabled?: boolean;
     tooltip?: string;
     html?: string;
+    iconClass?: string;
     dropdown?: boolean;
 };
 

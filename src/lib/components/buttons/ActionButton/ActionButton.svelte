@@ -47,7 +47,17 @@
         {#if params.html}
             {@html params.html}
         {:else}
+            {#if params.iconClass}
+                <i class="{params.iconClass} action-icon"></i>
+            {/if}
             {Language.translate(params.label ?? params.name ?? '', 'labels', entityName)}
         {/if}
     </button>
 {/if}
+
+<style>
+    .action-icon {
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+</style>
