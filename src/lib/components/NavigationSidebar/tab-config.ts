@@ -12,6 +12,7 @@ import { Acl } from '$lib/core/acl';
 import { Language } from '$lib/core/language';
 import { LayoutManager } from '$lib/core/layout-manager';
 import { Metadata } from '$lib/core/metadata';
+import ClusterItemList from '$lib/components/ClusterItemList/ClusterItemList.svelte';
 import SelectionItemList from '$lib/components/SelectionItemList/SelectionItemList.svelte';
 import { getSystemIconUrl, getTabIcon } from '$lib/helpers/icon';
 import type { LeftSidebarContext } from '$lib/types/page/page-context';
@@ -49,8 +50,10 @@ type TabDefinition = {
     label: (name: string, pageScope: string, tabScope: string | null) => string;
     icon?: (tabScope: string | null) => string | null;
     isAllowed?: (tabScope: string | null) => boolean;
-    content: SidebarTabContent<TabContext>;
+    content: SidebarTabContent<TabContext> | ((pageScope: string) => SidebarTabContent<TabContext>);
 };
+
+const CLUSTER_SCOPE = 'Cluster';
 
 type TreeBehaviour = Partial<{
     recordScope: string | null;
@@ -99,6 +102,13 @@ const SELECTION_ITEMS: SidebarTabContent<TabContext> = {
     keepCollapsed: true
 };
 
+const CLUSTER_ITEMS: SidebarTabContent<TabContext> = {
+    component: ClusterItemList,
+    props: (tab, ctx) => ctx.sidebar.tabProps[tab.name] ?? { records: [], selectedIds: [] },
+    isVisible: (tab, ctx) => !!ctx.sidebar.tabProps[tab.name],
+    keepCollapsed: true
+};
+
 const TABS: Record<string, TabDefinition> = {
     [SELF_TAB]: {
         scope: (name, pageScope) => pageScope,
@@ -132,7 +142,7 @@ const TABS: Record<string, TabDefinition> = {
     [ITEMS_TAB]: {
         label: () => Language.get('Global', 'labels', 'Items') as string,
         icon: () => getSystemIconUrl('copy'),
-        content: SELECTION_ITEMS
+        content: pageScope => pageScope === CLUSTER_SCOPE ? CLUSTER_ITEMS : SELECTION_ITEMS
     }
 };
 
@@ -192,6 +202,6 @@ function buildTab(name: string, pageScope: string): Tab | null {
         name,
         label: definition.label(name, pageScope, tabScope),
         iconUrl: definition.icon ? definition.icon(tabScope) : (tabScope ? getTabIcon(tabScope) : null),
-        content: definition.content
+        content: typeof definition.content === 'function' ? definition.content(pageScope) : definition.content
     };
 }
