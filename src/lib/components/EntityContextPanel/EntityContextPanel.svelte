@@ -353,8 +353,15 @@
         margin-top: 5px;
     }
 
+    :global(.right-side-view .panel-heading .panel-title .panel-title-text) {
+        flex-direction: row-reverse;
+    }
+
     :global(.right-side-view .panel-heading .panel-title .collapser) {
-        display: none;
+        margin-inline-start: 8px;
+        margin-inline-end: -2px;
+        transform: scaleX(-1);
+        font-size: 11px;
     }
 
     :global(.dropdown-menu.textcomplete-dropdown) {
