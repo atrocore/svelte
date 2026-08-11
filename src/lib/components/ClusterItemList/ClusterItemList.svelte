@@ -290,7 +290,7 @@
     }
 
     .label-badge i {
-        margin-inline-end: 4px;
+        margin-inline-end: 8px;
         font-size: 12px;
         margin-inline-start: -2px;
     }
