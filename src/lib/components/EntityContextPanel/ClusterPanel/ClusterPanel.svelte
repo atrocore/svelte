@@ -337,7 +337,6 @@
     .label-badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 4px 10px;
         background: #e8eced;
         cursor: pointer;
@@ -358,7 +357,9 @@
     }
 
     .label-badge i {
-        font-size: 12px;
+        font-size: 11px;
+        margin-inline-start: 8px;
+        margin-inline-end: -2px;
     }
 
     .count-badge {
