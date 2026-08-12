@@ -98,7 +98,7 @@
         </div>
     </div>
     <div class="panel-body">
-        <div class="form-group"><h3>System is updating...</h3>
+        <div class="form-group"><h3>Applying system changes...</h3>
             <section class="progress-section">
                 <SpinnerIcon size={40} thickness={5}/>
                 <h5>{lastLine}</h5>
