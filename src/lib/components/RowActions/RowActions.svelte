@@ -98,7 +98,7 @@
             <a
                 href={action.link ?? '/'}
                 class="action quick-action"
-                data-action={action.name}
+                data-action={action.dataAction ?? action.name}
                 title={Language.translate(action.label ?? '')}
                 class:disabled={action.disabled}
                 class:always-visible={action.alwaysVisible}
@@ -118,7 +118,7 @@
                         <a
                             href={action.link ?? '/'}
                             class="action"
-                            data-action={action.name}
+                            data-action={action.dataAction ?? action.name}
                             class:disabled={action.disabled}
                             {...dataAttrs(action.data)}
                             on:click={(e) => handleAction(e, action)}

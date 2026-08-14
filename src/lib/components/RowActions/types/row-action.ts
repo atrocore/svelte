@@ -10,6 +10,7 @@
 
 type RowAction = {
     name: string;
+    dataAction?: string;
     label?: string;
     html?: string;
     iconClass?: string;
