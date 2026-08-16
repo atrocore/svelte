@@ -1055,11 +1055,33 @@
     }
 
     function setInitialOpenState(list) {
-        list.forEach(item => {
+        const currentRecordId = mode === 'detail' ? model?.get('id') ?? null : null;
+        const targetIds = new Set(selectedNodes.filter(n => n.link === link).map(n => n.id));
+        if (currentRecordId) {
+            targetIds.add(currentRecordId);
+        }
+
+        const openIds = new Set();
+        collectOpenIds(list, [], targetIds, openIds);
+        applyOpenState(list, openIds);
+    }
+
+    function collectOpenIds(items, ancestorIds, targetIds, openIds) {
+        items.forEach(item => {
+            if (targetIds.has(item.id)) {
+                ancestorIds.forEach(id => openIds.add(id));
+            }
             if (item.children && item.children.length > 0) {
-                const hasGrandchildren = item.children.some(child => child.children && child.children.length > 0);
-                item.is_open = hasGrandchildren;
-                setInitialOpenState(item.children);
+                collectOpenIds(item.children, [...ancestorIds, item.id], targetIds, openIds);
+            }
+        });
+    }
+
+    function applyOpenState(items, openIds) {
+        items.forEach(item => {
+            if (item.children && item.children.length > 0) {
+                item.is_open = openIds.has(item.id);
+                applyOpenState(item.children, openIds);
             }
         });
     }
