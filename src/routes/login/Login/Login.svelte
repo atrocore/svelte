@@ -17,6 +17,7 @@
     import { getOidcLoginUrl } from "./utils/sso";
     import { ApiError } from "$lib/core/api-client";
     import { Notifier } from "$lib/dom/notifier";
+    import { UserData } from "$lib/core/user-data";
 
     export let onLogin: (data: any) => void = () => {};
     export let onForgotPassword: () => void = () => {};
@@ -105,6 +106,8 @@
 
         try {
             const data = await login(username, password);
+
+            UserData.set(data);
 
             onLogin({
                 auth: {
