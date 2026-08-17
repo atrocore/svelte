@@ -1449,7 +1449,8 @@
         background-color: var(--sidebar-color);
         margin-top: 10px;
         padding-top: 10px;
-        padding-bottom: 10px;
+        padding-bottom: 20px;
+        margin-bottom: -20px;
         position: sticky;
         bottom: 0;
         left: 0;
