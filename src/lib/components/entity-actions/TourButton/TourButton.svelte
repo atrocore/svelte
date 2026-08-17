@@ -37,7 +37,7 @@
         const tourData = Metadata.get(['tourData', scope, mode]);
 
         if (tourData) {
-            const language = UserData.get()?.preferences.language ?? 'en_US';
+            const language = UserData.get()?.preferences?.language ?? 'en_US';
 
             Object.entries(tourData).forEach(([selector, value]: [string, any]) => {
                 if (!('description' in value)) {
