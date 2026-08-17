@@ -65,6 +65,7 @@
     let mounted = false;
     let selectedNodes: SelectedNode[] = [];
     let updatingFromTree = false;
+    let skipTreeRebuild = false;
 
     let tabContext: TabContext | null = null;
 
@@ -84,6 +85,11 @@
     export function handleCollectionSearch(searchedCollection) {
         if (collection && searchedCollection.name === scope) {
             saveTreeFilter(scope, searchedCollection.where)
+        }
+
+        if (skipTreeRebuild) {
+            skipTreeRebuild = false;
+            return;
         }
 
         rebuildTree()
@@ -142,6 +148,7 @@
     }
 
     function toggleSelectedNode(node: Omit<SelectedNode, 'icon'>): void {
+        skipTreeRebuild = true;
         const existing = selectedNodes.find(n => n.link === node.link);
         if (existing?.id === node.id) {
             setSelectedNodes(selectedNodes.filter(n => n.link !== node.link));
@@ -152,6 +159,9 @@
     }
 
     function removeSelectedNode(id: string, link: string): void {
+        if (link === activeTab?.name) {
+            skipTreeRebuild = true;
+        }
         setSelectedNodes(selectedNodes.filter(n => n.link !== link));
     }
 
