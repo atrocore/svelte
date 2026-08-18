@@ -28,8 +28,8 @@
                 <button class="badge-remove ph ph-x" on:click={() => onRemove(node.id, node.link)}></button>
             </span>
         {/each}
+        <button class="secondary unset-all" on:click={onUnsetAll}>{Language.translate('Unset All')}</button>
     </div>
-    <button class="secondary unset-all" on:click={onUnsetAll}>{Language.translate('Unset All')}</button>
 {/if}
 
 <style>
@@ -38,7 +38,8 @@
         bottom: 0;
         z-index: 10;
         background: var(--sidebar-color);
-        padding: 10px 0 0;
+        padding: 10px 0 20px;
+        margin-bottom: -20px;
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
@@ -66,7 +67,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        line-height: 1;
     }
 
     .badge-remove {
@@ -85,7 +85,6 @@
     }
 
     .unset-all {
-        margin-top: 10px;
         width: 100%;
         font-size: 12px;
         padding-top: 2px;

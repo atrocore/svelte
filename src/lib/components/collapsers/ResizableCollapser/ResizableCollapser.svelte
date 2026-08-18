@@ -218,6 +218,7 @@
         overflow-y: auto;
         overflow-x: clip;
         position: relative;
+        scrollbar-width: thin;
     }
 
     .sidebar.sidebar-left {
@@ -232,6 +233,10 @@
     .sidebar.sidebar-right {
         flex-direction: row-reverse;
         border-left: 1px solid #e8eced;
+    }
+
+    .sidebar.sidebar-right:not(.collapsed) {
+        scrollbar-gutter: stable;
     }
 
     .sidebar.sidebar-right:not(.pinned):not(.collapsed) {
@@ -317,7 +322,7 @@
     .sidebar > .sidebar-inner {
         background-color: var(--sidebar-color);
         flex: 1;
-        padding: 25px 20px;
+        padding: 25px 20px 20px;
         height: fit-content;
         min-height: 100%;
         max-width: calc(100% - 22px);
@@ -330,6 +335,7 @@
 
     .sidebar.sidebar-right > .sidebar-inner {
         padding-left: 3px;
+        padding-right: 15px;
     }
 
     .sidebar > .sidebar-resizer {
