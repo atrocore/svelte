@@ -30,8 +30,6 @@
         </button>
     </div>
 
-<!--    <div class="divider"></div>-->
-
     <div class="actions">
         <button type="button" class="small" on:click={onSaveAll}>
             <i class="ph ph-check"></i>
