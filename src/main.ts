@@ -66,6 +66,7 @@ import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemLi
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
 import DynamicExportModal from "$lib/components/modals/DynamicExportModal/DynamicExportModal.svelte";
+import InlineEditMultiToolbar from "$lib/components/InlineEditMultiToolbar/InlineEditMultiToolbar.svelte";
 
 declare global {
     interface Window {
@@ -140,5 +141,6 @@ export {
     SelectionItemList,
     ClusterItemList,
     RowActions,
-    DynamicExportModal
+    DynamicExportModal,
+    InlineEditMultiToolbar
 };
