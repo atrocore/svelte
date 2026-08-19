@@ -69,6 +69,8 @@
         align-items: center;
         gap: 10px;
         padding: 5px;
+        max-width: calc(100vw - 20px);
+        box-sizing: border-box;
         background: rgb(218 233 247 / 90%);
         border: 1px solid #8cc7ff;
         border-radius: 8px;
@@ -85,6 +87,8 @@
         font-size: 12px;
         font-weight: 500;
         color: #333;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .actions {
@@ -105,5 +109,15 @@
     .actions button.saving {
         opacity: .5;
         cursor: default;
+    }
+
+    @media (max-width: 480px) {
+        .actions button i {
+            margin-inline-end: 0;
+        }
+
+        .actions button span {
+            display: none;
+        }
     }
 </style>
