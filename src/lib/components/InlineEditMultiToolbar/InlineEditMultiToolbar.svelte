@@ -13,6 +13,7 @@
 
     export let current: number = 1;
     export let total: number = 0;
+    export let saving: boolean = false;
     export let onPrev: () => void;
     export let onNext: () => void;
     export let onSaveAll: () => void;
@@ -31,14 +32,20 @@
     </div>
 
     <div class="actions">
-        <button type="button" class="small" on:click={onSaveAll}>
-            <i class="ph ph-check"></i>
-            <span>{Language.translate('Save')}</span>
-        </button>
-        <button type="button" class="small" on:click={onCancelAll}>
-            <i class="ph ph-x"></i>
-            <span>{Language.translate('Cancel')}</span>
-        </button>
+        {#if saving}
+            <button type="button" class="small saving" disabled>
+                <i class="ph ph-circle-notch ph-spin"></i>
+            </button>
+        {:else}
+            <button type="button" class="small" on:click={onSaveAll}>
+                <i class="ph ph-check"></i>
+                <span>{Language.translate('Save')}</span>
+            </button>
+            <button type="button" class="small" on:click={onCancelAll}>
+                <i class="ph ph-x"></i>
+                <span>{Language.translate('Cancel')}</span>
+            </button>
+        {/if}
     </div>
 </div>
 
@@ -93,5 +100,10 @@
         display: flex;
         padding-left: 12px;
         padding-right: 12px;
+    }
+
+    .actions button.saving {
+        opacity: .5;
+        cursor: default;
     }
 </style>
