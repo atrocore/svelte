@@ -47,14 +47,7 @@
 </div>
 
 <style>
-    :global(#main main > .list-pagination-container) {
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        top: auto;
-        z-index: 10;
-        flex-shrink: 0;
+    :global(.list-page-body > .list-pagination-container) {
         background-color: #fafafa;
         padding: 10px 20px;
         border-top: 1px solid var(--primary-border-color);
