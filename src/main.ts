@@ -51,7 +51,6 @@ import EntityContextPanel from "$lib/components/EntityContextPanel/EntityContext
 import BaseHeader from "$lib/components/headers/BaseHeader/BaseHeader.svelte";
 import ListHeader from "$lib/components/headers/ListHeader/ListHeader.svelte";
 import ListToolbar from "$lib/components/toolbars/ListToolbar/ListToolbar.svelte";
-import PlateToolbar from "$lib/components/toolbars/PlateToolbar/PlateToolbar.svelte";
 import DetailHeader from "$lib/components/headers/DetailHeader/DetailHeader.svelte";
 import Gallery from "$lib/components/Gallery/Gallery.svelte";
 import FilterSearchBar from "$lib/components/searches/FilterSearchBar/FilterSearchBar.svelte";
@@ -67,6 +66,8 @@ import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.sve
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
 import DynamicExportModal from "$lib/components/modals/DynamicExportModal/DynamicExportModal.svelte";
 import InlineEditMultiToolbar from "$lib/components/InlineEditMultiToolbar/InlineEditMultiToolbar.svelte";
+import PaginationToolbar from "$lib/components/toolbars/PaginationToolbar/PaginationToolbar.svelte";
+import ShowMoreButton from "$lib/components/ShowMoreButton/ShowMoreButton.svelte";
 
 declare global {
     interface Window {
@@ -126,7 +127,6 @@ export {
     BaseHeader,
     ListHeader,
     ListToolbar,
-    PlateToolbar,
     DetailHeader,
     DashboardHeader,
     FilterSearchBar,
@@ -142,5 +142,7 @@ export {
     ClusterItemList,
     RowActions,
     DynamicExportModal,
-    InlineEditMultiToolbar
+    InlineEditMultiToolbar,
+    PaginationToolbar,
+    ShowMoreButton
 };
