@@ -10,7 +10,6 @@
 
 <script lang="ts">
     import Pagination from "$lib/components/Pagination/Pagination.svelte";
-    import ShowMoreButton from "$lib/components/ShowMoreButton/ShowMoreButton.svelte";
     import ToolbarControl from "./ToolbarControl/ToolbarControl.svelte";
     import type ToolbarControlDef from "./types/toolbar-control";
 
@@ -19,24 +18,15 @@
     export let onPageChange: (page: number) => void = () => {
     };
 
-    export let showMoreVisible: boolean = false;
-    export let showMoreLabel: string = 'Show more';
-    export let showMoreLoading: boolean = false;
-    export let onShowMore: () => void = () => {
-    };
-
     export let controls: ToolbarControlDef[] = [];
 </script>
 
 <div class="pagination-toolbar">
-    <div class="pagination-toolbar__pagination">
+    <div class="pagination-container">
         <Pagination {currentPage} {totalPages} {onPageChange} />
     </div>
-    <div class="pagination-toolbar__show-more">
-<!--        <ShowMoreButton visible={showMoreVisible} label={showMoreLabel} loading={showMoreLoading} onClick={onShowMore} />-->
-    </div>
     {#if controls.length}
-        <div class="pagination-toolbar__controls">
+        <div class="controls">
             {#each controls as control (control.key)}
                 <ToolbarControl iconClass={control.iconClass} iconTitle={control.iconTitle} iconClickable={!!control.iconClickable}
                                 onIconClick={control.onIconClick} value={control.value} options={control.options}
@@ -47,7 +37,12 @@
 </div>
 
 <style>
-    :global(.list-page-body > .list-pagination-container) {
+    :global(.list-pagination-container) {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
         background-color: #fafafa;
         padding: 10px 20px;
         border-top: 1px solid var(--primary-border-color);
@@ -55,21 +50,34 @@
     }
 
     .pagination-toolbar {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        display: flex;
         align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
         min-height: 32px;
     }
 
-    .pagination-toolbar__show-more {
-        justify-self: center;
-    }
-
-    .pagination-toolbar__controls {
-        justify-self: end;
+    .controls {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .pagination-toolbar {
+            justify-content: center;
+        }
+
+        .pagination-container {
+            display: flex;
+        }
+
+        .pagination-container,
+        .controls {
+            flex-basis: 100%;
+            justify-content: center;
+        }
     }
 </style>
