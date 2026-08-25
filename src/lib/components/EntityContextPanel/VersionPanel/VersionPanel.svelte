@@ -57,6 +57,17 @@
         window.dispatchEvent(new CustomEvent('versioning:compare', {detail: {scope, entityId, versionName}}));
     }
 
+    async function restoreVersion(versionName: string) {
+        try {
+            Notifier.notify(Language.translate('pleaseWait', 'messages'));
+            await ApiClient.post('/restoreVersion', {entityName: scope, targetId: entityId, versionName});
+            window.dispatchEvent(new CustomEvent('versioning:restored', {detail: {scope, entityId, versionName}}));
+            Notifier.notify(Language.translate('Done'), 'success');
+        } catch {
+            Notifier.notify('Error occurred', 'error');
+        }
+    }
+
     function formatDate(dateStr: string): string {
         if (!dateStr) return '';
         try {
@@ -119,6 +130,13 @@
                                     {Language.translate('Compare')}
                                 </a>
                             </li>
+                            {#if scope === 'File'}
+                                <li>
+                                    <a href="javascript:" on:click={() => restoreVersion(version.name)}>
+                                        {Language.translate('restoreVersion', 'labels')}
+                                    </a>
+                                </li>
+                            {/if}
                             <li role="separator" class="divider"></li>
                             <li>
                                 <a href="javascript:" class="text-danger" on:click={() => deleteVersion(version.name)}>
