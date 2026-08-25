@@ -16,12 +16,15 @@
     };
 
     function handleClick() {
+        if (loading) {
+            return;
+        }
         onClick();
     }
 </script>
 
 {#if visible}
-    <div class="show-more" on:click={handleClick}>
+    <div class="show-more" class:loading on:click={handleClick}>
         <i class="ph ph-arrows-clockwise" class:ph-spin={loading}></i>
         <span>{label}</span>
     </div>
@@ -42,11 +45,16 @@
         gap: 5px;
     }
 
+    .show-more.loading {
+        cursor: default;
+        opacity: 0.6;
+    }
+
     .show-more i {
         font-size: 18px;
     }
 
-    .show-more:hover {
+    .show-more:not(.loading):hover {
         background-color: var(--hover-color, rgba(0, 0, 0, 0.03));
     }
 </style>
