@@ -9,8 +9,6 @@
 -->
 
 <script lang="ts">
-    import { tick } from 'svelte';
-
     export let currentPage: number = 1;
     export let totalPages: number = 1;
     export let siblingCount: number = 1;
@@ -59,13 +57,10 @@
         return items;
     }
 
-    let pendingFocus = false;
-
     function goTo(page: number): void {
         if (page < 1 || page > totalPages || page === currentPage) {
             return;
         }
-        pendingFocus = true;
         onPageChange(page);
     }
 
@@ -73,20 +68,9 @@
 
     let pageInputEl: HTMLInputElement;
     let pageInputValue = String(currentPage);
-    let previousPage = currentPage;
 
     $: if (document.activeElement !== pageInputEl) {
         pageInputValue = String(currentPage);
-    }
-
-    $: if (currentPage !== previousPage) {
-        previousPage = currentPage;
-        if (pendingFocus) {
-            pendingFocus = false;
-            tick().then(() => {
-                pageInputEl?.focus();
-            });
-        }
     }
 
     function handlePageInput(e: Event): void {
