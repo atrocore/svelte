@@ -19,11 +19,12 @@
     export let totalPages: number = 1;
     export let onPageChange: (page: number) => void = () => {
     };
+    export let showPagination: boolean = true;
 
     export let controls: ToolbarControlDef[] = [];
 
     export let onShowMore: (() => void) | null = null;
-    export let showMoreCount: number = 0;
+    export let showMoreLabel: string = '';
     export let showMoreLoading: boolean = false;
 
     export let scope: string = '';
@@ -31,7 +32,6 @@
     export let massActionStyle: string = '';
     export let selected: string[] | boolean = false;
     export let hasSelectAllCheckbox: boolean = false;
-    export let isRelationship: boolean = false;
     export let executeMassAction = (action: string, id?: Record<string, any>): void => {
     };
     export let handleSelectAll = (e: Event): void => {
@@ -51,11 +51,12 @@
         handleSelectAll(e);
     }
 
-    $: canShowAction = massActions.length > 0 && (isRelationship ? (typeof selected === 'boolean' ? selected : selected.length > 0) : true);
+    $: canShowAction = massActions.length > 0;
 </script>
 
 <div class="pagination-toolbar">
     <div class="left-group">
+        {#if hasSelectAllCheckbox || canShowAction}
         <div class="mass-actions">
             {#if hasSelectAllCheckbox}
                 <div class="select-all-container">
@@ -86,6 +87,7 @@
                 </div>
             {/if}
         </div>
+        {/if}
         <div class="controls">
             {#each controls as control (control.key)}
                 <ToolbarControl iconClass={control.iconClass} iconTitle={control.iconTitle} iconClickable={!!control.iconClickable}
@@ -95,11 +97,13 @@
         </div>
     </div>
     {#if onShowMore}
-        <button type="button" class="primary outline" on:click={onShowMore}>{#if !showMoreLoading}<i class="ph ph-arrow-down"></i>{:else}<i class="ph ph-circle-notch ph-spin"></i>{/if}<span>{showMoreCount}</span></button>
+        <button type="button" disabled={showMoreLoading} on:click={onShowMore}>{#if !showMoreLoading}<i class="ph ph-arrow-down"></i>{:else}<i class="ph ph-circle-notch ph-spin"></i>{/if}<span>{showMoreLabel}</span></button>
     {/if}
-    <div class="pagination-container">
-        <Pagination {currentPage} {totalPages} {onPageChange} />
-    </div>
+    {#if showPagination}
+        <div class="pagination-container">
+            <Pagination {currentPage} {totalPages} {onPageChange} />
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -114,6 +118,27 @@
         border-top: 1px solid var(--primary-border-color);
         box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
     }
+
+    :global(.list-pagination-container.relationship-pagination-container) {
+        position: static;
+        z-index: auto;
+        box-shadow: none;
+        background-color: #fff;
+        padding-right: 10px;
+        border-top: 1px solid var(--secondary-border-color);
+        padding-top: 8px;
+        padding-bottom: 5px;
+    }
+
+    /*:global(.list-pagination-container.relationship-pagination-container button) {*/
+    /*    font-size: 12px;*/
+    /*    line-height: 14px;*/
+    /*    padding: 4px 8px;*/
+    /*}*/
+
+    /*:global(.list-pagination-container.relationship-pagination-container button i) {*/
+    /*    font-size: 14px;*/
+    /*}*/
 
     .pagination-toolbar {
         display: flex;
