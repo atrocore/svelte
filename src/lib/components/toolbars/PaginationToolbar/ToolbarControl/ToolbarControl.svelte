@@ -53,13 +53,13 @@
 <div class="toolbar-control" bind:this={rootEl}>
     <div class="button-group" class:open>
         {#if iconClickable}
-            <button type="button" class="small" title={iconTitle} on:click={onIconClick}>
+            <button type="button" title={iconTitle} on:click={onIconClick}>
                 <i class="{iconClass}"></i>
             </button>
         {/if}
 
         {#if options && options.length}
-            <button type="button" class="small" data-toggle="dropdown" on:click={toggle} title={iconTitle}>
+            <button type="button" class="last" data-toggle="dropdown" on:click={toggle} title={iconTitle}>
                 {#if !iconClickable}
                     <i class="{iconClass}"></i>
                 {/if}
@@ -82,11 +82,5 @@
     .toolbar-control {
         position: relative;
         font-size: 12px;
-    }
-
-    .dropdown-menu li a {
-        padding: 5px 15px;
-        font-size: 12px;
-        line-height: 16px;
     }
 </style>

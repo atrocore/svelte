@@ -101,7 +101,7 @@
 </script>
 
 {#if totalPages > 1}
-    <nav class="pagination-nav" aria-label="Pagination" style="--page-cell-width: calc({String(totalPages).length}ch + 22px)">
+    <nav class="pagination-nav" aria-label="Pagination" style="--page-cell-width: calc({String(totalPages).length}ch + 23px)">
         {#each items as item (item)}
             {#if item === 'left-ellipsis' || item === 'right-ellipsis'}
                 <span class="page-ellipsis">…</span>
@@ -118,7 +118,7 @@
                     on:keydown={handlePageInputKeydown}
                 />
             {:else}
-                <button type="button" class="small page-btn" on:click={() => goTo(item)}>
+                <button type="button" class="page-btn" on:click={() => goTo(item)}>
                     {item}
                 </button>
             {/if}
@@ -150,9 +150,9 @@
         background: var(--primary-color);
         color: #06c;
         outline: none;
-        font-size: 12px;
-        line-height: 14px;
-        padding: 4px;
+        font-size: 14px;
+        line-height: 16px;
+        padding: 6px;
     }
 
     .page-input:hover, .page-input:focus {
