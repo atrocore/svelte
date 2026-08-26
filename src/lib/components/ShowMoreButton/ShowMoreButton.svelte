@@ -33,7 +33,7 @@
 <style>
     .show-more {
         width: 100%;
-        padding: 8px;
+        padding: 10px;
         border-top: 1px solid var(--secondary-border-color);
         text-align: center;
         color: #06C;
@@ -42,13 +42,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 10px;
         font-weight: 500;
         background: #F0F6FC;
-        /*border-top: 1px solid rgba(0, 102, 204, 0.25);*/
-        /*border-top: 1px solid var(--secondary-border-color);*/
-        /*border-bottom: 1px solid rgba(0, 102, 204, 0.25);*/
-        /*background: rgba(0, 102, 204, 0.04);*/
+        border-top: 1px solid var(--secondary-border-color);
+        margin-top: 10px;
     }
 
     .show-more.loading {

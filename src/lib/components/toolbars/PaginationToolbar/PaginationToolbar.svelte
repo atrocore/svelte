@@ -130,16 +130,6 @@
         padding-bottom: 5px;
     }
 
-    /*:global(.list-pagination-container.relationship-pagination-container button) {*/
-    /*    font-size: 12px;*/
-    /*    line-height: 14px;*/
-    /*    padding: 4px 8px;*/
-    /*}*/
-
-    /*:global(.list-pagination-container.relationship-pagination-container button i) {*/
-    /*    font-size: 14px;*/
-    /*}*/
-
     .pagination-toolbar {
         display: flex;
         align-items: center;
