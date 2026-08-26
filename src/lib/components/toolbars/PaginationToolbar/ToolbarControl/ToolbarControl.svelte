@@ -16,7 +16,7 @@
     };
 
     export let value: string;
-    export let options: { value: any; label: string }[] | null = null;
+    export let options: { value: any; label: string; hidden?: boolean; group?: string; disabled?: boolean; onClick?: () => void }[] | null = null;
     export let onSelect: (value: any) => void = () => {
     };
 
@@ -25,20 +25,41 @@
     let valueLabel: string | undefined;
 
     $: valueLabel = options?.find(o => o.value === value)?.label ?? value;
+    $: visibleOptions = (options ?? []).filter(o => !o.hidden);
+    $: visibleOptionsWithLayout = (() => {
+        let lastGroup: string | undefined;
+        let isFirst = true;
+        return visibleOptions.map(option => {
+            const isNewGroup = option.group !== lastGroup;
+            const showDivider = isNewGroup && !isFirst;
+            const showGroupHeader = isNewGroup && !!option.group;
+            lastGroup = option.group;
+            isFirst = false;
+            return {option, showDivider, showGroupHeader};
+        });
+    })();
 
-    function toggle(): void {
-        if (!options || !options.length) {
-            return;
-        }
-        open = !open;
+    function isOptionDisabled(option: { value: any; disabled?: boolean }): boolean {
+        return !!option.disabled || String(option.value) === String(value);
     }
 
-    function select(optionValue: any): void {
-        if (String(optionValue) === String(value)) {
+    function select(option: { value: any; disabled?: boolean; onClick?: () => void }): void {
+        if (isOptionDisabled(option)) {
             return;
         }
         open = false;
-        onSelect(optionValue);
+        if (option.onClick) {
+            option.onClick();
+        } else {
+            onSelect(option.value);
+        }
+    }
+
+    function toggle(): void {
+        if (!visibleOptions.length) {
+            return;
+        }
+        open = !open;
     }
 
     function handleWindowClick(e: MouseEvent): void {
@@ -58,22 +79,28 @@
             </button>
         {/if}
 
-        {#if options && options.length}
+        {#if visibleOptions.length}
             <button type="button" class="last" data-toggle="dropdown" on:click={toggle} title={iconTitle}>
                 {#if !iconClickable}
                     <i class="{iconClass}"></i>
                 {/if}
-                <span>{valueLabel}</span>
+                <span>{@html valueLabel}</span>
             </button>
             <ul class="dropdown-menu">
-                {#each options as option (option.value)}
-                    <li class:disabled={String(option.value) === String(value)}>
-                        <a href="javascript:" on:click|preventDefault={() => select(option.value)}>{option.label}</a>
+                {#each visibleOptionsWithLayout as { option, showDivider, showGroupHeader } (option.value)}
+                    {#if showDivider}
+                        <li class="divider"></li>
+                    {/if}
+                    {#if showGroupHeader}
+                        <li class="dropdown-header">{option.group}</li>
+                    {/if}
+                    <li class:disabled={isOptionDisabled(option)}>
+                        <a href="javascript:" on:click|preventDefault={() => select(option)}>{@html option.label}</a>
                     </li>
                 {/each}
             </ul>
         {:else}
-            <span class="control-value">{valueLabel}</span>
+            <span class="control-value">{@html valueLabel}</span>
         {/if}
     </div>
 </div>

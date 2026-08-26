@@ -1,6 +1,10 @@
 type ToolbarControlOption = {
     value: any;
     label: string;
+    hidden?: boolean;
+    group?: string;
+    disabled?: boolean;
+    onClick?: () => void;
 };
 
 type ToolbarControlDef = {
