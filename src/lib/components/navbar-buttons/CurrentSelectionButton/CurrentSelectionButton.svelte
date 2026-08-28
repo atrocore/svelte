@@ -22,6 +22,7 @@
 
     let badgeComponent: PopoverButton;
     let panelComponent: CurrentSelectionPanel;
+    let total = 0;
 
     export function handleSelectionChange(): void {
         if (panelComponent) {
@@ -35,9 +36,11 @@
         title={Language.translate('currentSelection')}
         iconClass="ph ph-basket"
 >
+    <span slot="badge-indicator" class={"badge number-badge " + (total > 0 ? '' : 'hidden')}>{total}</span>
     <svelte:fragment slot="panel" let:isOpen let:iconElement let:close>
         <CurrentSelectionPanel
                 bind:this={panelComponent}
+                bind:total
                 icon={iconElement}
                 {isOpen}
                 {close}
@@ -48,3 +51,16 @@
         />
     </svelte:fragment>
 </PopoverButton>
+
+<style>
+    .number-badge {
+        position: absolute;
+        top: 3px;
+        left: 24px;
+        z-index: 10;
+        font-size: 9px;
+        padding: 2px 5px;
+        background-color: #ef990e;
+        color: #fff;
+    }
+</style>
