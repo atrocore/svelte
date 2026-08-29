@@ -180,45 +180,44 @@
         panelClass="current-selection-panel-container"
         {width}
 >
-    <div slot="actions" class="action-buttons">
-        {#if currentSelectionId}
-            <ActionButton
-                    params={{
-                    name: 'standard',
-                    html: `<i class="ph ph-list"></i> ${Language.translate('Standard')}`,
-                    hidden: false,
-                    className:"action"
-                }}
-
-                    on:execute={() => openView('standard')}
-            />
-        {/if}
-        {#if isComparable}
-            <ActionButton
-                    params={{
-                    name: 'compare',
-                    html: `<i class="ph ph-arrows-left-right"></i> ${Language.translate('Compare')}`,
-                    hidden: false,
-                    className:"action primary"
-                }}
-                    on:execute={() => openView('compare')}
-            />
-        {/if}
-        {#if isMergeable}
-            <ActionButton
-                    params={{
-                    name: 'merge',
-                    html: `<i class="ph ph-arrows-merge"></i> ${Language.translate('Merge')}`,
-                    hidden: false
-                }}
-                    className="action"
-                    on:execute={() => openView('merge')}
-            />
-        {/if}
-    </div>
-
     <div class="current-selection cell">
         <div class="field" bind:this={linkFieldContainer}></div>
+        <div class="action-buttons">
+            {#if currentSelectionId}
+                <ActionButton
+                        params={{
+                        name: 'standard',
+                        html: '<i class="ph ph-list"></i>',
+                        hidden: false,
+                        className:"action"
+                    }}
+
+                        on:execute={() => openView('standard')}
+                />
+            {/if}
+            {#if isComparable}
+                <ActionButton
+                        params={{
+                        name: 'compare',
+                        html: '<i class="ph ph-arrows-left-right"></i>',
+                        hidden: false,
+                        className:"action primary"
+                    }}
+                        on:execute={() => openView('compare')}
+                />
+            {/if}
+            {#if isMergeable}
+                <ActionButton
+                        params={{
+                        name: 'merge',
+                        html: '<i class="ph ph-arrows-merge"></i>',
+                        hidden: false
+                    }}
+                        className="action"
+                        on:execute={() => openView('merge')}
+                />
+            {/if}
+        </div>
     </div>
 
     {#if loadingGroups}
@@ -275,16 +274,30 @@
 </PopoverButtonPanel>
 
 <style>
+    .current-selection {
+        padding: 10px 15px 10px 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .current-selection .field {
+        flex: 1;
+        min-width: 0;
+    }
+
     .action-buttons {
-        padding: 10px 20px;
+        display: flex;
+        flex-shrink: 0;
+        margin-left: auto;
     }
 
     .action-buttons :global(button) {
         margin-right: 5px;
     }
 
-    .current-selection {
-        padding: 10px 20px 20px 20px;
+    .action-buttons :global(button:last-child) {
+        margin-right: 0;
     }
 
     .loading-message {
