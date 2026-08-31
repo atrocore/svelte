@@ -85,11 +85,27 @@ export const Notifier = {
         }
 
         if (closeButton) {
+            if (regularToasts.length + stickyToasts.length > 1) {
+                const closeAllBtn = document.createElement('span');
+                closeAllBtn.className = 'toast-close-all-btn';
+                closeAllBtn.title = 'Close all';
+                closeAllBtn.innerHTML = '<i class="ph ph-square"></i><i class="ph ph-x-square"></i>';
+                closeAllBtn.addEventListener('click', () => this.closeAll());
+                el.appendChild(closeAllBtn);
+            }
+
             const btn = document.createElement('i');
             btn.className = 'ph ph-x toast-close-btn';
             btn.addEventListener('click', () => toast.hideToast());
             el.appendChild(btn);
         }
+    },
+
+    closeAll(): void {
+        regularToasts.forEach(t => t.hideToast());
+        regularToasts.length = 0;
+        stickyToasts.forEach(t => t.hideToast());
+        stickyToasts.length = 0;
     },
 
     clearRegular(): void {
