@@ -151,11 +151,14 @@ export default class Floating {
             positionOptions.middleware.push(size({
                 apply({availableWidth, availableHeight, elements}) {
                     Object.assign(elements.floating.style, {
-                        maxWidth: `${Math.max(0, availableWidth)}px`,
-                        maxHeight: `${Math.max(0, availableHeight)}px`,
+                        maxWidth: `${Math.max(0, availableWidth - 10)}px`,
+                        maxHeight: `${Math.max(0, availableHeight - 10)}px`,
                     });
                 },
             }));
+
+            this.floatingEl.style.maxWidth = '';
+            this.floatingEl.style.maxHeight = '';
 
             computePosition(this.referenceEl, this.floatingEl, positionOptions).then(({x, y}) => {
                 const options: Record<string, any> = {
