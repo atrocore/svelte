@@ -9,6 +9,7 @@
 -->
 
 <script lang="ts">
+    import { onMount, onDestroy, tick } from 'svelte';
     import { createEventDispatcher } from 'svelte';
     import { Language } from '$lib/core/language';
     import type { FieldFetchResult } from '$lib/types/ui/field';
@@ -19,6 +20,10 @@
 
     const dispatch = createEventDispatcher();
 
+    let selectEl: HTMLSelectElement;
+    let selectizeInstance: any = null;
+    let syncing = false;
+
     $: currentValue = value;
     $: isNull = currentValue === null || currentValue === undefined;
     $: selectValue = isNull ? 'null' : String(currentValue);
@@ -28,10 +33,41 @@
         dispatch('change', { name, value: currentValue });
     }
 
-    function handleSelectChange(event: Event) {
-        const val = (event.target as HTMLSelectElement).value;
-        currentValue = val === 'null' ? null : val === 'true';
-        dispatch('change', { name, value: currentValue });
+    function initSelectize(): void {
+        const $ = (window as any).$;
+        if (!$ || typeof $.fn?.selectize !== 'function' || !selectEl) return;
+
+        $(selectEl).selectize({
+            valueField: 'value',
+            labelField: 'text',
+            searchField: ['text'],
+            onChange: (val: string) => {
+                if (syncing || !val) return;
+                currentValue = val === 'null' ? null : val === 'true';
+                dispatch('change', { name, value: currentValue });
+            },
+        });
+
+        selectizeInstance = (selectEl as any).selectize;
+    }
+
+    onMount(() => {
+        if (!notNull) {
+            tick().then(initSelectize);
+        }
+    });
+
+    onDestroy(() => {
+        if (selectizeInstance) {
+            selectizeInstance.destroy();
+            selectizeInstance = null;
+        }
+    });
+
+    $: if (selectizeInstance && selectizeInstance.getValue() !== selectValue) {
+        syncing = true;
+        selectizeInstance.setValue(selectValue, true);
+        syncing = false;
     }
 
     export function fetch(): FieldFetchResult {
@@ -49,9 +85,9 @@
     />
 {:else}
     <select
+        bind:this={selectEl}
         {name}
         class="form-control main-element"
-        on:change={handleSelectChange}
     >
         <option value="null" selected={selectValue === 'null'}>NULL</option>
         <option value="false" selected={selectValue === 'false'}>{Language.translate('No')}</option>
