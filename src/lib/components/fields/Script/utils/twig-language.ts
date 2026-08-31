@@ -9,96 +9,148 @@
  */
 
 import * as monaco from 'monaco-editor';
+import { Lexer as TwigLexer, type Token as TwigToken } from 'twig-lexer';
 import { Metadata } from '$lib/core/metadata';
 import { Language } from '$lib/core/language';
 
 declare global {
     interface Window {
-        monacoProviderRegistered: string[] | null;
+        twigCompletionProviderDisposables?: Map<string, monaco.IDisposable>;
+        twigHoverProviderDisposables?: Map<string, monaco.IDisposable>;
+        twigSemanticTokensProviderDisposables?: Map<string, monaco.IDisposable>;
+        twigDocumentHighlightProviderDisposables?: Map<string, monaco.IDisposable>;
     }
+}
+
+type ProviderDisposablesKey = 'twigCompletionProviderDisposables' | 'twigHoverProviderDisposables' | 'twigSemanticTokensProviderDisposables' | 'twigDocumentHighlightProviderDisposables';
+
+function getProviderDisposables(key: ProviderDisposablesKey): Map<string, monaco.IDisposable> {
+    if (!window[key]) {
+        window[key] = new Map<string, monaco.IDisposable>();
+    }
+    return window[key] as Map<string, monaco.IDisposable>;
 }
 
 type EditorContext = {
     params: Record<string, unknown>;
-    twigVariables: string[];
+    variables: string[];
     name: string;
     scope: string;
 };
 
-const jsonTwigLanguageConfig = {
-    defaultToken: '',
-    tokenizer: {
-        root: [
-            [/{{/, { token: 'twig.delimiter', next: '@twigExpression' }],
-            [/{%/, { token: 'twig.delimiter', next: '@twigStatement' }],
-            [/[{}]/, 'delimiter.bracket'],
-            [/[[]]/, 'delimiter.square'],
-            [/:/, 'delimiter'],
-            [/,/, 'delimiter'],
-            [/"([^"\\]|\\.)*"/, 'string'],
-            [/true|false|null/, 'keyword'],
-            [/-?\d+\.?\d*([eE][+-]?\d+)?/, 'number']
-        ],
-        twigExpression: [
-            [/}}/, { token: 'twig.delimiter', next: '@pop' }],
-            [/[a-zA-Z_]\w*/, 'twig.variable'],
-            [/\./, 'twig.operator'],
-            [/\|/, 'twig.operator', '@twigFilter'],
-            [/"([^"\\]|\\.)*"/, 'twig.string'],
-            [/'([^'\\]|\\.)*'/, 'twig.string']
-        ],
-        twigStatement: [
-            [/%}/, { token: 'twig.delimiter', next: '@pop' }],
-            [/\s*(if|else|elseif|endif|for|endfor|set)\s*/, 'twig.keyword'],
-            [/[a-zA-Z_]\w*/, 'twig.variable'],
-            [/==|!=|<|>|<=|>=/, 'twig.operator'],
-            [/and|or|not|in|is/, 'twig.operator'],
-            [/"([^"\\]|\\.)*"/, 'twig.string'],
-            [/'([^'\\]|\\.)*'/, 'twig.string'],
-            [/\d+/, 'twig.number']
-        ],
-        twigFilter: [
-            [/[a-zA-Z_]\w*/, 'twig.filter'],
-            [/\(/, { token: 'twig.delimiter', next: '@twigFilterParams' }],
-            [/\|/, 'twig.operator', '@twigFilter'],
-            [/}}/, { token: 'twig.delimiter', next: '@pop' }]
-        ],
-        twigFilterParams: [
-            [/\)/, { token: 'twig.delimiter', next: '@pop' }],
-            [/,/, 'twig.delimiter'],
-            [/"([^"\\]|\\.)*"/, 'twig.string'],
-            [/'([^'\\]|\\.)*'/, 'twig.string'],
-            [/\d+/, 'twig.number']
-        ]
+const TWIG_BLOCK_TAG_NAMES = 'if|for|block|verbatim|filter|spaceless|with|trans|autoescape|embed|macro';
+const TWIG_DELIMITER_BRACKETS: [string, string][] = [['{{', '}}'], ['{%', '%}'], ['{#', '#}']];
+const TWIG_DELIMITER_PAIRS: monaco.languages.IAutoClosingPair[] = [
+    { open: '{{', close: '}}' }, { open: '{%', close: '%}' }, { open: '{#', close: '#}' }
+];
+
+const TWIG_ON_ENTER_RULE: monaco.languages.OnEnterRule = {
+    beforeText: new RegExp(`^\\s*{%\\s*(${TWIG_BLOCK_TAG_NAMES})\\s*.*%}$`),
+    afterText: /^\s*{%\s*end\w+\s*%}$/,
+    action: {
+        indentAction: monaco.languages.IndentAction.IndentOutdent,
+        appendText: '    '
     }
-} as monaco.languages.IMonarchLanguage;
+};
 
-function registerTheme(): void {
-    if (window.monacoProviderRegistered !== null) return;
+const TWIG_FOLDING_MARKERS: { start: RegExp; end: RegExp } = {
+    start: new RegExp(`^\\s*{%\\s*(${TWIG_BLOCK_TAG_NAMES})\\s.*%}`),
+    end: new RegExp('^\\s*{%\\s*end\\w+\\s*%}')
+};
 
-    monaco.editor.defineTheme('twig', {
-        base: 'vs',
-        inherit: true,
-        rules: [
-            { token: 'twig.keyword', foreground: '0000FF', fontStyle: 'bold' },
-            { token: 'twig.variable', foreground: '267F99' },
-            { token: 'twig.operator', foreground: '000000' },
-            { token: 'twig.string', foreground: 'A31515' },
-            { token: 'twig.delimiter', foreground: '0000FF' },
-            { token: 'twig.filter', foreground: '267F99', fontStyle: 'italic' },
-            { token: 'twig.number', foreground: '098658' }
-        ],
-        colors: {
-            'editor.background': '#FFFFFE',
-            'editor.foreground': '#000000',
-            'editor.inactiveSelectionBackground': '#E5EBF1',
-            'editorIndentGuide.background1': '#D3D3D3',
-            'editorIndentGuide.activeBackground1': '#939393',
-            'editor.selectionHighlightBackground': '#ADD6FF4D'
+const HTML_EMPTY_ELEMENTS = [
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen',
+    'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr'
+];
+
+const HTML_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+\[{\]}\\|;:'",.<>/\s]+)/g,
+    comments: {
+        blockComment: ['<!--', '-->']
+    },
+    brackets: [
+        ['<!--', '-->'],
+        ['<', '>'],
+        ['{', '}'],
+        ['(', ')']
+    ],
+    autoClosingPairs: [
+        { open: '{', close: '}' },
+        { open: '[', close: ']' },
+        { open: '(', close: ')' },
+        { open: '"', close: '"' },
+        { open: "'", close: "'" }
+    ],
+    surroundingPairs: [
+        { open: '"', close: '"' },
+        { open: "'", close: "'" },
+        { open: '{', close: '}' },
+        { open: '[', close: ']' },
+        { open: '(', close: ')' },
+        { open: '<', close: '>' }
+    ],
+    onEnterRules: [
+        {
+            beforeText: new RegExp(
+                `<(?!(?:${HTML_EMPTY_ELEMENTS.join('|')}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
+                'i'
+            ),
+            afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
+            action: { indentAction: monaco.languages.IndentAction.IndentOutdent }
+        },
+        {
+            beforeText: new RegExp(
+                `<(?!(?:${HTML_EMPTY_ELEMENTS.join('|')}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
+                'i'
+            ),
+            action: { indentAction: monaco.languages.IndentAction.Indent }
         }
-    });
-    window.monacoProviderRegistered = [];
-}
+    ],
+    folding: {
+        markers: {
+            start: new RegExp('^\\s*<!--\\s*#region\\b.*-->'),
+            end: new RegExp('^\\s*<!--\\s*#endregion\\b.*-->')
+        }
+    }
+};
+
+const HTML_TWIG_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
+    ...HTML_LANGUAGE_CONFIGURATION,
+    wordPattern: /(-?\d*\.\d\w*)|([^`~!@#$%^&*()=+\[{\]}\\|;:'",.<>/\s]+)/g,
+    brackets: [...HTML_LANGUAGE_CONFIGURATION.brackets!, ...TWIG_DELIMITER_BRACKETS],
+    colorizedBracketPairs: [...HTML_LANGUAGE_CONFIGURATION.brackets!],
+    autoClosingPairs: [...TWIG_DELIMITER_PAIRS, ...HTML_LANGUAGE_CONFIGURATION.autoClosingPairs!],
+    surroundingPairs: [...TWIG_DELIMITER_PAIRS, ...HTML_LANGUAGE_CONFIGURATION.surroundingPairs!],
+    onEnterRules: [TWIG_ON_ENTER_RULE, ...HTML_LANGUAGE_CONFIGURATION.onEnterRules!],
+    folding: {
+        markers: {
+            start: new RegExp(`^\\s*(<!--\\s*#region\\b.*-->|${TWIG_FOLDING_MARKERS.start.source})`),
+            end: new RegExp(`^\\s*(<!--\\s*#endregion\\b.*-->|${TWIG_FOLDING_MARKERS.end.source})`)
+        }
+    }
+};
+
+const JSON_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
+    wordPattern: /(-?\d*\.\d\w*)|([^[{\]}:",\s]+)/g,
+    comments: { lineComment: '//', blockComment: ['/*', '*/'] },
+    brackets: [['{', '}'], ['[', ']']],
+    autoClosingPairs: [
+        { open: '{', close: '}', notIn: ['string'] },
+        { open: '[', close: ']', notIn: ['string'] },
+        { open: '"', close: '"', notIn: ['string'] }
+    ]
+};
+
+const JSON_TWIG_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
+    ...JSON_LANGUAGE_CONFIGURATION,
+    wordPattern: /(-?\d*\.\d\w*)|([^[{\]}:",%#\s]+)/g,
+    brackets: [...JSON_LANGUAGE_CONFIGURATION.brackets!, ...TWIG_DELIMITER_BRACKETS],
+    colorizedBracketPairs: [...JSON_LANGUAGE_CONFIGURATION.brackets!],
+    autoClosingPairs: [...TWIG_DELIMITER_PAIRS, ...JSON_LANGUAGE_CONFIGURATION.autoClosingPairs!],
+    surroundingPairs: [...TWIG_DELIMITER_PAIRS],
+    onEnterRules: [TWIG_ON_ENTER_RULE],
+    folding: { markers: TWIG_FOLDING_MARKERS }
+};
 
 function buildFilterSuggestions(
     params: Record<string, unknown>,
@@ -135,29 +187,72 @@ function buildFilterSuggestions(
     return [...builtIn, ...custom].map((item) => ({ ...item, range }));
 }
 
+function collectSetVariables(documentTextBeforeCursor: string): string[] {
+    const names: string[] = [];
+    const regex = /\{%\s*set\s+([a-zA-Z_]\w*)/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(documentTextBeforeCursor)) !== null) {
+        if (!names.includes(match[1])) {
+            names.push(match[1]);
+        }
+    }
+    return names;
+}
+
+const BUILT_IN_VARIABLE_DESCRIPTIONS: Record<string, string> = {
+    _self: 'Reference to the current template, used to call locally defined macros',
+    loop: 'Available inside {% for %} blocks: loop.index, loop.first, loop.last, etc.'
+};
+
+function resolveVariableDescription(
+    variable: string,
+    twigVariables: string[],
+    localVariables: string[],
+    name: string,
+    scope: string
+): string | null {
+    if (localVariables.includes(variable)) {
+        return null;
+    }
+
+    if (BUILT_IN_VARIABLE_DESCRIPTIONS[variable]) {
+        return BUILT_IN_VARIABLE_DESCRIPTIONS[variable];
+    }
+
+    if (twigVariables.includes(variable) || variable === 'config') {
+        const variableTranslations = (Language.get(scope, 'twigVariables', name) ?? {}) as Record<string, string>;
+        return variableTranslations[variable] ?? (Language.get('Global', 'twigVariables', variable) as string) ?? null;
+    }
+
+    return null;
+}
+
 function buildVariableAndFunctionSuggestions(
     twigVariables: string[],
     name: string,
     scope: string,
     params: Record<string, unknown>,
-    textUntilPosition: string,
+    documentTextBeforeCursor: string,
     range: monaco.IRange
 ): monaco.languages.CompletionItem[] {
     let order = 100;
 
-    const variableTranslations = (Language.get(scope, 'twigVariables', name) ?? {}) as Record<string, string>;
-    const suggestions: Omit<monaco.languages.CompletionItem, 'range'>[] = [...twigVariables, 'config']
+    const localVariables = collectSetVariables(documentTextBeforeCursor)
+        .filter((variable) => !twigVariables.includes(variable) && variable !== 'config' && variable !== '_self');
+
+    const suggestions: Omit<monaco.languages.CompletionItem, 'range'>[] = [...twigVariables, 'config', '_self', ...localVariables]
         .map((variable) => ({
             name: variable,
-            description: variableTranslations[variable] ?? (Language.get('Global', 'twigVariables', variable) as string)
+            isLocal: localVariables.includes(variable),
+            description: resolveVariableDescription(variable, twigVariables, localVariables, name, scope)
         }))
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map(({ name: varName, description }) => ({
+        .map(({ name: varName, description, isLocal }) => ({
             label: varName,
             kind: monaco.languages.CompletionItemKind.Variable,
             insertText: varName,
-            documentation: description,
-            detail: 'Variable',
+            documentation: description ?? undefined,
+            detail: isLocal ? 'Local variable' : 'Variable',
             sortText: String(order++)
         }));
 
@@ -179,29 +274,66 @@ function buildVariableAndFunctionSuggestions(
         });
     });
 
-    const snippets: Omit<monaco.languages.CompletionItem, 'range'>[] = [
-        { label: 'set', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'set ${1:var} = $0 %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Set a variable' },
-        { label: 'block', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'block ${1:name} %}\n\t$0\n{% endblock %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Create a new block' },
-        { label: 'for', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'for ${1:item} in ${2:items} %}\n\t$0\n{% endfor %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Create a for loop' },
-        { label: 'if', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'if ${1:condition} %}\n\t$0\n{% endif %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, documentation: 'Create an if statement' },
-    ];
-
-    if (/{%\s*$/.test(textUntilPosition)) {
-        snippets.forEach((snippet) => suggestions.push(snippet));
-    }
-
     return suggestions.map((item) => ({ ...item, range }));
 }
 
-function registerCompletionProvider(languageId: string): void {
-    if (window.monacoProviderRegistered?.includes(languageId)) return;
+const TAG_KEYWORD_SUGGESTIONS: Omit<monaco.languages.CompletionItem, 'range'>[] = [
+    { label: 'extends', kind: monaco.languages.CompletionItemKind.Property, insertText: 'extends "${1:template}" %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Extend a parent template' },
+    { label: 'if', kind: monaco.languages.CompletionItemKind.Property, insertText: 'if ${1:condition} %}\n\t$0\n{% endif %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Conditional block' },
+    { label: 'elseif', kind: monaco.languages.CompletionItemKind.Property, insertText: 'elseif ${1:condition} %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Additional condition of an if block' },
+    { label: 'else', kind: monaco.languages.CompletionItemKind.Property, insertText: 'else %}', detail: 'Tag', documentation: 'Else branch of an if block' },
+    { label: 'endif', kind: monaco.languages.CompletionItemKind.Property, insertText: 'endif %}', detail: 'Tag', documentation: 'Close an if block' },
+    { label: 'for', kind: monaco.languages.CompletionItemKind.Property, insertText: 'for ${1:item} in ${2:items} %}\n\t$0\n{% endfor %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Loop over a collection' },
+    { label: 'endfor', kind: monaco.languages.CompletionItemKind.Property, insertText: 'endfor %}', detail: 'Tag', documentation: 'Close a for block' },
+    { label: 'set', kind: monaco.languages.CompletionItemKind.Property, insertText: 'set ${1:var} = $0 %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Declare a variable' },
+    { label: 'macro', kind: monaco.languages.CompletionItemKind.Property, insertText: 'macro ${1:name}(${2:args}) %}\n\t$0\n{% endmacro %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Define a reusable macro' },
+    { label: 'endmacro', kind: monaco.languages.CompletionItemKind.Property, insertText: 'endmacro %}', detail: 'Tag', documentation: 'Close a macro block' },
+    { label: 'block', kind: monaco.languages.CompletionItemKind.Property, insertText: 'block ${1:name} %}\n\t$0\n{% endblock %}', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Tag', documentation: 'Define a template block' },
+    { label: 'endblock', kind: monaco.languages.CompletionItemKind.Property, insertText: 'endblock %}', detail: 'Tag', documentation: 'Close a block' }
+];
 
-    monaco.languages.registerCompletionItemProvider(languageId, {
+function buildTagKeywordSuggestions(range: monaco.IRange, needsLeadingSpace: boolean): monaco.languages.CompletionItem[] {
+    return TAG_KEYWORD_SUGGESTIONS.map((item) => ({
+        ...item,
+        range,
+        insertText: needsLeadingSpace ? ' ' + item.insertText : item.insertText
+    }));
+}
+
+function isAtTagKeywordPosition(textUntilPosition: string): boolean {
+    const lastTagStart = textUntilPosition.lastIndexOf('{%');
+    if (lastTagStart === -1) {
+        return false;
+    }
+    return /^\s*[a-zA-Z]*$/.test(textUntilPosition.slice(lastTagStart + 2));
+}
+
+function extendRangeOverAutoClosedTag(model: monaco.editor.ITextModel, position: monaco.Position, range: monaco.IRange): monaco.IRange {
+    const textAfter = model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        startColumn: range.endColumn,
+        endLineNumber: position.lineNumber,
+        endColumn: model.getLineMaxColumn(position.lineNumber)
+    });
+
+    const autoClosedTag = textAfter.match(/^\s*-?%}/);
+    if (!autoClosedTag) {
+        return range;
+    }
+
+    return { ...range, endColumn: range.endColumn + autoClosedTag[0].length };
+}
+
+function registerCompletionProvider(languageId: string): void {
+    const completionProviderDisposables = getProviderDisposables('twigCompletionProviderDisposables');
+    completionProviderDisposables.get(languageId)?.dispose();
+
+    const disposable = monaco.languages.registerCompletionItemProvider(languageId, {
         provideCompletionItems(model, position) {
             const editor = monaco.editor.getEditors().find((e) => e.getModel() === model);
             const opts = ((editor?.getRawOptions() ?? {}) as unknown) as EditorContext;
             const params = opts.params ?? {};
-            const twigVariables = opts.twigVariables ?? [];
+            const twigVariables = opts.variables ?? [];
             const name = opts.name ?? '';
             const scope = opts.scope ?? '';
 
@@ -234,59 +366,338 @@ function registerCompletionProvider(languageId: string): void {
                 return { suggestions: [] };
             }
 
+            if (isInTwigBlock && isAtTagKeywordPosition(textUntilPosition)) {
+                const tagRange = extendRangeOverAutoClosedTag(model, position, range);
+                const charBeforeTag = model.getValueInRange({
+                    startLineNumber: position.lineNumber,
+                    startColumn: Math.max(1, tagRange.startColumn - 1),
+                    endLineNumber: position.lineNumber,
+                    endColumn: tagRange.startColumn
+                });
+                const needsLeadingSpace = charBeforeTag.length > 0 && !/\s/.test(charBeforeTag);
+                return { suggestions: buildTagKeywordSuggestions(tagRange, needsLeadingSpace) };
+            }
+
+            const documentTextBeforeCursor = model.getValueInRange({
+                startLineNumber: 1,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+            });
+
+            const finalSuggestions = buildVariableAndFunctionSuggestions(
+                twigVariables, name, scope, params, documentTextBeforeCursor, range
+            );
+
             return {
-                suggestions: buildVariableAndFunctionSuggestions(
-                    twigVariables, name, scope, params, textUntilPosition, range
-                )
+                suggestions: finalSuggestions
             };
         }
     });
 
-    window.monacoProviderRegistered = [...(window.monacoProviderRegistered ?? []), languageId];
+    completionProviderDisposables.set(languageId, disposable);
+}
+
+function registerHoverProvider(languageId: string): void {
+    const hoverProviderDisposables = getProviderDisposables('twigHoverProviderDisposables');
+    hoverProviderDisposables.get(languageId)?.dispose();
+
+    const disposable = monaco.languages.registerHoverProvider(languageId, {
+        provideHover(model, position) {
+            const wordInfo = model.getWordAtPosition(position);
+            if (!wordInfo) return null;
+
+            const textBeforeWord = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: wordInfo.startColumn
+            });
+
+            const isInTwigBlock = /{%[\s\S]*$/.test(textBeforeWord);
+            const isInTwigExpression = /{{[\s\S]*$/.test(textBeforeWord);
+            if (!isInTwigBlock && !isInTwigExpression) return null;
+
+            if (textBeforeWord.trimEnd().slice(-1) === '.' || textBeforeWord.trimEnd().slice(-1) === '|') return null;
+
+            const textAfterWord = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: wordInfo.endColumn,
+                endLineNumber: position.lineNumber,
+                endColumn: model.getLineMaxColumn(position.lineNumber)
+            });
+            if (/^\s*\(/.test(textAfterWord)) return null;
+
+            const editor = monaco.editor.getEditors().find((e) => e.getModel() === model);
+            const opts = ((editor?.getRawOptions() ?? {}) as unknown) as EditorContext;
+            const twigVariables = opts.variables ?? [];
+            const name = opts.name ?? '';
+            const scope = opts.scope ?? '';
+
+            const documentTextBeforeCursor = model.getValueInRange({
+                startLineNumber: 1,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: wordInfo.startColumn
+            });
+            const localVariables = collectSetVariables(documentTextBeforeCursor);
+
+            const description = resolveVariableDescription(wordInfo.word, twigVariables, localVariables, name, scope);
+            if (!description) return null;
+
+            return {
+                range: {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn: wordInfo.startColumn,
+                    endColumn: wordInfo.endColumn
+                },
+                contents: [{ value: description }]
+            };
+        }
+    });
+
+    hoverProviderDisposables.set(languageId, disposable);
+}
+
+function registerDocumentHighlightProvider(languageId: string): void {
+    const disposables = getProviderDisposables('twigDocumentHighlightProviderDisposables');
+    disposables.get(languageId)?.dispose();
+
+    const disposable = monaco.languages.registerDocumentHighlightProvider(languageId, {
+        provideDocumentHighlights(model, position) {
+            const wordInfo = model.getWordAtPosition(position);
+            if (!wordInfo) return null;
+
+            let tokens: TwigToken[];
+            try {
+                tokens = new TwigLexer(3).tokenize(model.getValue()) as unknown as TwigToken[];
+            } catch {
+                return null;
+            }
+
+            const matches = tokens.filter((token) => token.type === 'NAME' && token.value === wordInfo.word);
+            if (!matches.length) return null;
+
+            return matches.map((token) => ({
+                range: new monaco.Range(token.line, token.column, token.line, token.column + String(token.value ?? '').length),
+                kind: monaco.languages.DocumentHighlightKind.Text
+            }));
+        }
+    });
+
+    disposables.set(languageId, disposable);
+}
+
+const SEMANTIC_TOKEN_TYPES = [
+    'twig.tagDelimiter', 'twig.delimiter', 'twig.keyword', 'twig.variable',
+    'twig.operator', 'twig.string', 'twig.filter', 'twig.number', 'twig.comment'
+];
+const SEMANTIC_TYPE_INDEX: Record<string, number> = Object.fromEntries(
+    SEMANTIC_TOKEN_TYPES.map((type, index) => [type, index])
+);
+
+const TWIG_STATEMENT_KEYWORDS = new Set([
+    'if', 'else', 'elseif', 'endif', 'for', 'endfor', 'set', 'macro', 'endmacro',
+    'block', 'endblock', 'filter', 'endfilter', 'spaceless', 'endspaceless',
+    'with', 'endwith', 'trans', 'endtrans', 'autoescape', 'endautoescape',
+    'embed', 'endembed', 'verbatim', 'endverbatim', 'extends', 'true', 'false', 'null', 'none'
+]);
+
+const SEMANTIC_SKIPPABLE_TOKEN_TYPES = new Set(['WHITESPACE', 'TRIMMING_MODIFIER', 'LINE_TRIMMING_MODIFIER']);
+
+function semanticPrevSignificant(tokens: TwigToken[], index: number): TwigToken | null {
+    for (let i = index - 1; i >= 0; i--) {
+        if (!SEMANTIC_SKIPPABLE_TOKEN_TYPES.has(tokens[i].type)) {
+            return tokens[i];
+        }
+    }
+    return null;
+}
+
+function classifyTwigToken(tokens: TwigToken[], index: number): { type: string; length: number } | null {
+    const token = tokens[index];
+    const value = String(token.value ?? '');
+
+    switch (token.type) {
+        case 'TAG_START':
+        case 'TAG_END':
+            return { type: 'twig.tagDelimiter', length: value.length };
+        case 'VARIABLE_START':
+        case 'VARIABLE_END':
+            return { type: 'twig.delimiter', length: value.length };
+        case 'NUMBER':
+            return { type: 'twig.number', length: value.length };
+        case 'STRING':
+        case 'OPENING_QUOTE':
+        case 'CLOSING_QUOTE':
+            return { type: 'twig.string', length: value.length };
+        case 'OPERATOR':
+        case 'TEST_OPERATOR':
+            return { type: 'twig.operator', length: value.length };
+        case 'PUNCTUATION':
+            if (value === '.' || value === '|') {
+                return { type: 'twig.operator', length: value.length };
+            }
+            if (value === '(' || value === ')' || value === ',') {
+                return { type: 'twig.delimiter', length: value.length };
+            }
+            return null;
+        case 'NAME': {
+            if (TWIG_STATEMENT_KEYWORDS.has(value)) {
+                return { type: 'twig.keyword', length: value.length };
+            }
+            const prev = semanticPrevSignificant(tokens, index);
+            if (prev?.type === 'PUNCTUATION' && prev.value === '|') {
+                return { type: 'twig.filter', length: value.length };
+            }
+            return { type: 'twig.variable', length: value.length };
+        }
+        default:
+            return null;
+    }
+}
+
+type RawSemanticToken = { line: number; column: number; length: number; typeIndex: number };
+
+function offsetFromLineColumn(source: string, line: number, column: number): number {
+    const lines = source.split('\n');
+    let offset = 0;
+    for (let i = 0; i < line - 1 && i < lines.length; i++) {
+        offset += lines[i].length + 1;
+    }
+    return offset + (column - 1);
+}
+
+function tokenizeTwigWithRecovery(text: string): TwigToken[] {
+    let source = text;
+    let partialTokens: TwigToken[] = [];
+
+    for (let attempt = 0; attempt < 50; attempt++) {
+        const lexer = new TwigLexer(3);
+        try {
+            return lexer.tokenize(source) as unknown as TwigToken[];
+        } catch (e) {
+            partialTokens = (lexer as unknown as { tokens: TwigToken[] }).tokens ?? [];
+
+            const error = e as { line?: number; column?: number };
+            if (typeof error.line !== 'number' || typeof error.column !== 'number') {
+                break;
+            }
+
+            const offset = offsetFromLineColumn(source, error.line, error.column);
+            if (offset < 0 || offset >= source.length) {
+                break;
+            }
+
+            source = source.slice(0, offset) + ' ' + source.slice(offset + 1);
+        }
+    }
+
+    return partialTokens;
+}
+
+function collectTwigSemanticTokens(text: string): RawSemanticToken[] {
+    const tokens = tokenizeTwigWithRecovery(text);
+
+    const result: RawSemanticToken[] = [];
+    let insideComment = false;
+
+    const push = (token: TwigToken, typeName: string, length: number): void => {
+        result.push({ line: token.line, column: token.column, length, typeIndex: SEMANTIC_TYPE_INDEX[typeName] });
+    };
+
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (token.type === 'COMMENT_START' || token.type === 'COMMENT_END') {
+            insideComment = token.type === 'COMMENT_START';
+            push(token, 'twig.comment', String(token.value ?? '').length);
+            continue;
+        }
+
+        if (insideComment) {
+            if (token.type === 'TEXT') {
+                push(token, 'twig.comment', String(token.value ?? '').length);
+            }
+            continue;
+        }
+
+        const classified = classifyTwigToken(tokens, i);
+        if (classified) {
+            push(token, classified.type, classified.length);
+        }
+    }
+
+    return result;
+}
+
+function encodeSemanticTokens(rawTokens: RawSemanticToken[]): Uint32Array {
+    const sorted = [...rawTokens].sort((a, b) => (a.line - b.line) || (a.column - b.column));
+    const data: number[] = [];
+    let prevLine = 0;
+    let prevColumn = 0;
+
+    for (const token of sorted) {
+        const line = token.line - 1;
+        const column = token.column - 1;
+        const deltaLine = line - prevLine;
+        const deltaColumn = deltaLine === 0 ? column - prevColumn : column;
+
+        data.push(deltaLine, deltaColumn, token.length, token.typeIndex, 0);
+
+        prevLine = line;
+        prevColumn = column;
+    }
+
+    return new Uint32Array(data);
+}
+
+function registerSemanticTokensProvider(languageId: string): void {
+    const disposables = getProviderDisposables('twigSemanticTokensProviderDisposables');
+    disposables.get(languageId)?.dispose();
+
+    const disposable = monaco.languages.registerDocumentSemanticTokensProvider(languageId, {
+        getLegend: () => ({ tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] }),
+        provideDocumentSemanticTokens(model) {
+            try {
+                return { data: encodeSemanticTokens(collectTwigSemanticTokens(model.getValue())) };
+            } catch {
+                return { data: new Uint32Array(0) };
+            }
+        },
+        releaseDocumentSemanticTokens() {}
+    });
+
+    disposables.set(languageId, disposable);
+}
+
+let jsonTwigConfigArmed = false;
+function prepareJsonConfiguration(): void {
+    if (jsonTwigConfigArmed) {
+        return;
+    }
+    jsonTwigConfigArmed = true;
+
+    monaco.languages.onLanguage('json', () => {
+        monaco.languages.json.getWorker().then(() => {
+            monaco.languages.setLanguageConfiguration('json', JSON_TWIG_LANGUAGE_CONFIGURATION);
+        });
+    });
 }
 
 export function registerTwigForLanguage(languageId: string): string {
-    let effectiveLanguageId = languageId;
-
-    if (languageId === 'json') {
-        effectiveLanguageId = 'json-twig';
-        monaco.languages.register({ id: effectiveLanguageId });
-        monaco.languages.setLanguageConfiguration(effectiveLanguageId, {
-            autoClosingPairs: [
-                { open: '{', close: '}' }, { open: '[', close: ']' }, { open: '(', close: ')' },
-                { open: '"', close: '"' }, { open: "'", close: "'" },
-                { open: '{{', close: '}}' }, { open: '{%', close: '%}' }, { open: '{#', close: '#}' }
-            ],
-            surroundingPairs: [
-                { open: '{', close: '}' }, { open: '[', close: ']' }, { open: '(', close: ')' },
-                { open: '"', close: '"' }, { open: "'", close: "'" },
-                { open: '{{', close: '}}' }, { open: '{%', close: '%}' }, { open: '{#', close: '#}' }
-            ],
-            brackets: [['{', '}'], ['[', ']'], ['(', ')'], ['{{', '}}'], ['{%', '%}'], ['{#', '#}']],
-            wordPattern: /(-?\d*\.\d\w*)|([^`~!@#$%^&*()=+\[{\]}\\|;:'",.\/< >?\s]+)/g,
-            comments: { blockComment: ['{#', '#}'] },
-            onEnterRules: [
-                {
-                    beforeText: /^\s*{%\s*(if|for|block|verbatim|filter|spaceless|with|trans|autoescape|embed|macro)\s*.*%}$/,
-                    afterText: /^\s*{%\s*end\w+\s*%}$/,
-                    action: {
-                        indentAction: monaco.languages.IndentAction.IndentOutdent,
-                        appendText: '    '
-                    }
-                }
-            ],
-            folding: {
-                markers: {
-                    start: new RegExp('^\\s*{%\\s*(if|for|block|verbatim|filter|spaceless|with|trans|autoescape|embed|macro)\\s.*%}'),
-                    end: new RegExp('^\\s*{%\\s*end\\w+\\s*%}')
-                }
-            }
-        });
-        monaco.languages.setMonarchTokensProvider(effectiveLanguageId, jsonTwigLanguageConfig);
+    if (languageId === 'html') {
+        monaco.languages.setLanguageConfiguration('html', HTML_TWIG_LANGUAGE_CONFIGURATION);
+        registerDocumentHighlightProvider(languageId);
+    } else if (languageId === 'json') {
+        prepareJsonConfiguration();
+        monaco.languages.setLanguageConfiguration('json', JSON_TWIG_LANGUAGE_CONFIGURATION);
     }
 
-    registerTheme();
-    registerCompletionProvider(effectiveLanguageId);
+    registerCompletionProvider(languageId);
+    registerHoverProvider(languageId);
+    registerSemanticTokensProvider(languageId);
 
-    return effectiveLanguageId;
+    return languageId;
 }

@@ -63,6 +63,7 @@
         isCollapsed = collapsed;
 
         dispatch('sidebar-collapse', {isCollapsed});
+        window.dispatchEvent(new CustomEvent('atro:sidebar-toggled', {detail: {position, isCollapsed}}));
     }
 
     function toggleCollapse() {
@@ -147,10 +148,18 @@
         }
     }
 
+    function handleExternalToggle(e: Event) {
+        const detail = (e as CustomEvent<{ position: 'left' | 'right' }>).detail;
+        if (detail?.position === position) {
+            toggleCollapse();
+        }
+    }
+
     onMount(() => {
         checkScreenSize();
 
         window.addEventListener("resize", checkScreenSize);
+        window.addEventListener("atro:toggle-sidebar", handleExternalToggle);
     })
 
     onDestroy(() => {
@@ -166,6 +175,7 @@
         }
 
         window.removeEventListener("resize", checkScreenSize);
+        window.removeEventListener("atro:toggle-sidebar", handleExternalToggle);
     })
 </script>
 
@@ -414,31 +424,7 @@
         }
 
         .sidebar.collapsed .collapse-strip {
-            top: auto;
-            bottom: 20px;
-            z-index: 500;
-            position: fixed;
-            height: auto;
-            width: auto;
-        }
-
-        .sidebar.collapsed .collapse-button {
-            position: static;
-            transform: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #fafafabf;
-            border: 1px solid #F0F0F0;
-            padding: 0;
-        }
-
-        .sidebar.sidebar-left.collapsed .collapse-strip {
-            left: 20px;
-        }
-
-        .sidebar.sidebar-right.collapsed .collapse-strip {
-            right: 20px;
+            display: none;
         }
     }
 

@@ -84,13 +84,13 @@
 
 <style>
     .search-row {
-        flex-basis: auto;
         padding-bottom: 0;
+        flex: 1 1 120px;
+        max-width: 300px;
     }
 
     .search-row .search {
         flex-grow: 1;
-        width: 300px;
     }
 
     .search-row .search input {

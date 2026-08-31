@@ -287,7 +287,7 @@
     }
 
     .filter-switcher {
-        max-width: 400px;
+        max-width: 200px;
         width: auto;
         padding-right: 10px;
         padding-left: 10px;
