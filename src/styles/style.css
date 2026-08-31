@@ -342,5 +342,8 @@ a[role=button].secondary.outline:focus, a[role=button].secondary.outline:hover, 
 .toast-text {
     max-width: 600px;
     line-height: 20px;
+}
+
+.toast-text:not(:last-child) {
     margin-inline-end: 20px;
 }
