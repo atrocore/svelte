@@ -9,6 +9,7 @@
  -->
 
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { Language } from '$lib/core/language';
     import { Notifier } from '$lib/dom/notifier';
     import PopoverButtonPanel
@@ -43,11 +44,15 @@
     let linkFieldContainer: HTMLElement;
     let loadingGroups = true;
     let groups: SelectionGroup[] = [];
-    let total = 0;
+    export let total = 0;
     let currentOffset = 0;
     let currentSelectionId: string | null = null;
     let showMoreLoading = false;
     let previousIsOpen = false;
+
+    onMount(() => {
+        loadData();
+    });
 
     $: if (isOpen && linkFieldContainer) {
         renderLinkField(linkFieldContainer);
@@ -161,6 +166,7 @@
         } else {
             groups = [];
             currentOffset = 0;
+            total = 0;
             loadingGroups = false;
         }
     }
