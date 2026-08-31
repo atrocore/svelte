@@ -202,7 +202,7 @@
     }
 
     .dropdown-menu.has-icons > li > a {
-        padding-left: 15px;
+        padding-left: 12px;
     }
 
     .quick-action {
@@ -242,13 +242,13 @@
     }
 
     a i.icon-placeholder {
-        width: 18px;
+        width: 16px;
     }
 
     a .icon-img {
         display: inline-block;
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         margin-inline-end: 5px;
         vertical-align: middle;
     }
