@@ -10,16 +10,52 @@
 
 import * as monaco from 'monaco-editor';
 import { Metadata } from '$lib/core/metadata';
+import { buildMemberSuggestions, findMember } from './expression-members';
 
 declare global {
     interface Window {
         expressionCompletionProviderDisposable?: monaco.IDisposable;
+        expressionHoverProviderDisposable?: monaco.IDisposable;
     }
 }
 
 type EditorContext = { variables?: string[] };
 
 const LANGUAGE_ID = 'symfony-expression';
+
+/**
+ * The identifier a member is being read from: `entity` in `entity.` and in `entity.isAtt`.
+ * The leading [^\w.] rejects a chained access such as `entity.get('brand').`, where the
+ * receiver is the result of a call and its type is unknown here.
+ */
+const RECEIVER_PATTERN = /(?:^|[^\w.])([A-Za-z_]\w*)\s*\.\s*$/;
+
+function isInsideString(textBeforeCursor: string): boolean {
+    let quote: string | null = null;
+
+    for (let i = 0; i < textBeforeCursor.length; i++) {
+        const char = textBeforeCursor[i];
+
+        if (char === '\\') {
+            i++;
+            continue;
+        }
+
+        if (quote === null && (char === "'" || char === '"')) {
+            quote = char;
+        } else if (quote === char) {
+            quote = null;
+        }
+    }
+
+    return quote !== null;
+}
+
+function resolveReceiver(textBeforeMember: string, variables: string[]): string | null {
+    const receiver = RECEIVER_PATTERN.exec(textBeforeMember)?.[1] ?? null;
+
+    return receiver !== null && variables.includes(receiver) ? receiver : null;
+}
 
 const expressionLanguageConfig: monaco.languages.IMonarchLanguage = {
     defaultToken: '',
@@ -91,6 +127,8 @@ function registerExpressionCompletionProvider(): void {
     window.expressionCompletionProviderDisposable?.dispose();
 
     window.expressionCompletionProviderDisposable = monaco.languages.registerCompletionItemProvider(LANGUAGE_ID, {
+        triggerCharacters: ['.'],
+
         provideCompletionItems(model, position) {
             const editor = monaco.editor.getEditors().find((e) => e.getModel() === model);
             const opts = ((editor?.getRawOptions() ?? {}) as unknown) as EditorContext;
@@ -104,7 +142,7 @@ function registerExpressionCompletionProvider(): void {
                 endColumn: wordUntilPosition.startColumn
             });
 
-            if (/\.\s*$/.test(charsBeforeWord)) {
+            if (isInsideString(charsBeforeWord)) {
                 return { suggestions: [] };
             }
 
@@ -115,7 +153,62 @@ function registerExpressionCompletionProvider(): void {
                 endColumn: wordUntilPosition.endColumn
             };
 
+            if (/\.\s*$/.test(charsBeforeWord)) {
+                const receiver = resolveReceiver(charsBeforeWord, variables);
+
+                // an unknown receiver gets nothing rather than the top level suggestions,
+                // which would be wrong after a dot
+                return { suggestions: receiver === null ? [] : buildMemberSuggestions(receiver, range) };
+            }
+
             return { suggestions: buildExpressionSuggestions(variables, range) };
+        }
+    });
+}
+
+function registerExpressionHoverProvider(): void {
+    window.expressionHoverProviderDisposable?.dispose();
+
+    window.expressionHoverProviderDisposable = monaco.languages.registerHoverProvider(LANGUAGE_ID, {
+        provideHover(model, position) {
+            const wordInfo = model.getWordAtPosition(position);
+            if (!wordInfo) {
+                return null;
+            }
+
+            const editor = monaco.editor.getEditors().find((e) => e.getModel() === model);
+            const opts = ((editor?.getRawOptions() ?? {}) as unknown) as EditorContext;
+            const variables = opts.variables ?? [];
+
+            const charsBeforeWord = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: wordInfo.startColumn
+            });
+
+            const receiver = resolveReceiver(charsBeforeWord, variables);
+            if (receiver === null) {
+                return null;
+            }
+
+            const member = findMember(receiver, wordInfo.word);
+            if (member === null) {
+                return null;
+            }
+
+            return {
+                range: {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn: wordInfo.startColumn,
+                    endColumn: wordInfo.endColumn
+                },
+                contents: [
+                    { value: '`' + receiver + '.' + member.signature + '`' },
+                    { value: member.documentation }
+                ]
+            };
         }
     });
 }
@@ -125,6 +218,7 @@ export function registerExpressionLanguage(): string {
     monaco.languages.setLanguageConfiguration(LANGUAGE_ID, expressionLanguageConfiguration);
     monaco.languages.setMonarchTokensProvider(LANGUAGE_ID, expressionLanguageConfig);
     registerExpressionCompletionProvider();
+    registerExpressionHoverProvider();
 
     return LANGUAGE_ID;
 }
