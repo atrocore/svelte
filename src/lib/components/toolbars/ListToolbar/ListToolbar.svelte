@@ -10,16 +10,12 @@
 
 <script lang="ts">
     import { Language } from "$lib/core/language";
-    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import FilterSearch from "$lib/components/searches/FilterSearch/FilterSearch.svelte";
     import SearchBar from "$lib/components/searches/SearchBar/SearchBar.svelte";
     import { Notifier } from "$lib/dom/notifier";
-    import EntityStatusIndicator from "$lib/components/EntityStatusIndicator/EntityStatusIndicator.svelte";
-    import type Counter from "$lib/components/toolbars/ListToolbar/types/counter";
+    import ViewModeSwitch from "$lib/components/entity-actions/ViewModeSwitch/ViewModeSwitch.svelte";
     import type MassAction from "$lib/components/toolbars/ListToolbar/types/mass-action";
 
-    export let loading: boolean = false;
-    export let counters: Array<Counter[]> = [];
     export let massActions: Array<MassAction | string> = [];
     export let massActionStyle: string = '';
     export let showFilter: boolean = false;
@@ -30,10 +26,16 @@
     export let selected: string[] | boolean = false;
     export let hasSelectAllCheckbox: boolean = false;
     export let isRelationship: boolean = false;
+    export let viewMode: string = 'list';
+    export let onViewModeChange: ((mode: string) => void) | null = null;
     export let executeMassAction = (action: string, id?: Record<string, any>): void => {
     };
     export let handleSelectAll = (e: Event): void => {
     };
+
+    function onViewModeSwitchChange(e: CustomEvent): void {
+        onViewModeChange?.(e.detail.name);
+    }
 
     export function reset(): void {
         filter.unsetAll();
@@ -43,13 +45,12 @@
     let refreshDisabled: boolean = false;
     let search: any;
     let filter: any;
-    let statusIndicator: EntityStatusIndicator;
 
     function onRefreshClick(): void {
         refreshDisabled = true;
         Notifier.notify(Language.translate('loading', 'messages'));
         searchManager.fetchCollection();
-        statusIndicator?.reload();
+        window.dispatchEvent(new CustomEvent('entity-status:reload'));
 
         window.Backbone.once('after:search', () => {
             Notifier.clearRegular();
@@ -122,22 +123,8 @@
         <div class="list-details">
             <slot></slot>
 
-            <EntityStatusIndicator {scope} bind:this={statusIndicator}/>
-
-            {#if counters.length > 0}
-                <div class="counters-container">
-                    {#if loading}
-                        <Preloader heightPx={14}/>
-                    {:else}
-                        {#each counters as group}
-                            <div class="group">
-                                {#each group as counter, i}
-                                    <span class="counter" data-name={counter.name}><span class="counter-label">{counter.label}</span>: <span class="counter-value">{counter.value}</span></span>{#if i < group.length - 1}<span class="separator">•</span>{/if}
-                                {/each}
-                            </div>
-                        {/each}
-                    {/if}
-                </div>
+            {#if onViewModeChange}
+                <ViewModeSwitch mode={viewMode} {scope} on:view-change={onViewModeSwitchChange}/>
             {/if}
         </div>
     {/if}
@@ -168,25 +155,6 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 25px;
-    }
-
-    .counters-container {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .separator {
-        margin: 0 7px;
-        color: #666;
-    }
-
-    @media screen and (max-width: 768px) {
-        .filter-search-bar {
-            order: -1;
-            flex-basis: 100%;
-        }
     }
 
 </style>

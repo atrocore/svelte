@@ -8,10 +8,11 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-type Counter = {
+type EntityStat = {
     name: string;
+    icon: string;
     label: string;
-    value: number;
+    value: string;
 }
 
-export default Counter;
+export default EntityStat;
