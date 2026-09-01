@@ -11,9 +11,23 @@
 <script lang="ts">
     import { Language } from "$lib/core/language";
     import Pagination from "$lib/components/Pagination/Pagination.svelte";
+    import Preloader from "$lib/components/loaders/Preloader/Preloader.svelte";
     import ToolbarControl from "./ToolbarControl/ToolbarControl.svelte";
     import type ToolbarControlDef from "./types/toolbar-control";
     import type MassAction from "$lib/components/toolbars/ListToolbar/types/mass-action";
+
+    export let selectedCount: number | null = null;
+    export let shownCount: number | null = null;
+    export let totalCount: number | null = null;
+    export let loading: boolean = false;
+
+    type Counter = { name: string; label: string; value: number };
+
+    $: counters = [
+        selectedCount != null ? {name: 'selected', label: Language.translate('Selected'), value: selectedCount} : null,
+        shownCount != null ? {name: 'shown', label: Language.translate('Shown'), value: shownCount} : null,
+        totalCount != null ? {name: 'total', label: Language.translate('Total'), value: totalCount} : null,
+    ].filter((counter): counter is Counter => counter !== null);
 
     export let currentPage: number = 1;
     export let totalPages: number = 1;
@@ -96,14 +110,25 @@
             {/each}
         </div>
     </div>
-    {#if onShowMore}
-        <button type="button" disabled={showMoreLoading} on:click={onShowMore}>{#if !showMoreLoading}<i class="ph ph-arrow-down"></i>{:else}<i class="ph ph-circle-notch ph-spin"></i>{/if}<span>{showMoreLabel}</span></button>
-    {/if}
-    {#if showPagination}
-        <div class="pagination-container">
-            <Pagination {currentPage} {totalPages} {onPageChange} />
-        </div>
-    {/if}
+    <div class="right-group">
+        {#if loading}
+            <div class="counters-group"><Preloader heightPx={12}/></div>
+        {:else if counters.length > 0}
+            <div class="counters-group">
+                {#each counters as counter, i}
+                    <span class="counter" data-name={counter.name} title="{counter.label}: {counter.value}"><span class="counter-label">{counter.label}:</span><span class="counter-value">{counter.value}</span></span>{#if i < counters.length - 1}<span class="separator">/</span>{/if}
+                {/each}
+            </div>
+        {/if}
+        {#if onShowMore}
+            <button type="button" disabled={showMoreLoading} on:click={onShowMore}>{#if !showMoreLoading}<i class="ph ph-arrow-down"></i>{:else}<i class="ph ph-circle-notch ph-spin"></i>{/if}<span>{showMoreLabel}</span></button>
+        {/if}
+        {#if showPagination && totalPages > 1}
+            <div class="pagination-container">
+                <Pagination {currentPage} {totalPages} {onPageChange} />
+            </div>
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -139,6 +164,57 @@
         min-height: 32px;
     }
 
+    .right-group {
+        container-type: inline-size;
+        container-name: pagination-right-group;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1 1 0;
+        min-width: 0;
+        flex-wrap: wrap;
+        column-gap: 30px;
+    }
+
+    .counters-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        color: #333;
+        font-size: 12px;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .counters-group .counter {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .counters-group .counter-value {
+        color: #000;
+        font-weight: 600;
+    }
+
+    .counters-group .separator {
+        margin: 0 7px;
+        color: #999;
+    }
+
+    @container pagination-right-group (max-width: 640px) {
+        .counters-group [data-name="shown"],
+        .counters-group [data-name="shown"] + .separator {
+            display: none;
+        }
+    }
+
+    @container pagination-right-group (max-width: 420px) {
+        .counters-group .counter-label {
+            display: none;
+        }
+    }
+
     .left-group {
         display: flex;
         align-items: center;
@@ -168,10 +244,16 @@
             display: flex;
         }
 
-        .pagination-container,
-        .left-group {
+        .left-group,
+        .right-group {
             flex-basis: 100%;
             justify-content: center;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .counters-group {
+            display: none;
         }
     }
 </style>
