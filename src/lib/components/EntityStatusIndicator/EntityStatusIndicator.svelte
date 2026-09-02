@@ -9,7 +9,7 @@
 -->
 
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { ApiClient } from '$lib/core/api-client';
     import { Metadata } from '$lib/core/metadata';
     import type ListStatus from '$lib/components/EntityStatusIndicator/types/list-status';
@@ -36,6 +36,10 @@
     }
 
     onMount(load);
+    onMount(() => {
+        window.addEventListener('entity-status:reload', reload);
+        return () => window.removeEventListener('entity-status:reload', reload);
+    });
 </script>
 
 {#if status && status.value}
@@ -44,11 +48,19 @@
           class:style-danger={status.style === 'danger'}
           class:style-warning={status.style === 'warning'}
           class:style-info={!status.style || status.style === 'info'}>
+        <i class="ph ph-arrow-clockwise"></i>
         <span class="status-label">{status.label}</span>: <span class="status-value">{status.value}</span>
     </span>
 {/if}
 
 <style>
+    .entity-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        line-height: 1;
+    }
+
     .status-value {
         font-weight: bold;
     }

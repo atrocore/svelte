@@ -16,19 +16,15 @@
     import EntityActionsGroup from "$lib/components/headers/EntityActionsGroup/EntityActionsGroup.svelte";
     import type EntityActionButtons from "$lib/components/headers/EntityActionsGroup/types/entity-actions-buttons";
     import type EntityCallbacks from "$lib/components/headers/EntityActionsGroup/types/entity-callbacks";
+    import type EntityStat from "$lib/components/headers/EntityActionsGroup/types/entity-stat";
     import { Language } from "$lib/core/language"
 
     export let params: Params;
     export let entityActions: EntityActionButtons;
     export let callbacks: EntityCallbacks;
-    export let viewMode: string = 'list';
     export let isFavoriteEntity: boolean = false;
-    export let onViewModeChange: (mode: string) => void = () => {}
-
-    function onViewChange(e: CustomEvent): void {
-        viewMode = e.detail.name;
-        onViewModeChange(e.detail.name)
-    }
+    export let entityStats: EntityStat[][] = [];
+    export let entityStatsLoading: boolean = false;
 
     onMount(() => {
         if (params.afterOnMount) {
@@ -45,7 +41,7 @@
 
 <BaseHeader scope={params.scope}>
     <h3 class="header-title">{Language.translate(params.scope, 'scopeNamesPlural')}</h3>
-    <EntityActionsGroup {viewMode} scope={params.scope} {entityActions} {onViewChange} {callbacks} {isFavoriteEntity}/>
+    <EntityActionsGroup scope={params.scope} {entityActions} {callbacks} {isFavoriteEntity} {entityStats} {entityStatsLoading}/>
 </BaseHeader>
 
 <style>
