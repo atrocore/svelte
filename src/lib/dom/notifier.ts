@@ -42,6 +42,9 @@ export const Notifier = {
 
         const toastList = isSticky ? stickyToasts : regularToasts;
 
+        const openDialogs = document.querySelectorAll('dialog[open]');
+        const container = (openDialogs[openDialogs.length - 1] as HTMLElement | undefined) ?? document.body;
+
         const toast = Toastify({
             node,
             duration: resolvedDuration,
@@ -49,6 +52,7 @@ export const Notifier = {
             position: 'center',
             className: `toast-${resolvedType}`,
             stopOnFocus: true,
+            selector: container,
             onClick: onClick,
             callback: () => {
                 const idx = toastList.indexOf(toast);
