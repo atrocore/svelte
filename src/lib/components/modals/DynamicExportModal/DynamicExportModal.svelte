@@ -28,11 +28,12 @@
 
     $: loading = loadingLanguages || loadingLocales;
 
-    const buttons = [
+    $: buttons = [
         {
             name: 'export',
             label: Language.translate('Export', 'labels', 'ExportFeed'),
-            style: 'danger'
+            style: 'danger',
+            disabled: loading || !contentLanguageId
         },
         {
             name: 'cancel',
@@ -83,11 +84,10 @@
     {buttons}
     onButtonClick={handleButton}
     {onClose}
-    fitHeight={true}
 >
     {#if loading}
         <div class="text-center" style="padding: 1em;">
-            <span class="fas fa-spinner fa-spin"></span>
+            <i class="ph ph-circle-notch ph-spin"></i>
             {Language.translate('pleaseWait', 'messages')}
         </div>
     {:else}
@@ -95,6 +95,7 @@
             <div class="cell col-sm-6 form-group">
                 <label class="control-label">
                     {Language.translate('contentLanguage', 'labels', 'ExportFeed')}
+                    <sup><i class="ph ph-asterisk"></i></sup>
                 </label>
                 <PartSelect
                     name="contentLanguage"
@@ -117,3 +118,9 @@
         </div>
     {/if}
 </Modal>
+
+<style>
+    i.ph-spin {
+        display: inline-block;
+    }
+</style>
