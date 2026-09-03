@@ -61,6 +61,9 @@ import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNav
 import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import { default as Login } from "./routes/login/Login/Login.svelte";
+import { default as ResetPassword } from "./routes/reset-password/ResetPassword/ResetPassword.svelte";
+import { default as ChangeExpiredPassword } from "./routes/password-expired/ChangeExpiredPassword/ChangeExpiredPassword.svelte";
+import { default as ErrorPage } from "./routes/errors/ErrorPage/ErrorPage.svelte";
 import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemList.svelte";
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
@@ -138,6 +141,9 @@ export {
     RebuildDatabaseModal,
     Administration,
     Login,
+    ResetPassword,
+    ChangeExpiredPassword,
+    ErrorPage,
     SelectionItemList,
     ClusterItemList,
     RowActions,
