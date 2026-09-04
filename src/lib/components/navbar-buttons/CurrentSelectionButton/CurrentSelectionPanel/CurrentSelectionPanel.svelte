@@ -207,7 +207,7 @@
                         name: 'compare',
                         html: '<i class="ph ph-arrows-left-right"></i>',
                         hidden: false,
-                        className:"action primary"
+                        className:"action"
                     }}
                         on:execute={() => openView('compare')}
                 />
