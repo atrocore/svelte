@@ -103,6 +103,11 @@
 
         } catch (error) {
             console.error('Error fetching selection items:', error);
+            if (offset === 0) {
+                groups = [];
+                total = 0;
+                currentOffset = 0;
+            }
         } finally {
             loadingGroups = false;
             showMoreLoading = false;
@@ -156,12 +161,17 @@
             return;
         }
 
-        currentSelectionId = userModel.get('currentSelectionId') || null;
+        const newSelectionId = userModel.get('currentSelectionId') || null,
+            selectionChanged = newSelectionId !== currentSelectionId;
+
+        currentSelectionId = newSelectionId;
 
         if (currentSelectionId) {
             loadingGroups = true;
-            groups = [];
             currentOffset = 0;
+            if (selectionChanged) {
+                groups = [];
+            }
             fetchItems();
         } else {
             groups = [];
