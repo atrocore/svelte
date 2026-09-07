@@ -121,7 +121,7 @@
         const forbiddenFields: Array<string> = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
 
         Object.entries(Metadata.get(['entityDefs', scope, 'fields'])).forEach(([field, defs]: [string, any]) => {
-            if (defs.dataQualityCheck) {
+            if (defs.qualityCheckId) {
                 let text: string = '';
                 Object.entries(Config.get('referenceData').QualityCheck).forEach(([key, check]: [string, any]) => {
                     if (check.id === defs.qualityCheckId) {
