@@ -32,6 +32,7 @@
     let activeAnchorItemName: string | null = null;
 
     $: mode = params.mode ?? 'detail';
+    $: minimizeHeaderOnScroll = params.minimizeHeaderOnScroll ?? true;
 
     window.addEventListener('detail:panels-loaded', ((event: CustomEvent) => {
         anchorNavItems = event.detail;
@@ -63,7 +64,7 @@
 </script>
 
 <div class="detail-header-container">
-    <BaseHeader breadcrumbs={params.breadcrumbs} scope={params.scope} id={params.id} disableNavigationHistory={disableNavigationHistory} minimizeHeaderOnScroll={true}>
+    <BaseHeader breadcrumbs={params.breadcrumbs} scope={params.scope} id={params.id} disableNavigationHistory={disableNavigationHistory} minimizeHeaderOnScroll={minimizeHeaderOnScroll}>
         {#if recordButtons}
             <div class="detail-button-container">
                 <RecordActionsGroup {mode} scope={params.scope} id={params.id} {recordButtons} {callbacks}/>

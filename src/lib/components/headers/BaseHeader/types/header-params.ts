@@ -9,7 +9,6 @@
  */
 
 import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
-import type Permissions from "$lib/components/headers/RecordActionsGroup/types/permissions";
 
 type Params = {
     mode: string;
@@ -21,8 +20,8 @@ type Params = {
     breadcrumbs: BreadcrumbsItem[],
     afterOnMount?: () => void,
     afterOnDestroy?: () => void,
-    scopePermissions?: Permissions,
-    disableNavigationHistory: boolean
+    disableNavigationHistory: boolean,
+    minimizeHeaderOnScroll?: boolean
 }
 
 export default Params;
