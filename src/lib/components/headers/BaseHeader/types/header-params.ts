@@ -19,7 +19,6 @@ type Params = {
     showSearchPanel: boolean,
     showFilter: boolean,
     breadcrumbs: BreadcrumbsItem[],
-    currentIsHeading: boolean;
     afterOnMount?: () => void,
     afterOnDestroy?: () => void,
     scopePermissions?: Permissions,
