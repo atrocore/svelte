@@ -11,7 +11,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount, tick } from "svelte";
     import { Metadata } from '$lib/core/metadata';
-    import { Config } from '$lib/core/config';
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
     import { Storage } from "$lib/core/storage";
@@ -121,21 +120,12 @@
         const forbiddenFields: Array<string> = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
 
         Object.entries(Metadata.get(['entityDefs', scope, 'fields'])).forEach(([field, defs]: [string, any]) => {
-            if (defs.qualityCheckId) {
-                let text: string = '';
-                Object.entries(Config.get('referenceData').QualityCheck).forEach(([key, check]: [string, any]) => {
-                    if (check.id === defs.qualityCheckId) {
-                        text = check.name;
-                    }
+            if (defs.qualityCheckId && !forbiddenFields.includes(field)) {
+                qualityChecksList.push({
+                    value: defs.qualityCheckId,
+                    text: Language.translate(field, 'fields', scope) || '',
+                    field: field,
                 });
-
-                if (!forbiddenFields.includes(field)) {
-                    qualityChecksList.push({
-                        value: defs.qualityCheckId,
-                        text: text,
-                        field: field,
-                    });
-                }
             }
         });
 
