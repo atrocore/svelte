@@ -10,7 +10,6 @@
 
 <script lang="ts">
     import type RecordActionButtons from "$lib/components/headers/RecordActionsGroup/types/record-actions-buttons";
-    import type Permissions from "$lib/components/headers/RecordActionsGroup/types/permissions";
     import { Metadata } from '$lib/core/metadata';
 
     import { onMount } from "svelte";
@@ -32,7 +31,6 @@
     export let mode: string = 'detail';
     export let recordButtons: RecordActionButtons;
     export let callbacks: RecordCallbacks;
-    export let permissions: Permissions;
     export let scope: string;
     export let id: string | null;
 

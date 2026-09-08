@@ -10,6 +10,7 @@
 
 import 'driver.js/dist/driver.css';
 import 'toastify-js/src/toastify.css';
+import 'overlayscrollbars/overlayscrollbars.css';
 import './styles/style.css';
 
 import { Language } from '$lib/core/language';

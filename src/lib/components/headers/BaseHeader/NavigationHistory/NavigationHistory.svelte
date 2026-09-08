@@ -52,7 +52,6 @@
 
 <style>
     .entity-history {
-        margin-bottom: 15px;
         height: 20px;
         overflow: hidden;
     }
