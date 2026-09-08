@@ -215,7 +215,7 @@
                     <div style="flex-grow: 1">
                         <div>
                             <label class="control-label">
-                                <span class="label-text">{rule.code}</span>
+                                <span class="label-text">{rule.number}</span>
                             </label>
                             {#if Acl.check('QualityCheckRule', 'edit')}
                                 <a class="rule-edit-icon pull-right" href="{`/#QualityCheckRule/view/${rule.id}`}"
