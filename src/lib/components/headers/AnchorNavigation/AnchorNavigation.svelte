@@ -57,6 +57,7 @@
     }
 
     function closeLayoutEditorDropdown(): void {
+        // TODO: replace with prop when layout editor component is ready
         container?.querySelectorAll('.layout-editor-container [data-toggle="dropdown"]')
             .forEach((el) => (el as HTMLElementWithDropdown)._dropdown?.close());
     }
