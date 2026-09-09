@@ -26,6 +26,7 @@
     let breadcrumbsEl: HTMLElement;
     let isStuck = false;
     let observer: IntersectionObserver | null = null;
+    let rafId: number | null = null;
 
     $: effectiveIsHeading = currentIsHeading && !isStuck;
 
@@ -45,7 +46,13 @@
                     return;
                 }
 
-                requestAnimationFrame(() => {
+                if (rafId !== null) {
+                    cancelAnimationFrame(rafId);
+                }
+
+                rafId = requestAnimationFrame(() => {
+                    rafId = null;
+
                     if (root instanceof HTMLElement) {
                         root.style.paddingBottom = stuck ? `${breadcrumbsEl?.offsetHeight ?? 0}px` : '';
                     }
@@ -57,7 +64,13 @@
         observer.observe(entityHistoryEl);
     });
 
-    onDestroy(() => observer?.disconnect());
+    onDestroy(() => {
+        observer?.disconnect();
+
+        if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+        }
+    });
 </script>
 
 <div class="entity-history-container" bind:this={entityHistoryEl}>

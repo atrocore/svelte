@@ -12,6 +12,7 @@
     import type AnchorNavItem from "./types/anchor-nav-item";
     import { onDestroy, onMount, tick } from "svelte";
     import {OverlayScrollbars} from "overlayscrollbars";
+    import type HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
 
     export let items: AnchorNavItem[];
     export let scrollCallback = (panelName: string, event: Event): void => {
@@ -55,9 +56,16 @@
         }
     }
 
+    function closeLayoutEditorDropdown(): void {
+        container?.querySelectorAll('.layout-editor-container [data-toggle="dropdown"]')
+            .forEach((el) => (el as HTMLElementWithDropdown)._dropdown?.close());
+    }
+
     onMount(() => {
         OverlayScrollbars(container, {
             scrollbars: { autoHide: 'leave', autoHideDelay: 400 },
+        }, {
+            scroll: closeLayoutEditorDropdown,
         });
 
         tick().then(() => {
