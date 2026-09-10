@@ -214,9 +214,6 @@
                     <div class="rule-status" style="{getStatusStyle(rule.status)}"></div>
                     <div style="flex-grow: 1">
                         <div>
-                            <label class="control-label">
-                                <span class="label-text">{rule.number}</span>
-                            </label>
                             {#if Acl.check('QualityCheckRule', 'edit')}
                                 <a class="rule-edit-icon pull-right" href="{`/#QualityCheckRule/view/${rule.id}`}"
                                    target="_blank" style="color: #333"
