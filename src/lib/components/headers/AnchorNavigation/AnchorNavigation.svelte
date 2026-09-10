@@ -11,204 +11,145 @@
 <script lang="ts">
     import type AnchorNavItem from "./types/anchor-nav-item";
     import { onDestroy, onMount, tick } from "svelte";
+    import {OverlayScrollbars} from "overlayscrollbars";
+    import type HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
 
     export let items: AnchorNavItem[];
     export let scrollCallback = (panelName: string, event: Event): void => {
     };
     export let hasLayoutEditor: boolean = false;
+    export let activeItemName: string | null = null;
 
     export let afterOnMount: () => void = () => {}
 
     let container: HTMLDivElement;
-    let navPills: HTMLUListElement;
-
-    let isDown: boolean = false;
-    let dragging: boolean = false;
-    let startX: number = 0;
-    let prevX: number = 0;
-    let currentTranslate: number = 0;
-    let prevTranslate: number = 0;
-    let lastTime: number = 0;
-    let velocity: number = 0;
-    let momentumID: number | null = null;
-
-    let containerWidth: number = 0;
-    let contentWidth: number = 0;
-    let maxTranslate: number = 0;
-    const dragThreshold: number = 5;
-
-    $: canScroll = contentWidth > containerWidth;
-    $: showLeft = canScroll && currentTranslate < 0;
-    $: showRight = canScroll && currentTranslate > maxTranslate;
-
-    async function updateDimensions() {
-        await tick();
-        containerWidth = container.clientWidth;
-        contentWidth = navPills.scrollWidth;
-        maxTranslate = containerWidth - contentWidth;
-        if (maxTranslate > 0) maxTranslate = 0;
-        currentTranslate = clamp(currentTranslate, maxTranslate, 0);
-        navPills.style.transform = `translateX(${currentTranslate}px)`;
-        prevTranslate = currentTranslate;
-    }
-
-    function clamp(value: number, min: number, max: number) {
-        return Math.min(Math.max(value, min), max);
-    }
 
     function scrollIntoViewForElement(el: HTMLElement) {
-        const elOffsetLeft = el.offsetLeft;
-        const elWidth = el.offsetWidth;
-        const viewStart = -currentTranslate;
-        const viewEnd = viewStart + containerWidth;
-
-        let newTranslate = currentTranslate;
-
-        if (elOffsetLeft < viewStart) {
-            newTranslate = -elOffsetLeft;
-        } else if (elOffsetLeft + elWidth > viewEnd) {
-            newTranslate = -(elOffsetLeft + elWidth - containerWidth);
+        const viewport = el.closest('[data-overlayscrollbars-viewport]') as HTMLElement | null;
+        if (!viewport) {
+            return;
         }
 
-        newTranslate = clamp(newTranslate, maxTranslate, 0);
-        currentTranslate = newTranslate;
-        prevTranslate = currentTranslate;
-        navPills.style.transform = `translateX(${currentTranslate}px)`;
-    }
+        const elRect = el.getBoundingClientRect();
+        const viewportRect = viewport.getBoundingClientRect();
 
-    function handleMouseDown(e: MouseEvent) {
-        isDown = true;
-        dragging = false;
-        startX = e.pageX;
-        prevX = startX;
-        lastTime = performance.now();
-        cancelMomentum();
-    }
-
-    function handleMouseMove(e: MouseEvent) {
-        if (!isDown) return;
-        const currentX = e.pageX;
-        const deltaX = currentX - prevX;
-        const now = performance.now();
-        const dt = now - lastTime;
-        velocity = deltaX / dt;
-        if (Math.abs(currentX - startX) > dragThreshold) {
-            dragging = true;
-        }
-        currentTranslate = clamp(prevTranslate + (currentX - startX), maxTranslate, 0);
-        navPills.style.transform = `translateX(${currentTranslate}px)`;
-        prevX = currentX;
-        lastTime = now;
-    }
-
-    function handleMouseUp() {
-        if (!isDown) return;
-        isDown = false;
-        prevTranslate = currentTranslate;
-        startMomentum();
-        setTimeout(() => dragging = false, 0);
-    }
-
-    function handleTouchStart(e: TouchEvent) {
-        isDown = true;
-        dragging = false;
-        startX = e.touches[0].pageX;
-        prevX = startX;
-        lastTime = performance.now();
-        cancelMomentum();
-    }
-
-    function handleTouchMove(e: TouchEvent) {
-        if (!isDown) return;
-        const currentX = e.touches[0].pageX;
-        const deltaX = currentX - prevX;
-        const now = performance.now();
-        const dt = now - lastTime;
-        velocity = deltaX / dt;
-        if (Math.abs(currentX - startX) > dragThreshold) {
-            dragging = true;
-        }
-        currentTranslate = clamp(prevTranslate + (currentX - startX), maxTranslate, 0);
-        navPills.style.transform = `translateX(${currentTranslate}px)`;
-        prevX = currentX;
-        lastTime = now;
-    }
-
-    function handleTouchEnd() {
-        if (!isDown) return;
-        isDown = false;
-        prevTranslate = currentTranslate;
-        startMomentum();
-        setTimeout(() => dragging = false, 0);
-    }
-
-    function startMomentum() {
-        const decay = 0.95;
-
-        function momentum() {
-            velocity *= decay;
-            if (Math.abs(velocity) > 0.02) {
-                currentTranslate = clamp(currentTranslate + velocity * 16, maxTranslate, 0);
-                navPills.style.transform = `translateX(${currentTranslate}px)`;
-                momentumID = requestAnimationFrame(momentum);
-            } else {
-                cancelMomentum();
-            }
-            prevTranslate = currentTranslate;
+        let delta = 0;
+        if (elRect.left < viewportRect.left) {
+            delta = elRect.left - viewportRect.left;
+        } else if (elRect.right > viewportRect.right) {
+            delta = elRect.right - viewportRect.right;
         }
 
-        momentumID = requestAnimationFrame(momentum);
-    }
-
-    function cancelMomentum() {
-        if (momentumID !== null) {
-            cancelAnimationFrame(momentumID);
-            momentumID = null;
+        if (delta !== 0) {
+            viewport.scrollBy({left: delta, behavior: 'smooth'});
         }
     }
 
-    function handleWheel(e: WheelEvent) {
-        if (e.shiftKey) {
-            e.preventDefault();
-            currentTranslate = clamp(currentTranslate - e.deltaY, maxTranslate, 0);
-            navPills.style.transform = `translateX(${currentTranslate}px)`;
-            prevTranslate = currentTranslate;
+    let lastScrolledItemName: string | null = null;
+
+    $: if (activeItemName && activeItemName !== lastScrolledItemName && container) {
+        lastScrolledItemName = activeItemName;
+        const activeLink = container.querySelector(`[data-name="${activeItemName}"]`);
+        const activeLi = activeLink?.closest('li');
+        if (activeLi) {
+            scrollIntoViewForElement(activeLi as HTMLElement);
         }
     }
 
-    let observer: MutationObserver;
-    let resizeObserver: ResizeObserver;
+    function closeLayoutEditorDropdown(): void {
+        // TODO: replace with prop when layout editor component is ready
+        container?.querySelectorAll('.layout-editor-container [data-toggle="dropdown"]')
+            .forEach((el) => (el as HTMLElementWithDropdown)._dropdown?.close());
+    }
+
     onMount(() => {
-        updateDimensions();
-
-        resizeObserver = new ResizeObserver(() => {
-            updateDimensions();
+        OverlayScrollbars(container, {
+            scrollbars: { autoHide: 'leave', autoHideDelay: 400 },
+        }, {
+            scroll: closeLayoutEditorDropdown,
         });
-
-        observer = new MutationObserver(() => {
-            updateDimensions();
-        });
-
-        observer.observe(container, {childList: true, subtree: true});
-        resizeObserver.observe(container);
 
         tick().then(() => {
             afterOnMount();
         })
+
+        window.addEventListener('click', handleWindowClick);
     });
 
     onDestroy(() => {
-        if (observer) observer.disconnect();
-        if (resizeObserver) resizeObserver.disconnect();
+        window.removeEventListener('click', handleWindowClick);
+        clearHoverTimeout();
     });
+
+    let panelsDropdownEl: HTMLDivElement;
+    let panelsDropdownOpen: boolean = false;
+    let panelsDropdownOpenedByClick: boolean = false;
+    let hoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    const hoverOpenDelayMs: number = 500;
+    const hoverCloseDelayMs: number = 200;
+
+    function clearHoverTimeout(): void {
+        if (hoverTimeoutId !== null) {
+            clearTimeout(hoverTimeoutId);
+            hoverTimeoutId = null;
+        }
+    }
+
+    function togglePanelsDropdown(): void {
+        clearHoverTimeout();
+        panelsDropdownOpen = !panelsDropdownOpen;
+        panelsDropdownOpenedByClick = panelsDropdownOpen;
+    }
+
+    function handlePanelsDropdownMouseEnter(): void {
+        clearHoverTimeout();
+
+        if (panelsDropdownOpen) {
+            return;
+        }
+
+        hoverTimeoutId = setTimeout(() => {
+            panelsDropdownOpen = true;
+            panelsDropdownOpenedByClick = false;
+            hoverTimeoutId = null;
+        }, hoverOpenDelayMs);
+    }
+
+    function handlePanelsDropdownMouseLeave(): void {
+        clearHoverTimeout();
+
+        if (!panelsDropdownOpen || panelsDropdownOpenedByClick) {
+            return;
+        }
+
+        hoverTimeoutId = setTimeout(() => {
+            panelsDropdownOpen = false;
+            hoverTimeoutId = null;
+        }, hoverCloseDelayMs);
+    }
+
+    function handleWindowClick(event: MouseEvent): void {
+        if (panelsDropdownOpen && panelsDropdownEl && !panelsDropdownEl.contains(event.target as Node)) {
+            clearHoverTimeout();
+            panelsDropdownOpen = false;
+            panelsDropdownOpenedByClick = false;
+        }
+    }
+
+    function onPanelsDropdownItemClick(event: Event): void {
+        event.preventDefault();
+        clearHoverTimeout();
+        panelsDropdownOpen = false;
+        panelsDropdownOpenedByClick = false;
+
+        const el = event.currentTarget as HTMLElement;
+        if (el.dataset.name) {
+            scrollCallback(el.dataset.name as string, event);
+        }
+    }
 
     function onClick(event: Event): void {
         event.preventDefault();
-
-        if (dragging) {
-            event.stopPropagation();
-            return;
-        }
 
         const el = event.currentTarget as HTMLElement;
         const li = el.closest('li') as HTMLElement;
@@ -223,107 +164,111 @@
 </script>
 
 <div class="panel-navigation">
-    {#if items}
-        <div class="items-container" class:has-left-scroll={showLeft} class:has-right-scroll={showRight}
-             bind:this={container}
-             on:mousedown={handleMouseDown}
-             on:mousemove={handleMouseMove}
-             on:mouseup={handleMouseUp}
-             on:mouseleave={handleMouseUp}
-             on:touchstart={handleTouchStart}
-             on:touchmove={handleTouchMove}
-             on:touchend={handleTouchEnd}
-             on:wheel={handleWheel}
-        >
-            <ul class="nav-pills" bind:this={navPills}>
-                {#each items as item}
-                    <li class="item"><a href="javascript:" data-name={item.name}
-                                        on:click={onClick}>{item.title ?? item.name}</a></li>
-                {/each}
-            </ul>
+    {#if items && items.length > 0}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div class="panels-dropdown" class:open={panelsDropdownOpen} bind:this={panelsDropdownEl}
+             on:mouseenter={handlePanelsDropdownMouseEnter} on:mouseleave={handlePanelsDropdownMouseLeave}>
+            <button type="button" class="small panels-dropdown-toggle" on:click={togglePanelsDropdown}
+                    aria-haspopup="true" aria-expanded={panelsDropdownOpen}>
+                <i class="ph" class:ph-caret-down={!panelsDropdownOpen} class:ph-caret-up={panelsDropdownOpen} style="font-size: 14px;"></i>
+            </button>
+            {#if panelsDropdownOpen}
+                <ul class="dropdown-menu panels-dropdown-menu">
+                    {#each items as item}
+                        <li><a href="javascript:" data-name={item.name}
+                               on:click={onPanelsDropdownItemClick}>{item.title ?? item.name}</a></li>
+                    {/each}
+                </ul>
+            {/if}
         </div>
     {/if}
-    {#if hasLayoutEditor}
-        <div class="layout-editor-container"></div>
+    {#if items}
+        <div class="items-container os-host-flexbox"
+             bind:this={container}
+        >
+            <ul class="nav-pills">
+                {#each items as item}
+                    <li class="item" class:active={item.name === activeItemName}><a href="javascript:" data-name={item.name}
+                                        on:click={onClick}>{item.title ?? item.name}</a></li>
+                {/each}
+                {#if hasLayoutEditor}
+                    <div class="layout-editor-container"></div>
+                {/if}
+            </ul>
+        </div>
     {/if}
 </div>
 
 <style>
+    :global(.panel-navigation .os-scrollbar) {
+        --os-size: 6px;
+    }
+
     .panel-navigation {
         display: flex;
         position: relative;
         overflow-x: clip;
+        border-top: 1px solid #eee;
+        padding: 0 20px;
+        margin: 0 -20px;
+        background: #fafafa;
+        box-shadow: 0 5px 5px 0 rgb(204 204 204 / 20%);
     }
 
-    .panel-navigation > .layout-editor-container {
-        position: sticky;
-        left: 0;
-        margin-left: 14px;
+    .panel-navigation .layout-editor-container {
+        flex-shrink: 0;
+        margin-left: auto;
+        padding: 0 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .panels-dropdown {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .panels-dropdown-toggle {
+        padding: 3px;
+        margin-inline-end: 4px;
     }
 
     .items-container {
         position: relative;
         display: flex;
         overflow: hidden;
-    }
-
-    .items-container:before,
-    .items-container:after {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        z-index: 1;
-        width: 25px;
-        pointer-events: none;
-        display: block;
-    }
-
-    .items-container.has-left-scroll:before {
-        content: '';
-        left: 0;
-        background: linear-gradient(to right, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
-    }
-
-    .items-container.has-right-scroll:after {
-        content: '';
-        right: 0;
-        background: linear-gradient(to left, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
-    }
-
-    .panel-navigation > .layout-editor-container :global(> a) {
-        width: 18px;
+        -webkit-user-select: none;
+        user-select: none;
     }
 
     .nav-pills {
         display: flex;
-        gap: 10px;
+        gap: 5px;
         padding: 0;
         margin: 0;
         list-style: none;
-        cursor: grab;
-        transition: transform 0.1s ease-out;
-        will-change: transform;
     }
 
     .nav-pills > li > a {
         display: block;
-        border-bottom: 2px solid transparent;
-        padding: 0 7px 5px;
-        color: #7C848B;
+        padding: 10px 5px;
+        color: #333;
         transition: border-bottom-color .2s ease, color .2s ease;
         user-select: none;
         font-size: 13px;
+        line-height: 1;
         -webkit-user-drag: none;
         white-space: nowrap;
     }
 
-    .nav-pills > li > a, .nav-pills > li > a:hover, .nav-pills > li > a:focus {
+    .nav-pills > li > a, .nav-pills > li > a:hover {
         background-color: transparent;
         text-decoration: none;
     }
 
-    .nav-pills > li > a:hover, .nav-pills > li > a:focus, .nav-pills > li.active > a {
+    .nav-pills > li > a:hover, .nav-pills > li.active > a {
         color: #1a75d1;
-        border-bottom-color: #1a75d1;
     }
 </style>

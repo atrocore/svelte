@@ -28,24 +28,23 @@
     }
 
     let mode: string;
-    let currentIsHeading: boolean = params?.currentIsHeading ?? true;
     let disableNavigationHistory: boolean = params?.disableNavigationHistory ?? false;
+    let activeAnchorItemName: string | null = null;
 
     $: mode = params.mode ?? 'detail';
+    $: minimizeHeaderOnScroll = params.minimizeHeaderOnScroll ?? true;
 
     window.addEventListener('detail:panels-loaded', ((event: CustomEvent) => {
         anchorNavItems = event.detail;
     }) as EventListener);
 
+    window.addEventListener('anchor-nav:active-changed', ((event: CustomEvent) => {
+        activeAnchorItemName = event.detail;
+    }) as EventListener);
+
     window.addEventListener('record-mode:changed', ((event: CustomEvent) => {
         params.mode = event.detail;
     }) as EventListener);
-
-    if (currentIsHeading === true) {
-        window.addEventListener('breadcrumbs:header-updated', ((event: CustomEvent) => {
-            currentIsHeading = !!event.detail;
-        }) as EventListener);
-    }
 
     window.addEventListener('breadcrumbs:items-updated', ((event: CustomEvent) => {
         params.breadcrumbs = event.detail;
@@ -64,25 +63,42 @@
     });
 </script>
 
-<BaseHeader breadcrumbs={params.breadcrumbs} {currentIsHeading} scope={params.scope} id={params.id} disableNavigationHistory={disableNavigationHistory}>
-    {#if recordButtons}
-        <div class="detail-button-container">
-            <RecordActionsGroup {mode} scope={params.scope} id={params.id} permissions={params.scopePermissions}
-                                {recordButtons} {callbacks}/>
-        </div>
-    {/if}
-    {#if anchorNavItems.length > 0}
-        <div class="anchor-nav-container">
-            <AnchorNavigation items={anchorNavItems} scrollCallback={anchorScrollCallback}
-                              hasLayoutEditor={recordButtons?.hasLayoutEditor && params.mode !== 'edit'}/>
-        </div>
-    {/if}
-</BaseHeader>
+<div class="detail-header-container">
+    <BaseHeader breadcrumbs={params.breadcrumbs} scope={params.scope} id={params.id} disableNavigationHistory={disableNavigationHistory} minimizeHeaderOnScroll={minimizeHeaderOnScroll}>
+        {#if recordButtons}
+            <div class="detail-button-container">
+                <RecordActionsGroup {mode} scope={params.scope} id={params.id} {recordButtons} {callbacks}/>
+            </div>
+        {/if}
+        {#if anchorNavItems.length > 0}
+            <div class="anchor-nav-container">
+                <AnchorNavigation items={anchorNavItems} scrollCallback={anchorScrollCallback}
+                                  activeItemName={activeAnchorItemName}
+                                  hasLayoutEditor={recordButtons?.hasLayoutEditor && params.mode !== 'edit'}/>
+            </div>
+        {/if}
+    </BaseHeader>
+</div>
 
 <style>
+    .detail-header-container {
+        display: contents;
+    }
+
+    .detail-header-container :global(.header-wrapper){
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 101;
+        background-color: #fff;
+        border-bottom: 1px solid var(--primary-border-color);
+        padding-top: 15px;
+    }
+
     .detail-button-container {
         position: relative;
         z-index: 101;
-        margin: 15px 0;
+        margin: 1em 0 1.25em;
     }
 </style>
