@@ -735,8 +735,9 @@
                 Object.keys(languages || {}).forEach((lang) => {
                     i++;
                     let currentLabel = label;
-                    let currentName = name + '_' + underscoreToCamelCase(lang.toLowerCase());
+                    let currentName = name;
                     if (languages[lang]['role'] !== 'main') {
+                        currentName = name + '_' + underscoreToCamelCase(lang.toLowerCase());
                         currentLabel = currentLabel + ' / ' + languages[lang]['name']
                     }
                     promises.push(createFieldView(currentName, fieldType, currentLabel, params, i));
