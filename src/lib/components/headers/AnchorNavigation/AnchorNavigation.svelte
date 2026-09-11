@@ -168,18 +168,16 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div class="panels-dropdown" class:open={panelsDropdownOpen} bind:this={panelsDropdownEl}
              on:mouseenter={handlePanelsDropdownMouseEnter} on:mouseleave={handlePanelsDropdownMouseLeave}>
-            <button type="button" class="small panels-dropdown-toggle" on:click={togglePanelsDropdown}
+            <button type="button" class="small panels-dropdown-toggle" on:click={togglePanelsDropdown} data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded={panelsDropdownOpen}>
                 <i class="ph" class:ph-caret-down={!panelsDropdownOpen} class:ph-caret-up={panelsDropdownOpen} style="font-size: 14px;"></i>
             </button>
-            {#if panelsDropdownOpen}
-                <ul class="dropdown-menu panels-dropdown-menu">
-                    {#each items as item}
-                        <li><a href="javascript:" data-name={item.name}
-                               on:click={onPanelsDropdownItemClick}>{item.title ?? item.name}</a></li>
-                    {/each}
-                </ul>
-            {/if}
+            <ul class="dropdown-menu panels-dropdown-menu">
+                {#each items as item}
+                    <li><a href="javascript:" data-name={item.name}
+                           on:click={onPanelsDropdownItemClick}>{item.title ?? item.name}</a></li>
+                {/each}
+            </ul>
         </div>
     {/if}
     {#if items}
