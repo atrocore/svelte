@@ -71,6 +71,7 @@
     }
 
     export function fetch(): FieldFetchResult {
+        if (notNull && isNull) return {[name]: false};
         return { [name]: currentValue };
     }
 </script>
