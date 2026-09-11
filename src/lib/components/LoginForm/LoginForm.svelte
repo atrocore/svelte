@@ -9,21 +9,24 @@
 -->
 
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { Config } from "$lib/core/config";
-    import { Language } from "$lib/core/language";
-    import { login } from "./utils/login";
-    import { getOidcLoginUrl } from "./utils/sso";
-    import { ApiError } from "$lib/core/api-client";
-    import { Notifier } from "$lib/dom/notifier";
-    import { UserData } from "$lib/core/user-data";
+    import {onMount} from "svelte";
+    import {Config} from "$lib/core/config";
+    import {Language} from "$lib/core/language";
+    import {login} from "./utils/login";
+    import {getOidcLoginUrl} from "./utils/sso";
+    import {ApiError} from "$lib/core/api-client";
+    import {Notifier} from "$lib/dom/notifier";
+    import {UserData} from "$lib/core/user-data";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
 
-    export let onLogin: (data: any) => void = () => {};
-    export let onForgotPassword: (username: string) => void = () => {};
+    export let onLogin: (data: any) => void = () => {
+    };
+    export let onForgotPassword: (username: string) => void = () => {
+    };
 
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
+    const hasLoginForm = !Config.get('ssoOnly');
 
     let username = demo?.username ? demo.username : (localStorage.getItem('lastAuthUserName') || '');
     let password = demo?.username ? (demo.password || '') : '';
@@ -141,54 +144,60 @@
         <div class="error-message" role="alert">{ssoError}</div>
     {/if}
 
-    <div class="divider">
-        <span>{Language.translate('OrContinueWithUsername')}</span>
-    </div>
+    {#if hasLoginForm}
+        <div class="divider">
+            <span>{Language.translate('OrContinueWithUsername')}</span>
+        </div>
+    {/if}
 {/if}
 
-<form on:submit|preventDefault={handleSubmit}>
-    <TextInput
-        label={Language.translate('Username')}
-        id="field-username"
-        name="username"
-        bind:value={username}
-        bind:this={usernameInputEl}
-        invalid={usernameInvalid}
-        on:input={clearCredentialsError}
-    />
+{#if hasLoginForm}
+    <form on:submit|preventDefault={handleSubmit}>
+        <TextInput
+                label={Language.translate('Username')}
+                id="field-username"
+                name="username"
+                bind:value={username}
+                bind:this={usernameInputEl}
+                invalid={usernameInvalid}
+                on:input={clearCredentialsError}
+        />
 
-    <TextInput
-        label={Language.translate('Password')}
-        id="field-password"
-        name="password"
-        type="password"
-        bind:value={password}
-        bind:this={passwordInputEl}
-        invalid={passwordInvalid}
-        on:input={clearCredentialsError}
-    />
+        <TextInput
+                label={Language.translate('Password')}
+                id="field-password"
+                name="password"
+                type="password"
+                bind:value={password}
+                bind:this={passwordInputEl}
+                invalid={passwordInvalid}
+                on:input={clearCredentialsError}
+        />
 
-    <div class="form-row">
-        <label class="remember-username">
-            <input type="checkbox" id="field-remember-username" name="rememberUsername" bind:checked={rememberUsername}>
-            <span>{Language.translate('RememberUsername')}</span>
-        </label>
-        <a href="javascript:" class="forgot-password" on:click|preventDefault={() => onForgotPassword(username)}>{Language.translate('Forgot Password?', 'labels', 'User')}</a>
-    </div>
+        <div class="form-row">
+            <label class="remember-username">
+                <input type="checkbox" id="field-remember-username" name="rememberUsername"
+                       bind:checked={rememberUsername}>
+                <span>{Language.translate('RememberUsername')}</span>
+            </label>
+            <a href="javascript:" class="forgot-password"
+               on:click|preventDefault={() => onForgotPassword(username)}>{Language.translate('Forgot Password?', 'labels', 'User')}</a>
+        </div>
 
-    <button type="submit" class="primary login-button" disabled={submitting}>
-        {#if submitting}
-            <i class="ph ph-circle-notch ph-spin"></i>
-        {:else}
-            <i class="ph ph-sign-in"></i>
+        <button type="submit" class="primary login-button" disabled={submitting}>
+            {#if submitting}
+                <i class="ph ph-circle-notch ph-spin"></i>
+            {:else}
+                <i class="ph ph-sign-in"></i>
+            {/if}
+            <span>{Language.translate('Login')}</span>
+        </button>
+
+        {#if credentialsError}
+            <div class="error-message" role="alert">{credentialsError}</div>
         {/if}
-        <span>{Language.translate('Login')}</span>
-    </button>
-
-    {#if credentialsError}
-        <div class="error-message" role="alert">{credentialsError}</div>
-    {/if}
-</form>
+    </form>
+{/if}
 
 <style>
     label {
