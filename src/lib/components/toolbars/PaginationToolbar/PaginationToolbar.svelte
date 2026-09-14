@@ -181,7 +181,7 @@
         flex-wrap: wrap;
         align-items: center;
         color: #333;
-        font-size: 12px;
+        font-size: 13px;
         line-height: 1;
         white-space: nowrap;
     }
