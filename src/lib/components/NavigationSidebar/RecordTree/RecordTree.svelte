@@ -40,6 +40,8 @@
     export let maxSize: number = Config.get('recordsPerPageSmall') || 20;
     export let selectedNodes: SelectedNode[] = [];
 
+    export let contextWhere: any[] = [];
+
     export let selectable: boolean = false;
     export let marksPageRecord: boolean = false;
     export let filtersOwnRecords: boolean = false;
@@ -898,7 +900,7 @@
         } else if (model && model.id && [model.urlRoot, 'Bookmark'].includes(treeScope)) {
             url += '&selectedId=' + model.id;
         }
-        let whereData = [];
+        let whereData = [...contextWhere];
         if (searchValue) {
             whereData.push({"type": "textFilter", "value": searchValue});
         }
@@ -1092,8 +1094,9 @@
     }
 
     function getCurrentAdminNodeId(): string | null {
-        const hash = window.location.hash;
-        const hashScope = getHashScope();
+        const adminPanelScope = Metadata.get(['scopes', getHashScope(), 'adminPanelScope']);
+        const hash = adminPanelScope ? `#${adminPanelScope}` : window.location.hash;
+        const hashScope = adminPanelScope ?? getHashScope();
         const bySubPath = !!Metadata.get(['scopes', hashScope]) && isAdminLinkUnique(hashScope, searchValue);
         let currentId = '';
 
