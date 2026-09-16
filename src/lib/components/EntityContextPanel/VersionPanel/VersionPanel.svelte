@@ -42,26 +42,26 @@
         visibleCount += pageSize;
     }
 
-    async function deleteVersion(versionName: string) {
+    async function deleteVersion(versionId: string) {
         try {
-            const qs = new URLSearchParams({entityName: scope, entityId, name: versionName}).toString();
+            const qs = new URLSearchParams({entityName: scope, entityId, versionId}).toString();
             await ApiClient.delete(`/version?${qs}`);
-            versions = versions.filter(v => v.name !== versionName);
+            versions = versions.filter(v => v.id !== versionId);
             Notifier.notify(Language.translate('Done'), 'success');
         } catch {
             Notifier.notify('Error occurred', 'error');
         }
     }
 
-    function compareVersion(versionName: string) {
-        window.dispatchEvent(new CustomEvent('versioning:compare', {detail: {scope, entityId, versionName}}));
+    function compareVersion(versionId: string) {
+        window.dispatchEvent(new CustomEvent('versioning:compare', {detail: {scope, entityId, versionId}}));
     }
 
-    async function restoreVersion(versionName: string) {
+    async function restoreVersion(versionId: string) {
         try {
             Notifier.notify(Language.translate('pleaseWait', 'messages'));
-            await ApiClient.post('/restoreVersion', {entityName: scope, targetId: entityId, versionName});
-            window.dispatchEvent(new CustomEvent('versioning:restored', {detail: {scope, entityId, versionName}}));
+            await ApiClient.post('/restoreVersion', {entityName: scope, targetId: entityId, versionId});
+            window.dispatchEvent(new CustomEvent('versioning:restored', {detail: {scope, entityId, versionId}}));
             Notifier.notify(Language.translate('Done'), 'success');
         } catch {
             Notifier.notify('Error occurred', 'error');
@@ -126,23 +126,25 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-right">
                             <li>
-                                <a href="javascript:" on:click={() => compareVersion(version.name)}>
+                                <a href="javascript:" on:click={() => compareVersion(version.id)}>
                                     {Language.translate('Compare')}
                                 </a>
                             </li>
                             {#if scope === 'File'}
                                 <li>
-                                    <a href="javascript:" on:click={() => restoreVersion(version.name)}>
+                                    <a href="javascript:" on:click={() => restoreVersion(version.id)}>
                                         {Language.translate('restoreVersion', 'labels')}
                                     </a>
                                 </li>
                             {/if}
-                            <li role="separator" class="divider"></li>
-                            <li>
-                                <a href="javascript:" class="text-danger" on:click={() => deleteVersion(version.name)}>
-                                    {Language.translate('deleteVersion', 'labels')}
-                                </a>
-                            </li>
+                            {#if version.canDelete}
+                                <li role="separator" class="divider"></li>
+                                <li>
+                                    <a href="javascript:" class="text-danger" on:click={() => deleteVersion(version.id)}>
+                                        {Language.translate('deleteVersion', 'labels')}
+                                    </a>
+                                </li>
+                            {/if}
                         </ul>
                     </div>
                 </div>
