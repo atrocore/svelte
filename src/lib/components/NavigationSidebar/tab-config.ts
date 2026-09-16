@@ -64,9 +64,32 @@ type TreeBehaviour = Partial<{
     searchable: boolean;
     showSort: boolean;
     source: 'records' | 'adminMenu';
+    contextWhere: any[];
 }>;
 
 const plural = (scope: string) => Language.get('Global', 'scopeNamesPlural', scope) as string;
+
+function getContextField(pageScope: string): string | null {
+    return Metadata.get(['clientDefs', pageScope, 'navigationTreeContextField']) ?? null;
+}
+
+function getContextWhere(pageScope: string, model: any): any[] {
+    const field = getContextField(pageScope);
+
+    if (!field) {
+        return [];
+    }
+
+    const value = model?.get(field);
+
+    return value ? [{ type: 'equals', attribute: field, value }] : [];
+}
+
+function hasContextValue(pageScope: string, model: any): boolean {
+    const field = getContextField(pageScope);
+
+    return !field || !!model?.get(field);
+}
 
 function tree(behaviour: (ctx: TabContext) => TreeBehaviour): SidebarTabContent<TabContext> {
     return {
@@ -91,7 +114,7 @@ function tree(behaviour: (ctx: TabContext) => TreeBehaviour): SidebarTabContent<
         },
         key: props => props.source === 'adminMenu'
             ? 'adminMenu'
-            : [props.link, props.scope, props.treeScope, props.recordScope].join('/')
+            : [props.link, props.scope, props.treeScope, props.recordScope, JSON.stringify(props.contextWhere ?? [])].join('/')
     };
 }
 
@@ -113,7 +136,14 @@ const TABS: Record<string, TabDefinition> = {
     [SELF_TAB]: {
         scope: (name, pageScope) => pageScope,
         label: (name, pageScope) => plural(pageScope),
-        content: tree(() => ({ marksPageRecord: true, filtersOwnRecords: true }))
+        content: {
+            ...tree(ctx => ({
+                marksPageRecord: true,
+                filtersOwnRecords: true,
+                contextWhere: getContextWhere(ctx.scope, ctx.model)
+            })),
+            isVisible: (tab, ctx) => hasContextValue(ctx.scope, ctx.model)
+        }
     },
 
     [BOOKMARK_TAB]: {
