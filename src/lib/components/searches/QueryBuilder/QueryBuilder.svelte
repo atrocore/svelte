@@ -22,6 +22,7 @@
     import GeneralFilter from "$lib/components/filters/GeneralFilter/GeneralFilter.svelte";
     import { getSavedSearchStore } from "$lib/stores/saved-search.store";
     import { getGeneralFilterStore } from '$lib/stores/general-filter.store'
+    import { PageContextBridge } from '$lib/stores/page-context.store';
     import { Config } from '$lib/core/config';
     import Collapser from "$lib/components/collapsers/Collapser/Collapser.svelte";
     import { get } from "svelte/store";
@@ -1013,6 +1014,12 @@
     function syncTreeNodesToQB(treeRules: any[]): void {
         // Skip if this QB's DOM element has been detached (e.g. after navigating to a different entity)
         if (!queryBuilderElement?.isConnected) return;
+
+        // The store is updated while the previous page is still in the DOM, so the connection check above
+        // is not enough: the rules already belong to the page being opened. Dropping the tree rules of the
+        // page being left would re-fetch its collection and let its list view render into the new page.
+        const pageScope = PageContextBridge.get().scope;
+        if (uniqueKey === 'default' && pageScope && pageScope !== scope) return;
 
         // FIXME: _scope filtering is needed because the shared treeNodeRules store is never cleared on navigation.
         // When the user switches between entities, the previous list view is not destroyed --
