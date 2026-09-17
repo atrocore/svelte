@@ -1,5 +1,7 @@
 import http from 'node:http';
 import https from 'node:https';
+import { createReadStream, existsSync, statSync } from 'node:fs';
+import { extname, join, normalize } from 'node:path';
 
 // HTTP/HTTPS fetch that bypasses TLS verification for local self-signed certificates.
 function backendFetch(urlString, { method = 'GET', headers = {} } = {}) {
@@ -33,6 +35,79 @@ function backendFetch(urlString, { method = 'GET', headers = {} } = {}) {
         req.on('error', reject);
         req.end();
     });
+}
+
+const STATIC_TYPES = {
+    '.js': 'text/javascript',
+    '.mjs': 'text/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.map': 'application/json',
+    '.html': 'text/html',
+    '.tpl': 'text/plain',
+    '.txt': 'text/plain',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.eot': 'application/vnd.ms-fontobject',
+    '.wasm': 'application/wasm',
+};
+
+// Built by `npm run build`, replaced by the dev entry — never serve them from the last build.
+const BUILT_ASSETS = new Set(['/client/atro.min.js', '/client/css/style.css']);
+
+// Serves the backend's static client files from disk. The legacy loader requests every view,
+// template and translation file on its own, so passing them all to PHP dominates the page load.
+// Files that do not exist fall through to the proxy, exactly as .htaccess sends them to a 404.
+export function devStaticPlugin(publicDir) {
+    return {
+        name: 'dev-static',
+        configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+                if (req.method !== 'GET' && req.method !== 'HEAD') {
+                    return next();
+                }
+
+                const path = (req.url || '').split('?')[0];
+                if (!path.startsWith('/client/') || BUILT_ASSETS.has(path)) {
+                    return next();
+                }
+
+                const contentType = STATIC_TYPES[extname(path).toLowerCase()];
+                if (!contentType) {
+                    return next();
+                }
+
+                let file;
+                try {
+                    file = join(publicDir, normalize(decodeURIComponent(path)));
+                } catch (e) {
+                    return next();
+                }
+
+                if (!file.startsWith(publicDir) || !existsSync(file) || !statSync(file).isFile()) {
+                    return next();
+                }
+
+                res.setHeader('content-type', contentType);
+                res.setHeader('cache-control', 'no-cache');
+
+                if (req.method === 'HEAD') {
+                    res.end();
+                    return;
+                }
+
+                createReadStream(file).pipe(res);
+            });
+        },
+    };
 }
 
 // Intercepts HTML responses from the PHP backend, rewrites atro.min.js to the Vite dev
