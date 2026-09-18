@@ -211,7 +211,7 @@
             </div>
             {#each filteredRules as rule}
                 <div class="rule-container">
-                    <div class="rule-status" style="{getStatusStyle(rule.status)}"></div>
+                    <div class="rule-status" style="{getStatusStyle(rule.status, rule.score)}"></div>
                     <div style="flex-grow: 1">
                         <div>
                             {#if Acl.check('QualityCheckRule', 'edit')}
@@ -222,7 +222,18 @@
                                 </a>
                             {/if}
                         </div>
-                        <p>{rule.name}</p>
+                        <p style="{rule.details?.length ? 'font-weight: bold' : ''}">{rule.name}</p>
+                        {#if rule.details?.length}
+                            <div class="rule-children">
+                                {#each rule.details as child}
+                                    <div class="rule-container rule-child">
+                                        <div class="rule-status"
+                                             style="{getStatusStyle(child.passed ? 'passed' : 'failed', child.passed ? 1 : 0)}"></div>
+                                        <p>{child.label}</p>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
                         {#if rule.error}
                             <p class="rule-error">{rule.error}</p>
                         {/if}
@@ -267,6 +278,19 @@
         padding: 5px;
         border-radius: 3px;
         border: 1px solid #e9c8c8;
+    }
+
+    .rule-children {
+        margin-top: 4px;
+    }
+
+    .rule-child p {
+        font-weight: normal;
+    }
+
+    .rule-child .rule-status {
+        width: 8px;
+        height: 8px;
     }
 
     .highlight-active {

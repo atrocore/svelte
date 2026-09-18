@@ -49,7 +49,16 @@ export function getValueStyle(value: number) {
     return Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('; ')
 }
 
-export function getStatusStyle(status: string) {
-    const backgroundColor = status === 'passed' ? '#CAF2C2' : (status === 'failed' ? '#FFD6C9' : '#CCCCCC');
+export function getStatusStyle(status: string, score: number | null = null) {
+    let backgroundColor: string;
+    if (score === null) {
+        backgroundColor = status === 'passed' ? '#CAF2C2' : (status === 'failed' ? '#FFD6C9' : '#CCCCCC');
+    } else if (score === 1) {
+        backgroundColor = '#CAF2C2'; // green
+    } else if (score === 0) {
+        backgroundColor = '#FFD6C9'; // red
+    } else {
+        backgroundColor = '#FFF8B8'; // amber - same hex as the 50-74% tier in getValueStyle() above
+    }
     return `background-color: ${backgroundColor};`
 }
