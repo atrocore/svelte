@@ -18,6 +18,7 @@
     import DataQualityPanel from "$lib/components/EntityContextPanel/DataQualityPanel/DataQualityPanel.svelte";
     import ClusterPanel from "$lib/components/EntityContextPanel/ClusterPanel/ClusterPanel.svelte";
     import VersionPanel from "$lib/components/EntityContextPanel/VersionPanel/VersionPanel.svelte";
+    import ConsolidationPanel from "$lib/components/EntityContextPanel/ConsolidationPanel/ConsolidationPanel.svelte";
 
     export let scope: string;
     export let mode: string;
@@ -39,6 +40,17 @@
     export let clusterId: string = '';
     export let loadClusterDetail: ((element: HTMLElement, attributes: Record<string, any>) => void) | null = null;
     export let showVersions: boolean = false;
+    export let showConsolidation: boolean = false;
+    export let consolidationClusterId: string = '';
+    export let consolidationMasterEntity: string = '';
+    export let consolidationPreviewActive: boolean = false;
+    export let consolidationScriptChanged: boolean = false;
+    export let loadConsolidationEditor: ((element: HTMLElement, consolidation: Record<string, any>) => void) | null = null;
+    export let getConsolidationScript: (() => string | null) | null = null;
+    export let onConsolidationPreviewLoaded: ((masterRecord: Record<string, any>) => void) | null = null;
+    export let onConsolidationPreviewDiscarded: (() => void) | null = null;
+    export let onResetConsolidationScript: (() => void) | null = null;
+    export let onConsolidationScriptSaved: ((script: string) => void) | null = null;
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
 
@@ -222,6 +234,17 @@
             ];
         }
 
+        if (showConsolidation) {
+            items = [
+                ...items,
+                {
+                    "name": "consolidation",
+                    "label": Language.translate('Consolidation', 'scopeNames'),
+                    iconClass: 'ph ph-crown'
+                }
+            ];
+        }
+
         let itemName = getStoredData('right-side-view-active-item', scopeKey);
 
         if (itemName && items.map(i => i.name).includes(itemName)) {
@@ -303,6 +326,22 @@
         {#if showVersions}
             <div class="versions" class:hidden={activeItem?.name !== 'versions'}>
                 <VersionPanel {scope} entityId="{id}" />
+            </div>
+        {/if}
+
+        {#if showConsolidation}
+            <div class="consolidation" class:hidden={activeItem?.name !== 'consolidation'}>
+                <ConsolidationPanel clusterId={consolidationClusterId}
+                                    masterEntity={consolidationMasterEntity}
+                                    previewActive={consolidationPreviewActive}
+                                    scriptChanged={consolidationScriptChanged}
+                                    loadConsolidationEditor={loadConsolidationEditor}
+                                    getScript={getConsolidationScript}
+                                    onPreviewLoaded={onConsolidationPreviewLoaded}
+                                    onPreviewDiscarded={onConsolidationPreviewDiscarded}
+                                    onResetScript={onResetConsolidationScript}
+                                    onScriptSaved={onConsolidationScriptSaved}
+                                    on:title-change={(e) => updateItemTitle('consolidation', e.detail)} />
             </div>
         {/if}
     </div>
@@ -419,11 +458,13 @@
 
     .activities :global(.panel-default),
     .cluster :global(.panel-default),
+    .consolidation :global(.panel-default),
     .insights :global(.panel-default) {
         background-color: inherit;
     }
 
     .cluster :global(.panel-default),
+    .consolidation :global(.panel-default),
     .insights :global(.panel-default) {
         margin-bottom: 10px;
     }
@@ -438,8 +479,13 @@
         display: none;
     }
 
+    .consolidation :global(.panel-heading) {
+        display: none;
+    }
+
     .activities :global(.panel-body),
     .cluster :global(.panel-body),
+    .consolidation :global(.panel-body),
     .insights :global(.panel-body) {
         padding-top: 0;
         padding-left: 0;
