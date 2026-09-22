@@ -144,6 +144,8 @@ const JSON_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
 const JSON_TWIG_LANGUAGE_CONFIGURATION: monaco.languages.LanguageConfiguration = {
     ...JSON_LANGUAGE_CONFIGURATION,
     wordPattern: /(-?\d*\.\d\w*)|([^[{\]}:",%#\s]+)/g,
+    // Twig has no line comment, and Monaco falls back to the block one when a language declares none
+    comments: { blockComment: ['{#', '#}'] },
     brackets: [...JSON_LANGUAGE_CONFIGURATION.brackets!, ...TWIG_DELIMITER_BRACKETS],
     colorizedBracketPairs: [...JSON_LANGUAGE_CONFIGURATION.brackets!],
     autoClosingPairs: [...TWIG_DELIMITER_PAIRS, ...JSON_LANGUAGE_CONFIGURATION.autoClosingPairs!],

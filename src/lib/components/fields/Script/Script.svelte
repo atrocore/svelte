@@ -90,6 +90,8 @@
             fixedOverflowWidgets: true,
             wordBasedSuggestions: 'off',
             'semanticHighlighting.enabled': true,
+            lineNumbersMinChars: (params.lineNumbersMinChars as number) ?? 3,
+            lineDecorationsWidth: (params.lineDecorationsWidth as number) ?? 6,
             params,
             name,
             scope,
@@ -136,6 +138,7 @@
 
         localEditor.onDidChangeModelContent(() => {
             value = localEditor.getValue();
+            (scriptFieldView as any)?.onScriptChange?.(value);
         });
 
         const cleanupIcon = initFullScreenIcon(rootElement.closest('.cell'), localEditor);

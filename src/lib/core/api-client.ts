@@ -18,9 +18,17 @@ export class ApiError extends Error {
         public readonly status: number,
         public readonly statusText: string,
         public readonly body: unknown,
+        public readonly reason: string | null = null,
     ) {
         super(`API error ${status}: ${statusText}`);
         this.name = 'ApiError';
+    }
+
+    getReason(): string {
+        const body: any = this.body;
+        const fromBody = typeof body === 'string' ? body : body?.message;
+
+        return fromBody || this.reason || this.statusText || this.message;
     }
 }
 
@@ -51,13 +59,18 @@ function joinUrl(path: string): string {
 
 async function parseResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-        let body: unknown;
-        try {
-            body = await response.json();
-        } catch {
-            body = await response.text().catch(() => null);
+        const raw = await response.text().catch(() => '');
+        let body: unknown = raw || null;
+
+        if (raw) {
+            try {
+                body = JSON.parse(raw);
+            } catch {
+                // the backend sends plain text error bodies (see ErrorResponse), so keep the raw string
+            }
         }
-        throw new ApiError(response.status, response.statusText, body);
+
+        throw new ApiError(response.status, response.statusText, body, response.headers.get('X-Status-Reason'));
     }
 
     const contentType = response.headers.get('Content-Type') ?? '';
