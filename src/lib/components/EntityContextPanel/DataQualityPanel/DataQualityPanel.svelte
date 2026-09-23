@@ -229,7 +229,7 @@
                                     <div class="rule-container rule-child">
                                         <div class="rule-status"
                                              style="{getStatusStyle(child.passed ? 'passed' : 'failed', child.passed ? 1 : 0)}"></div>
-                                        <p>{child.label}</p>
+                                        <p>{child.label || Language.translate(child.field, 'fields', scope) || child.field}</p>
                                     </div>
                                 {/each}
                             </div>
@@ -278,6 +278,8 @@
         padding: 5px;
         border-radius: 3px;
         border: 1px solid #e9c8c8;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     .rule-children {
