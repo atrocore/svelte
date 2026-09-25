@@ -31,6 +31,9 @@
     let qualityChecksList: Array<Item> = [];
     let activeItem: string | null = null
     let loading: boolean = false
+    // Keyed by quality check id - the same object broadcast to the Backbone side (§ onQualityChecksDataLoaded).
+    let allData: any = null
+    // The active item's own slice of allData - what this component renders.
     let data: any = null
     let selectedFilters: Array<string> = Storage.get('qualityCheckRuleFilters', scope) || []
     let filteredRules: Array<any> = []
@@ -45,17 +48,25 @@
         selectedFilters = value
     }
 
-    async function loadQualityCheckData(reload = false) {
+    // Single fetch of every check's data for this record - this component's own display (data,
+    // the active item's slice of it) and the Backbone side (data-quality:views/record/panels/side/
+    // data-quality, via the 'record:quality-checks-data-loaded' window event) both read from this
+    // exact same object, instead of each doing their own separate request.
+    async function loadQualityChecksData(reload = false) {
         loading = true
         if (!reload) {
             data = null
         }
 
         try {
-            data = await ApiClient.get(`/QualityCheck/${activeItem}/entityData`, {
+            allData = await ApiClient.get('/QualityCheck/entityData', {
                 entityName: scope,
                 entityId: id
             });
+            data = allData?.[activeItem] || null;
+            window.dispatchEvent(new CustomEvent('record:quality-checks-data-loaded', {
+                detail: {entityName: scope, entityId: id, data: allData}
+            }));
         } catch {
             data = null;
             Notifier.notify('Error occurred', 'error');
@@ -64,8 +75,13 @@
         loading = false
     }
 
+    function selectActiveItem(value: string) {
+        activeItem = value;
+        data = allData?.[activeItem] || null;
+    }
+
     function onRecordSave(evt: any) {
-        loadQualityCheckData(true)
+        loadQualityChecksData(true)
     }
 
     async function recalculateCheck() {
@@ -80,16 +96,14 @@
             });
             Notifier.notify('Done', 'success')
             fetchModel()
-            await loadQualityCheckData(true)
+            await loadQualityChecksData(true)
         } catch {
             Notifier.notify('Error occurred', 'error')
         }
     }
 
     function onCheckRecalculated(evt: Event) {
-        if ((evt as CustomEvent).detail.field === qualityChecksList.find(item => item.value === activeItem)?.field) {
-            loadQualityCheckData()
-        }
+        loadQualityChecksData(true)
     }
 
     function onShowDetails(evt: Event) {
@@ -140,7 +154,7 @@
 
         activeItem = qualityChecksList[0].value;
 
-        loadQualityCheckData()
+        loadQualityChecksData()
 
         tick().then(() => {
             window.$(qualityCheckSelect).selectize({
@@ -148,8 +162,7 @@
                 labelField: 'text',
                 searchField: ['text'],
                 onChange: function (value: string) {
-                    activeItem = value
-                    loadQualityCheckData()
+                    selectActiveItem(value)
                 }
             });
         })
@@ -197,7 +210,7 @@
                             title="{Language.translate('highlight', 'labels', 'QualityCheck')}">
                         <i class="{'ph ph-highlighter '+ (highlightedCheckId===activeItem ? 'ph-fill highlight-active': '')}"></i>
                     </button>
-                    <button class="small refresh" on:click={()=>loadQualityCheckData(true)}
+                    <button class="small refresh" on:click={()=>loadQualityChecksData(true)}
                             title="{Language.translate('Refresh')}">
                         <i class="ph ph-arrows-clockwise"></i>
                     </button>
@@ -222,7 +235,8 @@
                                 </a>
                             {/if}
                         </div>
-                        <p style="{rule.details?.length ? 'font-weight: bold' : ''}">{rule.name}</p>
+                        <p style="{rule.details?.length ? 'font-weight: bold' : ''}"
+                           title="{rule.score !== null ? (Math.round(rule.score * rule.ruleScore * 100) / 100) + ' / ' + rule.ruleScore : ''}">{rule.name}</p>
                         {#if rule.details?.length}
                             <div class="rule-children">
                                 {#each rule.details as child}
