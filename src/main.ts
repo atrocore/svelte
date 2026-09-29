@@ -24,6 +24,7 @@ import { Storage } from "$lib/core/storage";
 import { Acl } from "$lib/core/acl";
 import { CollectionFactory } from "$lib/core/collection-factory";
 import { PageContextBridge } from "$lib/stores/page-context.store";
+import * as Html from "$lib/helpers/html";
 
 import { Tooltip } from "$lib/dom/tooltip";
 import { Dropdown } from "$lib/dom/dropdown";
@@ -86,6 +87,7 @@ declare global {
         SvelteAcl: typeof Acl;
         SvelteCollectionFactory: typeof CollectionFactory;
         SveltePageContext: typeof PageContextBridge;
+        SvelteHtml: typeof Html;
         Tooltip: typeof Tooltip;
         Dropdown: typeof Dropdown;
         Popover: typeof Popover;
@@ -104,6 +106,7 @@ window.SvelteStorage = Storage;
 window.SvelteAcl = Acl;
 window.SvelteCollectionFactory = CollectionFactory;
 window.SveltePageContext = PageContextBridge;
+window.SvelteHtml = Html;
 window.Dropdown = Dropdown;
 window.Popover = Popover;
 window.Tooltip = Tooltip;

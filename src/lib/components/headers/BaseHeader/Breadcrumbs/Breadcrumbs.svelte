@@ -10,6 +10,7 @@
 
 <script lang="ts">
     import type BreadcrumbsItem from "$lib/types/ui/header/breadcrumbs-item";
+    import { sanitizeTitle } from "$lib/helpers/html";
 
     export let items: BreadcrumbsItem[] = [];
     export let currentIsHeading: boolean = true;
@@ -21,18 +22,18 @@
             {#if index !== items.length - 1}
                 {#if item.url}
                     <a href="{item.url}" class={item.className}>
-                        {#if item.html}{@html item.html}{:else}{item.label}{/if}
+                        {sanitizeTitle(item.html || item.label)}
                     </a>
                 {:else}
-                    <span class={item.className}>{#if item.html}{@html item.html}{:else}{item.label}{/if}</span>
+                    <span class={item.className}>{sanitizeTitle(item.html || item.label)}</span>
                 {/if}
             {:else}
                 {#if currentIsHeading}
                     <h3 class={item.className}>
-                        {#if item.html}{@html item.html}{:else}{item.label}{/if}
+                        {sanitizeTitle(item.html || item.label)}
                     </h3>
                 {:else}
-                    <span class={item.className}>{#if item.html}{@html item.html}{:else}{item.label}{/if}</span>
+                    <span class={item.className}>{sanitizeTitle(item.html || item.label)}</span>
                 {/if}
             {/if}
         </li>
