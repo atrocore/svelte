@@ -8,9 +8,10 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
+import { sanitizeHtml } from '$lib/helpers/html';
+
 export function renderMarkdown(text: string | null): string {
     if (!text) return '';
     const marked = (window as any).marked;
-    if (!marked) return text;
-    return marked(text);
+    return sanitizeHtml(marked ? marked(text) : text);
 }

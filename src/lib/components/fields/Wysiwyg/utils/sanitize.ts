@@ -8,12 +8,10 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
+import { sanitizeHtml as sanitizeHtmlHelper } from '$lib/helpers/html';
+
 export function sanitizeHtml(value: string | null): string {
-    if (!value) return '';
-    value = value.replace(/<[\/]{0,1}(base)[^><]*>/gi, '');
-    value = value.replace(/<[\/]{0,1}(script)[^><]*>/gi, '');
-    value = value.replace(/<[^><]*(onerror|onclick|onmouseover|onmousedown|onmouseenter|onmouseout|mouseleave|onchange|onblur)=[^><]*>/gi, '');
-    return value;
+    return sanitizeHtmlHelper(value);
 }
 
 export function plainToHtml(text: string | null): string {
