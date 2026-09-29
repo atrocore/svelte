@@ -98,8 +98,8 @@
 {:else if useIframe}
     <iframe
         bind:this={iframeEl}
+        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
         frameborder="0"
-        style="width: 100%; overflow-x: hidden; overflow-y: hidden;"
     ></iframe>
 {:else}
     <div
@@ -112,3 +112,10 @@
         <a href="javascript:" on:click={() => (expanded = true)}>{Language.translate('See more') || 'See more'}</a>
     {/if}
 {/if}
+
+<style>
+    iframe {
+        width: 100%;
+        overflow: hidden;
+    }
+</style>
