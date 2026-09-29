@@ -12,6 +12,7 @@
     import { onMount } from 'svelte';
     import { Acl } from '$lib/core/acl';
     import { buildToolbar, buildImageUploadFunction } from '../utils/toolbar';
+    import { renderMarkdown } from '../utils/render-markdown';
     import type { FieldFetchResult } from '$lib/types/ui/field';
 
     export let name: string = '';
@@ -70,7 +71,7 @@
                 drawImage: null,
                 toggleSideBySide: null,
             },
-            previewRender: (plainText: string) => (window as any).marked(plainText),
+            previewRender: (plainText: string) => renderMarkdown(plainText),
             previewClass: ['editor-preview', 'complex-text'],
             toolbar: buildToolbar(EasyMDE, {
                 maxHeight,
