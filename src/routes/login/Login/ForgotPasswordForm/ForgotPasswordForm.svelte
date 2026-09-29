@@ -44,16 +44,15 @@
         try {
             await ApiClient.post('User/passwordChangeRequest', {
                 userName,
-                emailAddress,
-                url: window.location.href
+                emailAddress
             });
             onBack();
             Notifier.notify(Language.translate('uniqueLinkHasBeenSent', 'messages', 'User'), 'success');
         } catch (e) {
-            if (e instanceof ApiError && e.status === 404) {
-                errorMessage = Language.translate('userNameEmailAddressNotFound', 'messages', 'User');
-            } else if (e instanceof ApiError && e.status === 403) {
+            if (e instanceof ApiError && e.status === 403) {
                 errorMessage = Language.translate('forbidden', 'messages', 'User');
+            } else if (e instanceof ApiError) {
+                errorMessage = e.getReason();
             } else {
                 errorMessage = String(e);
             }
