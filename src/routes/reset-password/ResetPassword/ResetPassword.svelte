@@ -90,11 +90,11 @@
         submitting = true;
 
         try {
-            const data = await ApiClient.post<{ url?: string }>('User/changePasswordByRequest', {
+            await ApiClient.post('User/changePasswordByRequest', {
                 requestId,
                 password
             });
-            loginUrl = data?.url || Config.get('siteUrl');
+            loginUrl = Config.get('siteUrl');
             success = true;
         } catch (e) {
             if (e instanceof ApiError && e.status === 404) {

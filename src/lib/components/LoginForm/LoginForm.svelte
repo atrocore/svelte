@@ -27,6 +27,7 @@
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
     const hasLoginForm = !Config.get('ssoOnly');
+    const hasPasswordChangeRequest = !!Config.get('passwordChangeRequestAvailable');
 
     let username = demo?.username ? demo.username : (localStorage.getItem('lastAuthUserName') || '');
     let password = demo?.username ? (demo.password || '') : '';
@@ -180,8 +181,10 @@
                        bind:checked={rememberUsername}>
                 <span>{Language.translate('RememberUsername')}</span>
             </label>
-            <a href="javascript:" class="forgot-password"
-               on:click|preventDefault={() => onForgotPassword(username)}>{Language.translate('Forgot Password?', 'labels', 'User')}</a>
+            {#if hasPasswordChangeRequest}
+                <a href="javascript:" class="forgot-password"
+                   on:click|preventDefault={() => onForgotPassword(username)}>{Language.translate('Forgot Password?', 'labels', 'User')}</a>
+            {/if}
         </div>
 
         <button type="submit" class="primary login-button" disabled={submitting}>
