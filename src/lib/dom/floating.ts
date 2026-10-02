@@ -30,6 +30,9 @@ export default class Floating {
     private isOpen: boolean = false;
     private readonly autoHide: boolean = true;
     private readonly usePositionOnly: boolean = false;
+    private readonly boundOnClickOutside = this.onClickOutside.bind(this);
+    private readonly boundOnDropdownClick = this.onDropdownClick.bind(this);
+    private readonly boundOnReferenceElClick = this.onReferenceElClick.bind(this);
 
     constructor(referenceEl: HTMLElement, floatingEl: HTMLElement, params?: FloatingParams) {
         this.referenceEl = referenceEl;
@@ -57,17 +60,17 @@ export default class Floating {
         if (this.usePositionOnly) {
             this.updateDropdown();
         } else {
-            referenceEl.addEventListener('click', this.onReferenceElClick.bind(this));
+            referenceEl.addEventListener('click', this.boundOnReferenceElClick);
         }
     }
 
     destroy() {
         this.floatingHandler?.();
-        document.removeEventListener('click', this.onClickOutside.bind(this));
-        this.floatingEl.removeEventListener('click', this.onDropdownClick.bind(this));
+        document.removeEventListener('click', this.boundOnClickOutside);
+        this.floatingEl.removeEventListener('click', this.boundOnDropdownClick);
 
         if (!this.usePositionOnly) {
-            this.referenceEl.removeEventListener('click', this.onReferenceElClick.bind(this));
+            this.referenceEl.removeEventListener('click', this.boundOnReferenceElClick);
         }
 
         if (this.referenceEl._dropdown === this) {
@@ -176,8 +179,8 @@ export default class Floating {
             });
         }, {animationFrame: true});
 
-        document.addEventListener('click', this.onClickOutside.bind(this));
-        this.floatingEl.addEventListener('click', this.onDropdownClick.bind(this));
+        document.addEventListener('click', this.boundOnClickOutside);
+        this.floatingEl.addEventListener('click', this.boundOnDropdownClick);
     }
 
     private hideDropdown() {
@@ -186,8 +189,8 @@ export default class Floating {
         }
 
         this.floatingHandler?.();
-        document.removeEventListener('click', this.onClickOutside.bind(this));
-        this.floatingEl.removeEventListener('click', this.onDropdownClick.bind(this));
+        document.removeEventListener('click', this.boundOnClickOutside);
+        this.floatingEl.removeEventListener('click', this.boundOnDropdownClick);
 
         this.floatingEl.style.display = 'none';
     }

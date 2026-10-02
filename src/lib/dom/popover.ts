@@ -8,38 +8,53 @@
  *  @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import type HTMLElementWithDropdown from "$lib/types/ui/html-element-with-dropdown";
 import Floating from "$lib/dom/floating";
+
+type PopoverElement = HTMLElement & { _floating?: Floating };
 
 export const Popover = {
     initWithinNode: (node: HTMLElement) => {
         node.querySelectorAll('.popover').forEach(el => {
-            const reference = (el.closest('.cell') || el.parentNode) as HTMLElementWithDropdown;
-            if (reference._dropdown) {
+            const popoverEl = el as PopoverElement;
+            if (popoverEl._floating) {
                 return;
             }
 
-            const popoverEl = el as HTMLElement;
-            popoverEl.style.position = 'fixed';
-
-            const floating = new Floating(reference, popoverEl, {
-                placement: 'bottom',
-                offset: [0, 0],
-                disableAutoHide: true
-            });
+            const reference = (popoverEl.closest('.cell') || popoverEl.parentNode) as HTMLElement;
+            if (!reference) {
+                return;
+            }
 
             requestAnimationFrame(() => {
-                floating.open();
-            })
+                if (popoverEl._floating || !popoverEl.isConnected) {
+                    return;
+                }
+
+                popoverEl.style.position = 'fixed';
+
+                popoverEl._floating = new Floating(reference, popoverEl, {
+                    placement: 'bottom',
+                    offset: [0, 0],
+                    disableAutoHide: true,
+                    usePositionOnly: true,
+                    isOpen: true
+                });
+            });
         });
     },
 
     processMutation: (mutation: MutationRecord) => {
         mutation.removedNodes.forEach(node => {
-            const floatingNode = node as HTMLElementWithDropdown;
-            if (floatingNode._dropdown) {
-                floatingNode._dropdown.destroy();
-            }
+            if (!(node instanceof HTMLElement)) return;
+
+            const popovers: PopoverElement[] = node.classList.contains('popover')
+                ? [node]
+                : Array.from(node.querySelectorAll<HTMLElement>('.popover'));
+
+            popovers.forEach(popoverEl => {
+                popoverEl._floating?.destroy();
+                delete popoverEl._floating;
+            });
         });
 
         mutation.addedNodes.forEach(node => {
