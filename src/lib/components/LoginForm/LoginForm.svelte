@@ -103,10 +103,6 @@
             UserData.set(data);
 
             onLogin({
-                auth: {
-                    userName: username,
-                    token: data.token,
-                },
                 user: data.user,
                 preferences: data.preferences,
                 acl: data.acl,

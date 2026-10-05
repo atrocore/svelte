@@ -11,7 +11,6 @@
 import { ApiClient } from "$lib/core/api-client";
 
 export type UserSessionResponse = {
-    token: string;
     user: any;
     preferences: any;
     acl: any;
@@ -22,5 +21,6 @@ export type UserSessionResponse = {
 export function login(username: string, password: string): Promise<UserSessionResponse> {
     return ApiClient.get<UserSessionResponse>('userSession', undefined, {
         Authorization: 'Basic ' + btoa(`${username}:${password}`),
+        'Authorization-Cookie': 'true',
     });
 }
