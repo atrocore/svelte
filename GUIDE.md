@@ -454,6 +454,11 @@ On the first HTML request, the proxy middleware intercepts the PHP response and:
 2. Replaces `<script src=".../atro.min.js">` with `<script type="module" src="/src/dev-main.ts">`
 3. Removes the built `style.css` link (Vite injects it from source automatically)
 
+For all other proxied requests, the proxy:
+
+1. Replaces the `Origin` header with the backend origin, so cookie-authenticated `POST`/`PUT`/`PATCH`/`DELETE` requests pass the backend's cross-origin check
+2. Makes absolute backend URLs relative in text responses (JSON, JS, CSS, XML) and in `Location` headers, so file URLs, thumbnails and redirects also go through the proxy and receive the auth cookie (it is `SameSite=Strict` and bound to the dev server host)
+
 `src/dev-main.ts` is the dev-only entry point. It imports `main.ts` and exposes everything on `window.Svelte`, matching the interface of the production UMD bundle.
 
 ---

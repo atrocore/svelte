@@ -8,7 +8,6 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-import { UserData } from '$lib/core/user-data';
 import { Storage } from '$lib/core/storage';
 
 const API_BASE = '/api';
@@ -37,11 +36,6 @@ function buildHeaders(extra?: Record<string, string>): Record<string, string> {
         'Content-Type': 'application/json',
         ...extra,
     };
-
-    const userData = UserData.get();
-    if (userData?.user) {
-        headers['Authorization-Token'] = btoa(userData.user.userName + ':' + userData.token);
-    }
 
     const locale = Storage.get('user', 'locale');
     if (locale) {

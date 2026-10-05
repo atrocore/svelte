@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import http from 'node:http';
 import https from 'node:https';
 
-import { devProxyPlugin, devStaticPlugin } from './vite-dev-proxy.js';
+import { configureBackendProxy, devProxyPlugin, devStaticPlugin } from './vite-dev-proxy.js';
 
 dotenv.config();
 
@@ -46,6 +46,8 @@ export default defineConfig(({ command }) => {
                         changeOrigin: true,
                         secure: false,
                         agent,
+                        selfHandleResponse: true,
+                        configure: configureBackendProxy(backendUrl),
                     },
                 },
             },

@@ -17,7 +17,6 @@ type UserDataType = {
         language: string | null;
     };
     user: User;
-    token: string;
 };
 
 const data = writable({});

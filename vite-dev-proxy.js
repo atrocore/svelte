@@ -176,3 +176,42 @@ export function devProxyPlugin(backendUrl) {
         },
     };
 }
+export function configureBackendProxy(backendUrl) {
+    const origin = new URL(backendUrl).origin;
+    const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const originRe = new RegExp(escape(origin) + '(?=/)', 'g');
+    const jsonOriginRe = new RegExp(escape(origin.replace(/\//g, '\\/')) + '(?=\\\\/)', 'g');
+    const textTypeRe = /^(text\/|application\/(json|javascript|xml))/i;
+
+    return (proxy) => {
+        proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.removeHeader('accept-encoding');
+            if (proxyReq.getHeader('origin')) {
+                proxyReq.setHeader('origin', origin);
+            }
+        });
+
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+            const headers = { ...proxyRes.headers };
+            if (headers['location']) {
+                headers['location'] = headers['location'].replace(originRe, '');
+            }
+
+            if (!textTypeRe.test(headers['content-type'] || '') || headers['content-encoding']) {
+                res.writeHead(proxyRes.statusCode, headers);
+                proxyRes.pipe(res);
+                return;
+            }
+
+            const chunks = [];
+            proxyRes.on('data', (c) => chunks.push(c));
+            proxyRes.on('end', () => {
+                const body = Buffer.concat(chunks).toString('utf-8').replace(originRe, '').replace(jsonOriginRe, '');
+                delete headers['content-length'];
+                delete headers['transfer-encoding'];
+                res.writeHead(proxyRes.statusCode, headers);
+                res.end(body);
+            });
+        });
+    };
+}
