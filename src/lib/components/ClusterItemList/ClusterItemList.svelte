@@ -94,7 +94,7 @@
                                on:mouseleave={() => hoveredCircleId = null}
                                class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
                                 <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
-                                <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
+                                <span>{record.name}{#if record.consolidatedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
                                 <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}></i>
                             </a>
                             <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>
@@ -138,7 +138,7 @@
                                on:mouseleave={() => hoveredCircleId = null}
                                class:active="{selectionViewMode !== 'standard' && selectedIdSet.has(record.id)}">
                                 <i class="ph type-icon" class:ph-crown={record.isMaster} class:ph-signpost={!record.isMaster}></i>
-                                <span>{record.name}{#if record.confirmedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
+                                <span>{record.name}{#if record.consolidatedAutomatically}<i class="ph ph-spark auto-icon"></i>{/if}</span>
                                 <i class="ph-circle" class:ph={hoveredCircleId !== record.id} class:ph-fill={hoveredCircleId === record.id}></i>
                             </a>
                             <span use:mountRowActions={{ itemId: record.id, relationName: 'clusterItems' }}></span>

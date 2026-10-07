@@ -56,7 +56,7 @@
             name: item.recordName ?? item.entityId,
             entityName: item.entityName,
             confirmed: item._meta?.cluster?.confirmed ?? false,
-            confirmedAutomatically: item.confirmedAutomatically,
+            consolidatedAutomatically: item.consolidatedAutomatically,
             isGoldenRecord: item._meta?.cluster?.golden ?? false,
         };
     }
@@ -67,7 +67,7 @@
             entityName: 'Cluster',
             link: 'clusterItems',
             id: clusterId,
-            select: 'entityName,entityId,entity,confirmedAutomatically',
+            select: 'entityName,entityId,entity,consolidatedAutomatically',
             collectionOnly: true,
             sortBy: 'id',
             asc: false,
@@ -240,7 +240,7 @@
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
-                                {#if record.confirmedAutomatically}
+                                {#if record.consolidatedAutomatically}
                                     <i class="ph ph-sparkle auto-icon"></i>
                                 {/if}
                             </a>
@@ -280,7 +280,7 @@
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
-                                {#if record.confirmedAutomatically}
+                                {#if record.consolidatedAutomatically}
                                     <i class="ph ph-sparkle auto-icon"></i>
                                 {/if}
                             </a>
