@@ -357,6 +357,10 @@
                             $li.addClass('has-children');
                         }
                     }
+
+                    if (isNodeInSubTree(node)){
+                        $li.addClass('sub-tree-item');
+                    }
                 }
 
                 if ($li.hasClass('jqtree-folder')) {
