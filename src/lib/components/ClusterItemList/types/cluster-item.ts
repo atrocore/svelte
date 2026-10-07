@@ -13,7 +13,7 @@ type ClusterItem = {
     name: string;
     entityType: string;
     isMaster: boolean;
-    confirm: boolean;
+    consolidated: boolean;
     consolidatedAutomatically: boolean;
     rejected: boolean;
 }

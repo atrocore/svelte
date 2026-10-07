@@ -30,8 +30,8 @@
 
     $: selectedIdSet = new Set(selectedIds);
     $: subGroups = {
-        unconfirmed: records.filter(i => !i.confirm && !i.rejected),
-        confirmed: records.filter(i => i.confirm === true),
+        unconsolidated: records.filter(i => !i.consolidated && !i.rejected),
+        consolidated: records.filter(i => i.consolidated === true),
         rejected: records.filter(i => i.rejected === true)
     };
     $: hasMoreEntries = Object.entries(hasMoreByType).filter(([, v]) => v);
@@ -72,20 +72,20 @@
 </script>
 
 <div class="records">
-    {#if subGroups.unconfirmed.length > 0 || hasMoreEntries.length > 0}
+    {#if subGroups.unconsolidated.length > 0 || hasMoreEntries.length > 0}
         <div class="sub-group-header">
             <span class="label-badge"
-                  on:click={() => toggleCollapsed('unconfirmed')}
-                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('unconfirmed')}
+                  on:click={() => toggleCollapsed('unconsolidated')}
+                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('unconsolidated')}
                   role="button"
                   tabindex="0">
-                <i class="ph" class:ph-caret-down={!collapsed['unconfirmed']} class:ph-caret-right={collapsed['unconfirmed']}></i>
-                {Language.translate('unconfirmed', 'labels', 'Cluster')}
+                <i class="ph" class:ph-caret-down={!collapsed['unconsolidated']} class:ph-caret-right={collapsed['unconsolidated']}></i>
+                {Language.translate('unconsolidated', 'labels', 'Cluster')}
             </span>
         </div>
-        {#if !collapsed['unconfirmed']}
+        {#if !collapsed['unconsolidated']}
             <ul>
-                {#each subGroups.unconfirmed as record (record.id)}
+                {#each subGroups.unconsolidated as record (record.id)}
                     <li title="{record.name}">
                         <div class="item-row">
                             <a href="#{record.entityType}/view/{record.id}" target="_blank"
@@ -116,20 +116,20 @@
         {/if}
     {/if}
 
-    {#if subGroups.confirmed.length > 0}
+    {#if subGroups.consolidated.length > 0}
         <div class="sub-group-header">
             <span class="label-badge"
-                  on:click={() => toggleCollapsed('confirmed')}
-                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('confirmed')}
+                  on:click={() => toggleCollapsed('consolidated')}
+                  on:keydown={(e) => e.key === 'Enter' && toggleCollapsed('consolidated')}
                   role="button"
                   tabindex="0">
-                <i class="ph" class:ph-caret-down={!collapsed['confirmed']} class:ph-caret-right={collapsed['confirmed']}></i>
-                {Language.translate('confirmed', 'labels', 'Cluster')}
+                <i class="ph" class:ph-caret-down={!collapsed['consolidated']} class:ph-caret-right={collapsed['consolidated']}></i>
+                {Language.translate('consolidated', 'labels', 'Cluster')}
             </span>
         </div>
-        {#if !collapsed['confirmed']}
+        {#if !collapsed['consolidated']}
             <ul>
-                {#each subGroups.confirmed as record (record.id)}
+                {#each subGroups.consolidated as record (record.id)}
                     <li title="{record.name}">
                         <div class="item-row">
                             <a href="#{record.entityType}/view/{record.id}" target="_blank"
