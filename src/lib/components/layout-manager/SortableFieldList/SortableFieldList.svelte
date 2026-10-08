@@ -199,7 +199,8 @@
             <header>
                 <h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5>
                 {#if addFieldsActions.length}
-                    <button type="button" class="small dropdown-toggle" data-toggle="dropdown">
+                    <button type="button" class="small dropdown-toggle" data-toggle="dropdown"
+                            title={Language.translate('Add Dynamic Fields', 'labels', 'LayoutManager')}>
                         <i class="ph ph-list"></i>
                     </button>
                     <ul class="dropdown-menu">
