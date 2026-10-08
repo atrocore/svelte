@@ -13,6 +13,7 @@
     import { Metadata } from '$lib/core/metadata';
     import { Storage } from "$lib/core/storage";
     import type Rule from "./types/rule";
+    import type FilterGroup from "./types/filter-group";
     import { Acl } from "$lib/core/acl";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/dom/notifier";
@@ -65,6 +66,8 @@
     let isQbValid: boolean = false;
 
     let defaultValue = "-1";
+
+    const emptyGroupRulePrefix = 'emptyGroupRule_';
 
     let generalFilterStore = getGeneralFilterStore(uniqueKey);
 
@@ -176,6 +179,7 @@
 
         filters = [
             ...(filterPerGroups[Language.translate('Attributes')] ?? []),
+            ...getFilterGroupsFilters(filterPerGroups),
             ...(filterPerGroups['default'] ?? []),
             ...(filterPerGroups[Language.translate('Fields')] ?? []),
         ]
@@ -433,32 +437,10 @@
 
             if (rule.filter && rule.filter.id === 'emptyAttributeRule') {
                 e.preventDefault();
-                addAttributeFilter((pushed, newFilters) => {
-                    if (pushed) {
-                        qb.setFilters(filters);
-                    }
-                    if (newFilters) {
-                        rule.filter = newFilters[0];
-                        if (newFilters.length > 1) {
-                            for (const newFilter of newFilters) {
-                                if (newFilter.id === rule.filter.id) {
-                                    continue;
-                                }
-
-                                let r = qb.addRule(rule.parent);
-                                r.filter = newFilter;
-                            }
-                        }
-                    }
-                    if (!rule.filter || rule.filter.id === 'emptyAttributeRule') {
-                        rule.filter = previousFilter;
-                        previousFilter = null
-                        qb.updateRuleFilter(rule, previousFilter);
-                        rule.$el.find('.rule-filter-container select')[0].selectize.setValue(rule.filter ? rule.filter.id : null);
-                    } else {
-                        qb.updateRuleFilter(rule, previousFilter);
-                    }
-                })
+                addAttributeFilter(applyAddedFilters.bind(null, qb, rule, previousFilter));
+            } else if (rule.filter && rule.filter.id.startsWith(emptyGroupRulePrefix)) {
+                e.preventDefault();
+                addGroupFilter(rule.filter.id.slice(emptyGroupRulePrefix.length), applyAddedFilters.bind(null, qb, rule, previousFilter));
             } else {
                 model.trigger('beforeUpdateRuleFilter', rule);
             }
@@ -527,7 +509,7 @@
 
     function prepareFilters(callback: () => void): void {
 
-        filters = filters.filter(item => item.id.includes('attr_'));
+        filters = filters.filter(isFilterKeptOnPrepare);
         deletedFilterIds.clear();
 
         let promiseList: Promise<void>[] = [];
@@ -610,6 +592,18 @@
                     resolve();
                 }
             }));
+        }
+
+        /**
+         * Load filters of the groups modules describe
+         */
+        if (rules.rules) {
+            for (const id of getRulesIds(rules.rules)) {
+                const groupKey = getFilterGroupKey(id);
+                if (groupKey !== null) {
+                    promiseList.push(new Promise(pushGroupFilter.bind(null, groupKey, id)));
+                }
+            }
         }
 
         Promise.all(promiseList).then(() => {
@@ -822,6 +816,188 @@
 
             });
         });
+    }
+
+    /**
+     * Puts the filters the dialog added in place of the rule the dialog was opened for, the rest of them to new rules.
+     * The rule gets its previous filter back when none was added.
+     */
+    function applyAddedFilters(qb: any, rule: any, previousFilter: any, pushed: boolean, newFilters?: any[]): void {
+        if (pushed) {
+            qb.setFilters(filters);
+        }
+        if (newFilters) {
+            rule.filter = newFilters[0];
+            if (newFilters.length > 1) {
+                for (const newFilter of newFilters) {
+                    if (newFilter.id === rule.filter.id) {
+                        continue;
+                    }
+
+                    let r = qb.addRule(rule.parent);
+                    r.filter = newFilter;
+                }
+            }
+        }
+        if (!rule.filter || isAddFilterRule(rule.filter.id)) {
+            rule.filter = previousFilter;
+            previousFilter = null
+            qb.updateRuleFilter(rule, previousFilter);
+            rule.$el.find('.rule-filter-container select')[0].selectize.setValue(rule.filter ? rule.filter.id : null);
+        } else {
+            qb.updateRuleFilter(rule, previousFilter);
+        }
+    }
+
+    /**
+     * A rule that opens a dialog to add a filter: of an attribute, or of a group a module describes.
+     */
+    function isAddFilterRule(id: string): boolean {
+        return id === 'emptyAttributeRule' || id.startsWith(emptyGroupRulePrefix);
+    }
+
+    function getFilterGroups(): Record<string, FilterGroup> {
+        return Metadata.get(['clientDefs', scope, 'queryBuilderFilterGroups']) || {};
+    }
+
+    /**
+     * The key of the group a filter belongs to, or null for a filter of no group.
+     */
+    function getFilterGroupKey(id: string): string | null {
+        const groups = getFilterGroups();
+        for (const key in groups) {
+            if ((groups[key].fields || {})[id]) {
+                return key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The filters of every group a module describes, the rule adding a filter of the group first - the same way as for
+     * attributes.
+     */
+    function getFilterGroupsFilters(filterPerGroups: Record<string, any[]>): any[] {
+        const result: any[] = [];
+        const groups = getFilterGroups();
+
+        for (const key in groups) {
+            const optgroup = Language.translate(groups[key].label);
+            const addRuleId = emptyGroupRulePrefix + key;
+
+            result.push({
+                id: addRuleId,
+                label: `[ ${Language.translate(groups[key].addLabel)} ]`,
+                type: 'boolean',
+                optgroup: optgroup,
+                operators: ['equal'],
+                input: 'radio',
+                values: {
+                    0: 'false'
+                }
+            });
+
+            for (const filter of filterPerGroups[optgroup] ?? []) {
+                if (filter.id !== addRuleId) {
+                    result.push(filter);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * The filters of attributes and of the groups modules describe are not fields of the entity, so they are kept while
+     * the filters of the fields are prepared again.
+     */
+    function isFilterKeptOnPrepare(filter: any): boolean {
+        return filter.id.includes('attr_') || getFilterGroupKey(filter.id) !== null;
+    }
+
+    function addGroupFilter(key: string, callback: (pushed: boolean, filters?: any[]) => void): void {
+        Notifier.notify('Loading...');
+        createView('dialog', getFilterGroups()[key].view, {
+            entityName: scope,
+            multiple: false
+        }, onGroupFilterDialogCreated.bind(null, key, callback));
+    }
+
+    function onGroupFilterDialogCreated(key: string, callback: (pushed: boolean, filters?: any[]) => void, dialog: any): void {
+        dialog.render();
+        Notifier.clearRegular();
+        dialog.dialog.$el.on('hidden.bs.modal', onGroupFilterDialogClosed.bind(null, callback));
+        dialog.listenTo(dialog, 'cancel, close', onGroupFilterDialogClosed.bind(null, callback));
+        dialog.once('add', onGroupFilterDialogAdd.bind(null, key, callback));
+    }
+
+    function onGroupFilterDialogClosed(callback: (pushed: boolean, filters?: any[]) => void): void {
+        callback(false);
+    }
+
+    function onGroupFilterDialogAdd(key: string, callback: (pushed: boolean, filters?: any[]) => void, items: any[]): void {
+        if (!items.length) {
+            callback(false);
+            return;
+        }
+
+        pushGroupFilter(key, items[0].name, onGroupFilterPushed.bind(null, callback));
+    }
+
+    function onGroupFilterPushed(callback: (pushed: boolean, filters?: any[]) => void, filter: any, pushed: boolean): void {
+        callback(pushed, filter ? [filter] : undefined);
+    }
+
+    /**
+     * Creates the filter of a field of the group, by the view of the type of the field, the same way as for a field of
+     * the entity. Gives the filter, or null when the group has no such field.
+     */
+    function pushGroupFilter(key: string, name: string, callback: (filter: any, pushed: boolean) => void): void {
+        for (const filter of filters) {
+            if (filter.id === name) {
+                callback(filter, false);
+                return;
+            }
+        }
+
+        const fieldDefs = (getFilterGroups()[key]?.fields || {})[name];
+        if (!fieldDefs) {
+            callback(null, false);
+            return;
+        }
+
+        const view = Metadata.get(['fields', fieldDefs.type, 'view']) ?? `views/fields/${camelCaseToHyphen(fieldDefs.type)}`;
+        createView('qb_' + name, view, {
+            name: name,
+            model: model,
+            defs: {
+                name: name,
+                params: {}
+            },
+        }, onGroupFilterViewCreated.bind(null, key, name, callback));
+    }
+
+    function onGroupFilterViewCreated(key: string, name: string, callback: (filter: any, pushed: boolean) => void, view: any): void {
+        const group = getFilterGroups()[key];
+        const filter = view.createQueryBuilderFilter(group.fields[name].type);
+        if (!filter) {
+            callback(null, false);
+            return;
+        }
+
+        filter.label = group.fields[name].label;
+        filter.optgroup = Language.translate(group.label);
+
+        for (const existing of filters) {
+            if (existing.id === name) {
+                callback(existing, false);
+                return;
+            }
+        }
+
+        filters.push(filter);
+        callback(filter, true);
     }
 
     function unsetAll() {
