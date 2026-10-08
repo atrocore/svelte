@@ -25,6 +25,7 @@ type Params = {
     openEditLabelDialog?: (scope: string, name: string | undefined, callback?: ((label: string) => void) | null, key?: string) => void;
     openEditDialog?: (field: any, scope: string, attrList: string[], attrDefs: Record<string, Record<string, any>>, callback: (attrs: Record<string, any>) => void) => void;
     openAddAttributesDialog?: (scope: string, callback: (fields: any[]) => void) => void;
+    openAddFieldsDialog?: (view: string, scope: string, callback: (items: any[]) => void) => void;
     onEditPanel?: (panel: any, attrList: string[], attrDefs: Record<string, Record<string, any>>, callback: (attrs: Record<string, any>) => void) => void;
     onlyManyToMany?: boolean;
     inModal?: boolean;
