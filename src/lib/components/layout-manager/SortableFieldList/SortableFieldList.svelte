@@ -15,6 +15,7 @@
     import type Params from "$lib/components/layout-manager/LayoutManagerFrame/types/params"
     import type LayoutItem from "./types/layout-item"
     import type Group from "./types/group";
+    import type AddFieldsAction from "./types/add-fields-action";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/dom/notifier";
     import { Metadata } from '$lib/core/metadata';
@@ -28,6 +29,61 @@
 
     let sortableColumns: SortableColumns;
     let hasAttributes = Metadata.get(['scopes', params.scope, 'hasAttribute']);
+    let addFieldsActions: AddFieldsAction[] = getAddFieldsActions();
+
+    /**
+     * The items of the menu adding columns to a layout of this type: attributes, when the entity has them, and the
+     * items modules describe for the entity.
+     */
+    function getAddFieldsActions(): AddFieldsAction[] {
+        const result: AddFieldsAction[] = [];
+
+        if (hasAttributes && !['navigation', 'insights', 'relationships', 'selectionRelations'].includes(params.type)) {
+            result.push({label: 'addAttribute'});
+        }
+
+        const actions: Record<string, AddFieldsAction> = Metadata.get(['clientDefs', params.scope, 'layoutAddFieldsActions']) || {};
+        const layoutType = params.reelType ?? params.type;
+
+        for (const action of Object.values(actions)) {
+            if ((action.layoutTypes || []).includes(layoutType)) {
+                result.push(action);
+            }
+        }
+
+        return result;
+    }
+
+    function executeAddFieldsAction(action: AddFieldsAction): void {
+        if (action.view) {
+            params.openAddFieldsDialog?.(action.view, params.scope, addLayoutItems);
+        } else {
+            addAttribute();
+        }
+    }
+
+    /**
+     * A column that is not a field of the entity - an attribute, or a column a module adds.
+     */
+    function isVirtualItem(item: Field): boolean {
+        return !!item.attributeId || !!item.fieldDefs;
+    }
+
+    function hasItem(name: string): boolean {
+        if (selectedFields.some(item => item.name === name)) {
+            return true;
+        }
+
+        return availableGroups.some(group => group.fields.some(item => item.name === name));
+    }
+
+    function addLayoutItems(items: Field[]): void {
+        for (const item of items) {
+            if (!hasItem(item.name)) {
+                selectedFields = [...selectedFields, item];
+            }
+        }
+    }
 
     function getTargetGroup(item: Field): Group {
         return availableGroups.find(g => g.prefix && item.name.startsWith(g.prefix))
@@ -142,8 +198,18 @@
         <svelte:fragment slot="enabled-header">
             <header>
                 <h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5>
-                {#if hasAttributes && !['navigation', 'insights', 'relationships', 'selectionRelations'].includes(params.type)}
-                    <a href="#" on:click|preventDefault={addAttribute}>{Language.translate('addAttribute')}</a>
+                {#if addFieldsActions.length}
+                    <button type="button" class="small dropdown-toggle" data-toggle="dropdown"
+                            title={Language.translate('Add Dynamic Fields', 'labels', 'LayoutManager')}>
+                        <i class="ph ph-list"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        {#each addFieldsActions as action}
+                            <li>
+                                <a href="javascript:" on:click|preventDefault={() => executeAddFieldsAction(action)}>{Language.translate(action.label)}</a>
+                            </li>
+                        {/each}
+                    </ul>
                 {/if}
             </header>
         </svelte:fragment>
@@ -153,12 +219,12 @@
         </svelte:fragment>
 
         <svelte:fragment slot="enabled-item-label" let:item>
-            <label style={item.attributeId ? 'font-style: italic' : ''}>{item.label}</label>
+            <label style={isVirtualItem(item) ? 'font-style: italic' : ''}>{item.label}</label>
         </svelte:fragment>
 
         <svelte:fragment slot="enabled-item-actions" let:item>
             {#if params.editable}
-                {#if isAdmin() && !item.attributeId && params.type !== 'insights'}
+                {#if isAdmin() && !isVirtualItem(item) && params.type !== 'insights'}
                     <a href="javascript:" data-action="change-label" class="change-label"
                        on:click|preventDefault={() => openLabelDialog(item)}>
                         <i class="ph ph-globe-simple"></i>
@@ -184,7 +250,7 @@
         </svelte:fragment>
 
         <svelte:fragment slot="disabled-item-label" let:field>
-            <span style={field.attributeId ? 'font-style: italic' : ''}>{field.label}</span>
+            <span style={isVirtualItem(field) ? 'font-style: italic' : ''}>{field.label}</span>
         </svelte:fragment>
     </SortableColumns>
 </LayoutManagerFrame>

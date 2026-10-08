@@ -8,9 +8,13 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
-type Item = {
-    value: string,
-    text: string,
+/**
+ * An active quality check of an entity, as the metadata describes it in scopes.<Entity>.activeQualityChecks.
+ */
+type ActiveQualityCheck = {
+    name: string,
+    tooltip: string | null,
+    classificationId: string | null,
 }
 
-export default Item;
+export default ActiveQualityCheck;

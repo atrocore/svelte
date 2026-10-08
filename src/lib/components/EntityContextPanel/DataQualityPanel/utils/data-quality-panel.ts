@@ -9,11 +9,47 @@
  */
 
 import { getBorder, getFontColor } from '$lib/helpers/color';
+import type { CheckResult, PanelRule, RuleDefs, RuleResult } from '$lib/components/EntityContextPanel/DataQualityPanel/types/rule';
 
-export function getValueStyle(value: number) {
+/**
+ * Every active rule of the check, along with its stored result for the record. A rule without a result - the check
+ * is not calculated yet, or the rule has been added since - gets no status.
+ */
+export function buildPanelRules(checkId: string, ruleDefsList: Array<RuleDefs>, result: CheckResult | null): Array<PanelRule> {
+    const resultsById: Record<string, RuleResult> = {};
+    for (const ruleResult of result?.rules || []) {
+        resultsById[ruleResult.id] = ruleResult;
+    }
+
+    const rules: Array<PanelRule> = [];
+    for (const ruleDefs of ruleDefsList) {
+        if (ruleDefs.qualityCheckId !== checkId) {
+            continue;
+        }
+
+        const ruleResult = resultsById[ruleDefs.id] || null;
+
+        rules.push({
+            id: ruleDefs.id,
+            name: ruleDefs.name,
+            number: ruleDefs.number,
+            ruleScore: ruleDefs.scoreFactor,
+            status: ruleResult?.status ?? null,
+            score: ruleResult?.score ?? null,
+            details: ruleResult?.details || [],
+        });
+    }
+
+    return rules;
+}
+
+/**
+ * A check N/A for the record - none of its rules applies - is shown in a neutral color.
+ */
+export function getValueStyle(value: number | null, notApplicable: boolean = false) {
     let backgroundColor = '#FFD6C9';
-    if (value === -1) {
-        backgroundColor = '#CCCCCC';
+    if (value === null) {
+        value = 0;
     }
     if (value > 0) {
         backgroundColor = '#FFE7D1';
@@ -29,6 +65,9 @@ export function getValueStyle(value: number) {
     }
     if (value === 100) {
         backgroundColor = '#CAF2C2';
+    }
+    if (notApplicable) {
+        backgroundColor = '#EEEEEE';
     }
 
     let data: Record<string, any> = {
@@ -49,7 +88,7 @@ export function getValueStyle(value: number) {
     return Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('; ')
 }
 
-export function getStatusStyle(status: string, score: number | null = null) {
+export function getStatusStyle(status: string | null, score: number | null = null) {
     let backgroundColor: string;
     if (score === null) {
         backgroundColor = status === 'passed' ? '#CAF2C2' : (status === 'failed' ? '#FFD6C9' : '#CCCCCC');

@@ -17,8 +17,10 @@
     import { Notifier } from "$lib/dom/notifier";
     import { Acl } from "$lib/core/acl";
     import type Item from "$lib/components/EntityContextPanel/DataQualityPanel/types/item";
+    import type ActiveQualityCheck from "$lib/components/EntityContextPanel/DataQualityPanel/types/active-quality-check";
+    import type { CheckResult, PanelRule, RuleDefs } from "$lib/components/EntityContextPanel/DataQualityPanel/types/rule";
     import ContentFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
-    import { getStatusStyle, getValueStyle } from "$lib/components/EntityContextPanel/DataQualityPanel/utils/data-quality-panel";
+    import { buildPanelRules, getStatusStyle, getValueStyle } from "$lib/components/EntityContextPanel/DataQualityPanel/utils/data-quality-panel";
 
     const dispatch = createEventDispatcher();
 
@@ -29,59 +31,71 @@
 
     let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
     let qualityChecksList: Array<Item> = [];
+    let ruleDefsList: Array<RuleDefs> = Metadata.get(['scopes', scope, 'qualityCheckRules']) || [];
     let activeItem: string | null = null
     let loading: boolean = false
-    // Keyed by quality check id - the same object broadcast to the Backbone side (§ onQualityChecksDataLoaded).
-    let allData: any = null
-    // The active item's own slice of allData - what this component renders.
-    let data: any = null
+    // The results of every check for this record, keyed by quality check id - taken from the record meta.
+    let allData: Record<string, CheckResult> | null = null
+    let value: number | null = null
+    let notApplicable: boolean = false
+    let rules: Array<PanelRule> = []
     let selectedFilters: Array<string> = Storage.get('qualityCheckRuleFilters', scope) || []
-    let filteredRules: Array<any> = []
+    let filteredRules: Array<PanelRule> = []
     let highlightedCheckId: string | null = null
 
     $: {
         const reelFilers = selectedFilters.length === 0 ? ['passed', 'failed'] : selectedFilters
-        filteredRules = (data?.rules || []).filter((rule: any) => reelFilers.includes(rule.status))
+        filteredRules = rules.filter((rule: PanelRule) => rule.status !== null && reelFilers.includes(rule.status))
     }
 
     function onFilterChange(evt: CustomEvent, value: Array<string>) {
         selectedFilters = value
     }
 
-    // Single fetch of every check's data for this record - this component's own display (data,
-    // the active item's slice of it) and the Backbone side (data-quality:views/record/panels/side/
-    // data-quality, via the 'record:quality-checks-data-loaded' window event) both read from this
-    // exact same object, instead of each doing their own separate request.
-    async function loadQualityChecksData(reload = false) {
-        loading = true
-        if (!reload) {
-            data = null
+    // The results come with the record in its meta - the record view broadcasts them every time the record is
+    // loaded, so the panel makes no request of its own.
+    function onQualityChecksDataLoaded(evt: Event) {
+        const detail = (evt as CustomEvent).detail
+        if (detail.entityName !== scope || detail.entityId !== id) {
+            return
         }
 
-        try {
-            allData = await ApiClient.get('/QualityCheck/entityData', {
-                entityName: scope,
-                entityId: id
-            });
-            data = allData?.[activeItem] || null;
-            window.dispatchEvent(new CustomEvent('record:quality-checks-data-loaded', {
-                detail: {entityName: scope, entityId: id, data: allData}
-            }));
-        } catch {
-            data = null;
-            Notifier.notify('Error occurred', 'error');
-        }
-
+        allData = detail.data || {}
+        showActiveItem()
         loading = false
+    }
+
+    function showActiveItem() {
+        const result: CheckResult | null = activeItem ? (allData?.[activeItem] || null) : null
+        value = result ? result.value : null
+        notApplicable = !!result && result.value === null
+        rules = activeItem ? buildPanelRules(activeItem, ruleDefsList, result) : []
+    }
+
+    // The record is fetched anew, and its meta brings the actual results.
+    function reloadQualityChecksData() {
+        loading = true
+        fetchModel()
+    }
+
+    function getErrorMessage(rule: PanelRule): string | null {
+        if (rule.status !== 'failed') {
+            return null
+        }
+
+        const number = String(rule.number)
+        const message = Language.translate(number, 'QualityCheckErrors', scope)
+
+        return message && message !== number ? message : null
     }
 
     function selectActiveItem(value: string) {
         activeItem = value;
-        data = allData?.[activeItem] || null;
+        showActiveItem()
     }
 
-    function onRecordSave(evt: any) {
-        loadQualityChecksData(true)
+    function onRecordSave() {
+        reloadQualityChecksData()
     }
 
     async function recalculateCheck() {
@@ -91,23 +105,22 @@
 
         Notifier.notify('Please wait...')
         try {
-            await ApiClient.post(`/QualityCheck/${activeItem}/recalculate`, {
+            const result = await ApiClient.post<CheckResult>(`/QualityCheck/${activeItem}/recalculate`, {
                 entityId: id,
             });
             Notifier.notify('Done', 'success')
-            fetchModel()
-            await loadQualityChecksData(true)
+            // the record view puts the fresh result into the record meta and broadcasts it back
+            window.dispatchEvent(new CustomEvent('record:quality-check-recalculated', {
+                detail: {entityName: scope, entityId: id, checkId: activeItem, result: result}
+            }))
         } catch {
             Notifier.notify('Error occurred', 'error')
         }
     }
 
-    function onCheckRecalculated(evt: Event) {
-        loadQualityChecksData(true)
-    }
-
     function onShowDetails(evt: Event) {
-        const item = qualityChecksList.find(item => item.field === (evt as CustomEvent).detail.field)
+        const checkId = (evt as CustomEvent).detail.checkId
+        const item = qualityChecksList.find(item => item.value === checkId)
         if (item) {
             activeItem = item.value
             qualityCheckSelect.selectize.setValue(activeItem)
@@ -131,30 +144,31 @@
     }
 
     onMount(() => {
-        const forbiddenFields: Array<string> = Acl.getScopeForbiddenFieldList(scope, 'read') || [];
+        const checks: Record<string, ActiveQualityCheck> = Metadata.get(['scopes', scope, 'activeQualityChecks']) || {};
 
-        Object.entries(Metadata.get(['entityDefs', scope, 'fields'])).forEach(([field, defs]: [string, any]) => {
-            if (defs.qualityCheckId && !forbiddenFields.includes(field)) {
-                qualityChecksList.push({
-                    value: defs.qualityCheckId,
-                    text: Language.translate(field, 'fields', scope) || '',
-                    field: field,
-                });
-            }
-        });
+        for (const [checkId, check] of Object.entries(checks)) {
+            qualityChecksList.push({
+                value: checkId,
+                text: check.name,
+            });
+        }
 
         if (qualityChecksList.length === 0) {
             return
         }
 
+        window.addEventListener('record:quality-checks-data-loaded', onQualityChecksDataLoaded)
         window.addEventListener('record:save', onRecordSave);
-        window.addEventListener('record:check-recalculated', onCheckRecalculated)
         window.addEventListener('record:show-qc-details', onShowDetails)
         window.addEventListener('record:check-highlighted', onCheckHighlighted)
 
         activeItem = qualityChecksList[0].value;
 
-        loadQualityChecksData()
+        // the record may have been loaded before the panel got mounted
+        loading = true
+        window.dispatchEvent(new CustomEvent('record:quality-checks-data-request', {
+            detail: {entityName: scope, entityId: id}
+        }))
 
         tick().then(() => {
             window.$(qualityCheckSelect).selectize({
@@ -168,8 +182,8 @@
         })
 
         return () => {
+            window.removeEventListener('record:quality-checks-data-loaded', onQualityChecksDataLoaded)
             window.removeEventListener('record:save', onRecordSave)
-            window.removeEventListener('record:check-recalculated', onCheckRecalculated)
             window.removeEventListener('record:show-qc-details', onShowDetails)
             window.removeEventListener('record:check-highlighted', onCheckHighlighted)
         }
@@ -186,17 +200,17 @@
         </select>
     </div>
 
-    {#if data }
-         <span style="{getValueStyle(data.value)}" on:click={recalculateCheck}
+    {#if allData}
+         <span style="{getValueStyle(value, notApplicable)}" on:click={recalculateCheck}
                class="colored-enum label" title="{Language.translate('recalculate','labels','QualityCheck')}"
-               aria-expanded="false">{data.value === null ? '...' : (data.value === -1 ? Language.translate('N/A') : (data.value + '%'))}</span>
+               aria-expanded="false">{notApplicable ? 'N/A' : (value === null ? '...' : (value + '%'))}</span>
     {/if}
 
     {#if loading}
         <div style="text-align: center;margin-top: 10px">
             <img style="width: 40px; " class="preloader" src="client/img/atro-loader.svg" alt="loader">
         </div>
-    {:else if data}
+    {:else if allData}
         <div style="margin-top: 10px;">
             <div style="margin-bottom: 10px; overflow: hidden; padding-left: 1px; padding-right: 1px;">
                 <ContentFilter allFilters="{['passed','failed','skipped']}" scope="{scope}"
@@ -208,9 +222,10 @@
                 <div style="float: right; display: flex; gap: 10px">
                     <button on:click={highlightCheck} class="small"
                             title="{Language.translate('highlight', 'labels', 'QualityCheck')}">
-                        <i class="{'ph ph-highlighter '+ (highlightedCheckId===activeItem ? 'ph-fill highlight-active': '')}"></i>
+                        <i class="ph ph-highlighter" class:ph-fill={highlightedCheckId === activeItem}
+                           class:highlight-active={highlightedCheckId === activeItem}></i>
                     </button>
-                    <button class="small refresh" on:click={()=>loadQualityChecksData(true)}
+                    <button class="small refresh" on:click={reloadQualityChecksData}
                             title="{Language.translate('Refresh')}">
                         <i class="ph ph-arrows-clockwise"></i>
                     </button>
@@ -248,8 +263,8 @@
                                 {/each}
                             </div>
                         {/if}
-                        {#if rule.error}
-                            <p class="rule-error">{rule.error}</p>
+                        {#if getErrorMessage(rule)}
+                            <p class="rule-error">{getErrorMessage(rule)}</p>
                         {/if}
                     </div>
                 </div>
@@ -279,12 +294,6 @@
         border-radius: 50%;
         flex-shrink: 0;
         margin: 5px 10px 0 0;
-    }
-
-    .control-label {
-        color: var(--label-color);
-        font-size: 12px;
-        font-weight: normal;
     }
 
     .rule-error {
