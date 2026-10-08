@@ -9,13 +9,14 @@
  */
 
 /**
- * A button adding columns of a module to a layout, as the module describes it in
- * clientDefs.<scope>.layoutAddFieldsButtons.<key>.
+ * An item of the menu adding columns to a layout. A module describes its own item in
+ * clientDefs.<scope>.layoutAddFieldsActions.<key>, with the dialog view giving the columns. An item without a view is
+ * the one adding attributes.
  */
-type AddFieldsButton = {
+type AddFieldsAction = {
     label: string;
-    view: string;
-    layoutTypes: string[];
+    view?: string;
+    layoutTypes?: string[];
 }
 
-export default AddFieldsButton;
+export default AddFieldsAction;

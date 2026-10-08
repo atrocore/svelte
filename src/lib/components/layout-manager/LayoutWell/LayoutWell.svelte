@@ -37,7 +37,7 @@
         font-weight: bold;
     }
 
-    .well :global(ul) {
+    .well :global(ul:not(.dropdown-menu)) {
         width: 100%;
         min-height: 100px;
         padding: 0;
@@ -46,7 +46,7 @@
         flex: 1;
     }
 
-    .well :global(ul li) {
+    .well :global(ul:not(.dropdown-menu) > li) {
         list-style: none;
         border: 1px solid #CCC;
         margin: 5px 0;

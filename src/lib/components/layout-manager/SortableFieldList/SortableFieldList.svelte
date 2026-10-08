@@ -15,7 +15,7 @@
     import type Params from "$lib/components/layout-manager/LayoutManagerFrame/types/params"
     import type LayoutItem from "./types/layout-item"
     import type Group from "./types/group";
-    import type AddFieldsButton from "./types/add-fields-button";
+    import type AddFieldsAction from "./types/add-fields-action";
     import { Language } from "$lib/core/language"
     import { Notifier } from "$lib/dom/notifier";
     import { Metadata } from '$lib/core/metadata';
@@ -29,23 +29,37 @@
 
     let sortableColumns: SortableColumns;
     let hasAttributes = Metadata.get(['scopes', params.scope, 'hasAttribute']);
-    let addFieldsButtons: AddFieldsButton[] = getAddFieldsButtons();
+    let addFieldsActions: AddFieldsAction[] = getAddFieldsActions();
 
     /**
-     * The buttons modules describe for the entity, adding columns of their own to a layout of this type.
+     * The items of the menu adding columns to a layout of this type: attributes, when the entity has them, and the
+     * items modules describe for the entity.
      */
-    function getAddFieldsButtons(): AddFieldsButton[] {
-        const buttons: Record<string, AddFieldsButton> = Metadata.get(['clientDefs', params.scope, 'layoutAddFieldsButtons']) || {};
+    function getAddFieldsActions(): AddFieldsAction[] {
+        const result: AddFieldsAction[] = [];
+
+        if (hasAttributes && !['navigation', 'insights', 'relationships', 'selectionRelations'].includes(params.type)) {
+            result.push({label: 'addAttribute'});
+        }
+
+        const actions: Record<string, AddFieldsAction> = Metadata.get(['clientDefs', params.scope, 'layoutAddFieldsActions']) || {};
         const layoutType = params.reelType ?? params.type;
 
-        const result: AddFieldsButton[] = [];
-        for (const button of Object.values(buttons)) {
-            if ((button.layoutTypes || []).includes(layoutType)) {
-                result.push(button);
+        for (const action of Object.values(actions)) {
+            if ((action.layoutTypes || []).includes(layoutType)) {
+                result.push(action);
             }
         }
 
         return result;
+    }
+
+    function executeAddFieldsAction(action: AddFieldsAction): void {
+        if (action.view) {
+            params.openAddFieldsDialog?.(action.view, params.scope, addLayoutItems);
+        } else {
+            addAttribute();
+        }
     }
 
     /**
@@ -61,10 +75,6 @@
         }
 
         return availableGroups.some(group => group.fields.some(item => item.name === name));
-    }
-
-    function addFields(button: AddFieldsButton): void {
-        params.openAddFieldsDialog?.(button.view, params.scope, addLayoutItems);
     }
 
     function addLayoutItems(items: Field[]): void {
@@ -188,14 +198,18 @@
         <svelte:fragment slot="enabled-header">
             <header>
                 <h5>{Language.translate('Current Layout', 'labels', 'LayoutManager')}</h5>
-                <span class="add-fields-links">
-                    {#if hasAttributes && !['navigation', 'insights', 'relationships', 'selectionRelations'].includes(params.type)}
-                        <a href="#" on:click|preventDefault={addAttribute}>{Language.translate('addAttribute')}</a>
-                    {/if}
-                    {#each addFieldsButtons as button}
-                        <a href="#" on:click|preventDefault={() => addFields(button)}>{Language.translate(button.label)}</a>
-                    {/each}
-                </span>
+                {#if addFieldsActions.length}
+                    <button type="button" class="small dropdown-toggle" data-toggle="dropdown">
+                        <i class="ph ph-list"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        {#each addFieldsActions as action}
+                            <li>
+                                <a href="javascript:" on:click|preventDefault={() => executeAddFieldsAction(action)}>{Language.translate(action.label)}</a>
+                            </li>
+                        {/each}
+                    </ul>
+                {/if}
             </header>
         </svelte:fragment>
 
@@ -269,10 +283,5 @@
 
     :global(#layout header a) {
         font-weight: normal;
-    }
-
-    .add-fields-links {
-        display: flex;
-        gap: 10px;
     }
 </style>
