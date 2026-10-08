@@ -37,6 +37,7 @@
     // The results of every check for this record, keyed by quality check id - taken from the record meta.
     let allData: Record<string, CheckResult> | null = null
     let value: number | null = null
+    let notApplicable: boolean = false
     let rules: Array<PanelRule> = []
     let selectedFilters: Array<string> = Storage.get('qualityCheckRuleFilters', scope) || []
     let filteredRules: Array<PanelRule> = []
@@ -67,6 +68,7 @@
     function showActiveItem() {
         const result: CheckResult | null = activeItem ? (allData?.[activeItem] || null) : null
         value = result ? result.value : null
+        notApplicable = !!result && result.value === null
         rules = activeItem ? buildPanelRules(activeItem, ruleDefsList, result) : []
     }
 
@@ -199,9 +201,9 @@
     </div>
 
     {#if allData}
-         <span style="{getValueStyle(value)}" on:click={recalculateCheck}
+         <span style="{getValueStyle(value, notApplicable)}" on:click={recalculateCheck}
                class="colored-enum label" title="{Language.translate('recalculate','labels','QualityCheck')}"
-               aria-expanded="false">{value === null ? '...' : (value + '%')}</span>
+               aria-expanded="false">{notApplicable ? 'N/A' : (value === null ? '...' : (value + '%'))}</span>
     {/if}
 
     {#if loading}

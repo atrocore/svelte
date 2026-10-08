@@ -43,7 +43,10 @@ export function buildPanelRules(checkId: string, ruleDefsList: Array<RuleDefs>, 
     return rules;
 }
 
-export function getValueStyle(value: number | null) {
+/**
+ * A check N/A for the record - none of its rules applies - is shown in a neutral color.
+ */
+export function getValueStyle(value: number | null, notApplicable: boolean = false) {
     let backgroundColor = '#FFD6C9';
     if (value === null) {
         value = 0;
@@ -62,6 +65,9 @@ export function getValueStyle(value: number | null) {
     }
     if (value === 100) {
         backgroundColor = '#CAF2C2';
+    }
+    if (notApplicable) {
+        backgroundColor = '#EEEEEE';
     }
 
     let data: Record<string, any> = {

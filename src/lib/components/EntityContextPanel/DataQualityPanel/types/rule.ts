@@ -39,7 +39,7 @@ export type RuleResult = {
  * The result of a check for the record, as the record meta holds it in _meta.dataQuality.<checkId>.
  */
 export type CheckResult = {
-    value: number,
+    value: number | null,
     calculatedAt: string | null,
     rules: Array<RuleResult>,
 }
