@@ -116,7 +116,6 @@
             callbacks: {
                 onImageUpload: (files: File[]) => {
                     const file = files[0];
-                    files.pop();
 
                     if (!Acl.check('File', 'create')) {
                         (window as any).Espo.ui.error('You are not allowed to upload images');
