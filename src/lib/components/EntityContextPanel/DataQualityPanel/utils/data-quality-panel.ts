@@ -13,8 +13,8 @@ import type { CheckResult, PanelRule, RuleDefs, RuleResult } from '$lib/componen
 import type Item from '$lib/components/EntityContextPanel/DataQualityPanel/types/item';
 
 /**
- * The checks the record has a result of. A check out of the scope of the record - e.g. of another classification -
- * or not calculated yet has none.
+ * The checks in the scope of the record - the record meta holds a result of each, not calculated yet included.
+ * A check out of the scope of the record, e.g. of another classification, has none.
  */
 export function getRelevantChecks(checks: Array<Item>, data: Record<string, CheckResult>): Array<Item> {
     return checks.filter((check: Item) => check.value in data);

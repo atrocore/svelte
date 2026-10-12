@@ -92,7 +92,7 @@
     function showActiveItem() {
         const result: CheckResult | null = activeItem ? (allData?.[activeItem] || null) : null
         value = result ? result.value : null
-        notApplicable = !!result && result.value === null
+        notApplicable = !!result && result.calculatedAt !== null && result.value === null
         rules = activeItem ? buildPanelRules(activeItem, ruleDefsList, result) : []
     }
 
