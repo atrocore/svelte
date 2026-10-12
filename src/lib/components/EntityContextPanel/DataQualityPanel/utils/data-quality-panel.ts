@@ -10,6 +10,15 @@
 
 import { getBorder, getFontColor } from '$lib/helpers/color';
 import type { CheckResult, PanelRule, RuleDefs, RuleResult } from '$lib/components/EntityContextPanel/DataQualityPanel/types/rule';
+import type Item from '$lib/components/EntityContextPanel/DataQualityPanel/types/item';
+
+/**
+ * The checks the record has a result of. A check out of the scope of the record - e.g. of another classification -
+ * or not calculated yet has none.
+ */
+export function getRelevantChecks(checks: Array<Item>, data: Record<string, CheckResult>): Array<Item> {
+    return checks.filter((check: Item) => check.value in data);
+}
 
 /**
  * Every active rule of the check, along with its stored result for the record. A rule without a result - the check
