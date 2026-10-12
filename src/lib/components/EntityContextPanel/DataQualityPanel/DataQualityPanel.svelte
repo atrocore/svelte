@@ -34,6 +34,8 @@
     let allChecks: Array<Item> = [];
     // the checks the record has a result of - the only ones to choose from
     let qualityChecksList: Array<Item> = [];
+    // the options of the select are being replaced, so its change is not a choice of the user
+    let updatingSelect: boolean = false;
     let ruleDefsList: Array<RuleDefs> = Metadata.get(['scopes', scope, 'qualityCheckRules']) || [];
     let activeItem: string | null = null
     let loading: boolean = false
@@ -83,10 +85,13 @@
             return
         }
 
-        selectize.clearOptions(true)
+        // clearing the options clears the chosen one as well, firing a change that is not the choice of the user
+        updatingSelect = true
+        selectize.clearOptions()
         selectize.addOption(qualityChecksList)
         selectize.refreshOptions(false)
         selectize.setValue(activeItem ?? '', true)
+        updatingSelect = false
     }
 
     function showActiveItem() {
@@ -201,6 +206,9 @@
                 options: qualityChecksList,
                 items: activeItem ? [activeItem] : [],
                 onChange: function (value: string) {
+                    if (updatingSelect) {
+                        return
+                    }
                     selectActiveItem(value)
                 }
             });
