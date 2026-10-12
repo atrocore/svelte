@@ -87,6 +87,10 @@
         if (field === '_lastViewed') {
             return Language.translate('LastViewed', 'scopeNamesPlural', 'Global')
         }
+
+        if (field === '_dataLineage') {
+            return Language.translate('dataLineage', 'labels', 'Global')
+        }
         return Language.translate(field, 'fields', scope)
     }
 
@@ -105,9 +109,22 @@
             if (!Metadata.get(['scopes', params.scope, 'hideLastViewed'])) {
                 fields.push('_lastViewed')
             }
+            if (hasDataLineage(params.scope)) {
+                fields.push('_dataLineage')
+            }
         }
 
         return fields;
+    }
+
+    function hasDataLineage(scope: string): boolean {
+        const isContributor = (defs: any) => !!defs?.primaryEntityId && defs?.role === 'contributor'
+        const scopeDefs = Metadata.get(['scopes', scope]) ?? {}
+
+        return !!scopeDefs.isDataPipelineSource
+            || !!scopeDefs.isDataPipelineTarget
+            || isContributor(scopeDefs)
+            || Object.values(Metadata.get(['scopes']) ?? {}).some((defs: any) => isContributor(defs) && defs.primaryEntityId === scope)
     }
 
     function getFieldType(scope: string, field: string) {
