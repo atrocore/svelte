@@ -54,6 +54,7 @@ function registerClearButtonPlugin(): void {
 
 export function selectize(node: HTMLSelectElementWithSelectize, params: SelectizeParams) {
     let current = params;
+    let creating = false;
 
     const getValue = (): string | null => current.clearable ? (current.value ?? '') : current.value;
 
@@ -64,6 +65,7 @@ export function selectize(node: HTMLSelectElementWithSelectize, params: Selectiz
 
         const value = getValue();
 
+        creating = true;
         (window as any).$(node).selectize({
             valueField: 'value',
             labelField: 'text',
@@ -72,11 +74,12 @@ export function selectize(node: HTMLSelectElementWithSelectize, params: Selectiz
             options: current.clearable ? [{ value: '', text: '' }, ...current.options] : current.options,
             items: value !== null ? [value] : [],
             onChange: (value: string) => {
-                if (value || current.clearable) {
+                if (!creating && (value || current.clearable)) {
                     current.onChange(value);
                 }
             }
         });
+        creating = false;
     };
 
     create();
