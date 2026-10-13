@@ -49,7 +49,7 @@
         }
 
         endpoints = tree.endpoints;
-        selectedEndpointKey = `${tree.endpoint.scope}:${tree.endpoint.id}`;
+        selectedEndpointKey = `${tree.currentEndpoint.scope}:${tree.currentEndpoint.id}`;
         rows = buildLineageRows(tree, entityName, id);
 
         await tick();

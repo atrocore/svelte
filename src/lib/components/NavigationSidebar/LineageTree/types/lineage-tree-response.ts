@@ -13,7 +13,7 @@ import type { LineageLink } from './lineage-link';
 import type { LineageRecord } from './lineage-record';
 
 export type LineageTreeResponse = {
-    endpoint: { scope: string; id: string };
+    currentEndpoint: { scope: string; id: string };
     endpoints: LineageEndpoint[];
     records: LineageRecord[];
     links: LineageLink[];
