@@ -26,19 +26,20 @@
     const kindIcons: Record<LineageRow['kind'], string | null> = {
         master: 'ph-crown',
         contributor: 'ph-signpost',
-        pipeline: null
+        pipeline: 'ph-cube'
     };
 
     $: endpointOptions = endpoints.map(endpoint => ({
         value: `${endpoint.scope}:${endpoint.id}`,
-        text: `${Language.translate(endpoint.scope, 'scopeNames')}${endpoint.name ? `: ${endpoint.name}` : ''}`
+        text: `${Language.translate(endpoint.scope, 'scopeNames')}`
     }));
     $: recordId = model?.get('id') ?? null;
     $: if (recordId) {
-        loadTree(scope, recordId, null);
+        loadTree(scope, recordId);
     }
 
-    async function loadTree(entityName: string, id: string, endpoint: LineageEndpoint | null): Promise<void> {
+    async function loadTree(entityName: string, id: string): Promise<void> {
+        const endpoint = endpoints.find(item => `${item.scope}:${item.id}` === selectedEndpointKey) ?? null;
         const tree = await loadLineageTree(entityName, id, endpoint);
         if (entityName !== scope || id !== recordId) {
             return;
@@ -55,7 +56,7 @@
         }
 
         selectedEndpointKey = value;
-        loadTree(scope, recordId, endpoints.find(item => `${item.scope}:${item.id}` === value) ?? null);
+        loadTree(scope, recordId);
     }
 
     function getLinkUrl(link: LineageLink | null): string | null {
@@ -76,9 +77,9 @@
 </script>
 
 <div class="lineage-tree">
-    {#if endpoints.length > 1}
+    {#if endpoints.length > 0}
         <div class="lineage-endpoint">
-            <select use:selectize={{ options: endpointOptions, value: selectedEndpointKey, onChange: onEndpointChange }}></select>
+            <select use:selectize={{ options: endpointOptions, value: selectedEndpointKey, disabled: endpoints.length === 1, onChange: onEndpointChange }}></select>
         </div>
     {/if}
 
@@ -119,8 +120,9 @@
 
 <style>
     .lineage-tree {
+        margin-left: -2px;
         --lineage-cell-width: 28px;
-        --lineage-icon-size: 24px;
+        --lineage-icon-size: 20px;
         --lineage-row-gap: 12px;
         --lineage-icon-center: calc(50% - var(--lineage-row-gap) / 2);
         --lineage-icon-top: calc(var(--lineage-icon-center) - var(--lineage-icon-size) / 2);
@@ -129,7 +131,7 @@
     }
 
     .lineage-endpoint {
-        margin-bottom: 12px;
+        margin-bottom: 20px;
     }
 
     .lineage-row {
@@ -200,9 +202,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--primary-border-color, #ccc);
+        border: 1px solid var(--lineage-line-color, #ccc);
         border-radius: 50%;
-        background: #fff;
+        background-color: #fff;
         font-size: 14px;
     }
 
