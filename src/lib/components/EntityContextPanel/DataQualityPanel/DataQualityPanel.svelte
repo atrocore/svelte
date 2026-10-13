@@ -9,7 +9,8 @@
 -->
 
 <script lang="ts">
-    import { createEventDispatcher, onMount, tick } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
+    import { selectize } from "$lib/dom/selectize";
     import { Metadata } from '$lib/core/metadata';
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
@@ -29,13 +30,10 @@
     export let fetchModel: () => void
 
 
-    let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
     // every active check of the entity
     let allChecks: Array<Item> = [];
     // the checks the record has a result of - the only ones to choose from
     let qualityChecksList: Array<Item> = [];
-    // the options of the select are being replaced, so its change is not a choice of the user
-    let updatingSelect: boolean = false;
     let ruleDefsList: Array<RuleDefs> = Metadata.get(['scopes', scope, 'qualityCheckRules']) || [];
     let activeItem: string | null = null
     let loading: boolean = false
@@ -79,19 +77,6 @@
         if (!qualityChecksList.some((item: Item) => item.value === activeItem)) {
             activeItem = qualityChecksList[0]?.value ?? null
         }
-
-        const selectize = qualityCheckSelect?.selectize
-        if (!selectize) {
-            return
-        }
-
-        // clearing the options clears the chosen one as well, firing a change that is not the choice of the user
-        updatingSelect = true
-        selectize.clearOptions()
-        selectize.addOption(qualityChecksList)
-        selectize.refreshOptions(false)
-        selectize.setValue(activeItem ?? '', true)
-        updatingSelect = false
     }
 
     function showActiveItem() {
@@ -151,8 +136,7 @@
         const checkId = (evt as CustomEvent).detail.checkId
         const item = qualityChecksList.find(item => item.value === checkId)
         if (item) {
-            activeItem = item.value
-            qualityCheckSelect.selectize.setValue(activeItem)
+            selectActiveItem(item.value)
             dispatch('show')
         }
     }
@@ -197,23 +181,6 @@
             detail: {entityName: scope, entityId: id}
         }))
 
-        tick().then(() => {
-            // the results may have come already, so the select starts with the checks offered by then
-            window.$(qualityCheckSelect).selectize({
-                valueField: 'value',
-                labelField: 'text',
-                searchField: ['text'],
-                options: qualityChecksList,
-                items: activeItem ? [activeItem] : [],
-                onChange: function (value: string) {
-                    if (updatingSelect) {
-                        return
-                    }
-                    selectActiveItem(value)
-                }
-            });
-        })
-
         return () => {
             window.removeEventListener('record:quality-checks-data-loaded', onQualityChecksDataLoaded)
             window.removeEventListener('record:save', onRecordSave)
@@ -226,7 +193,7 @@
 
 <div>
     <div style="margin-bottom: 10px" class:hidden={!!allData && !activeItem}>
-        <select name="qualityChecks" bind:this={qualityCheckSelect}></select>
+        <select name="qualityChecks" use:selectize={{ options: qualityChecksList, value: activeItem, onChange: selectActiveItem }}></select>
     </div>
 
     {#if allData && activeItem}
