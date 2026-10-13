@@ -9,8 +9,8 @@
 -->
 
 <script lang="ts">
-    import { onMount, onDestroy, tick } from 'svelte';
     import { createEventDispatcher } from 'svelte';
+    import { selectize } from '$lib/dom/selectize';
 
     export let name: string;
     export let value: string | null = null;
@@ -19,92 +19,10 @@
 
     const dispatch = createEventDispatcher<{ change: string | null }>();
 
-    let selectEl: HTMLSelectElement;
-    let selectizeInstance: any = null;
-    let syncing = false;
-
-    onMount(() => {
-        tick().then(() => {
-            initSelectize();
-        })
-    });
-
-    onDestroy(() => {
-        if (selectizeInstance) {
-            selectizeInstance.destroy();
-            selectizeInstance = null;
-        }
-    });
-
-    function registerClearButtonPlugin(): void {
-        const Selectize = (window as any).Selectize;
-        if (!Selectize) return;
-
-        Selectize.define('clear_button', function (this: any) {
-            const self = this;
-
-            function appendButton(): void {
-                if (!self.getValue()) {
-                    self.$control.find('.clear-button').remove();
-                    return;
-                }
-                if (self.$control.find('.clear-button').length) return;
-                const $ = (window as any).$;
-                const $btn = $('<a href="javascript:" class="clear-button" title="Clear"><i class="ph ph-minus"></i></a>');
-                $btn.on('click', (e: MouseEvent) => {
-                    e.preventDefault();
-                    self.clear();
-                });
-                self.$control.append($btn);
-            }
-
-            this.setup = (function () {
-                const original = self.setup;
-                return function (this: any) {
-                    original.apply(this, arguments);
-                    appendButton();
-                    this.on('change', appendButton);
-                    this.on('clear', appendButton);
-                    this.on('item_add', appendButton);
-                    this.on('item_remove', appendButton);
-                };
-            })();
-        });
-    }
-
-    function initSelectize(): void {
-        const $ = (window as any).$;
-        if (!$ || typeof $.fn?.selectize !== 'function' || !selectEl) return;
-
-        registerClearButtonPlugin();
-
-        $(selectEl).selectize({
-            valueField: 'value',
-            labelField: 'text',
-            searchField: ['text'],
-            plugins: ['clear_button'],
-            onChange(val: string) {
-                if (!syncing) dispatch('change', val || null);
-            }
-        });
-
-        selectizeInstance = (selectEl as any).selectize;
-    }
-
-    $: if (selectizeInstance) {
-        tick().then(() => {
-            syncing = true;
-            selectizeInstance.clearOptions();
-            selectizeInstance.addOption({ value: '', text: '' });
-            options.forEach(opt => selectizeInstance.addOption({ value: opt.id, text: opt.label }));
-            selectizeInstance.refreshOptions(false);
-            selectizeInstance.setValue(value ?? '', true);
-            syncing = false;
-        })
-
-    }
+    $: selectOptions = options.map(opt => ({ value: opt.id, text: opt.label }));
 </script>
 
 <div class="part-select {wrapperClass}">
-    <select bind:this={selectEl} {name} class="form-control"></select>
+    <select {name} class="form-control"
+            use:selectize={{ options: selectOptions, value, clearable: true, onChange: val => dispatch('change', val || null) }}></select>
 </div>

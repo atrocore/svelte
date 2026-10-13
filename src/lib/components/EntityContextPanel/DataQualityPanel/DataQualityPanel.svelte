@@ -9,7 +9,8 @@
 -->
 
 <script lang="ts">
-    import { createEventDispatcher, onMount, tick } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
+    import { selectize } from "$lib/dom/selectize";
     import { Metadata } from '$lib/core/metadata';
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
@@ -29,8 +30,8 @@
     export let fetchModel: () => void
 
 
-    let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
-    let qualityChecksList: Array<Item> = [];
+    let qualityChecksList: Array<Item> = Object.entries(Metadata.get(['scopes', scope, 'activeQualityChecks']) as Record<string, ActiveQualityCheck> || {})
+        .map(([checkId, check]) => ({ value: checkId, text: check.name }));
     let ruleDefsList: Array<RuleDefs> = Metadata.get(['scopes', scope, 'qualityCheckRules']) || [];
     let activeItem: string | null = null
     let loading: boolean = false
@@ -122,8 +123,7 @@
         const checkId = (evt as CustomEvent).detail.checkId
         const item = qualityChecksList.find(item => item.value === checkId)
         if (item) {
-            activeItem = item.value
-            qualityCheckSelect.selectize.setValue(activeItem)
+            selectActiveItem(item.value)
             dispatch('show')
         }
     }
@@ -144,15 +144,6 @@
     }
 
     onMount(() => {
-        const checks: Record<string, ActiveQualityCheck> = Metadata.get(['scopes', scope, 'activeQualityChecks']) || {};
-
-        for (const [checkId, check] of Object.entries(checks)) {
-            qualityChecksList.push({
-                value: checkId,
-                text: check.name,
-            });
-        }
-
         if (qualityChecksList.length === 0) {
             return
         }
@@ -170,17 +161,6 @@
             detail: {entityName: scope, entityId: id}
         }))
 
-        tick().then(() => {
-            window.$(qualityCheckSelect).selectize({
-                valueField: 'value',
-                labelField: 'text',
-                searchField: ['text'],
-                onChange: function (value: string) {
-                    selectActiveItem(value)
-                }
-            });
-        })
-
         return () => {
             window.removeEventListener('record:quality-checks-data-loaded', onQualityChecksDataLoaded)
             window.removeEventListener('record:save', onRecordSave)
@@ -193,11 +173,7 @@
 
 <div>
     <div style="margin-bottom: 10px">
-        <select name="qualityChecks" bind:this={qualityCheckSelect}>
-            {#each qualityChecksList as check}
-                <option value="{check.value}">{check.text}</option>
-            {/each}
-        </select>
+        <select name="qualityChecks" use:selectize={{ options: qualityChecksList, value: activeItem, onChange: selectActiveItem }}></select>
     </div>
 
     {#if allData}
