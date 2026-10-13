@@ -8,6 +8,7 @@
  * @license    GPLv3 (https://www.gnu.org/licenses/)
  */
 
+import type { LineageGuide } from './lineage-guide';
 import type { LineageLink } from './lineage-link';
 import type { LineageRecord } from './lineage-record';
 
@@ -15,9 +16,10 @@ export type LineageRow = {
     record: LineageRecord;
     kind: 'master' | 'contributor' | 'pipeline';
     depth: number;
-    guides: boolean[];
+    guides: LineageGuide[];
     link: LineageLink | null;
     pipelineChildLink: LineageLink | null;
+    consolidationChildLink: LineageLink | null;
     hasPipelineChild: boolean;
     hasConsolidationChildren: boolean;
     isCurrent: boolean;

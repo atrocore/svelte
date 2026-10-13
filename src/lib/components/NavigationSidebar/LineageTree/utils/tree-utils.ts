@@ -11,6 +11,7 @@
 import { ApiClient } from '$lib/core/api-client';
 import { Metadata } from '$lib/core/metadata';
 import type { LineageEndpoint } from '../types/lineage-endpoint';
+import type { LineageGuide } from '../types/lineage-guide';
 import type { LineageLink } from '../types/lineage-link';
 import type { LineageRecord } from '../types/lineage-record';
 import type { LineageRow } from '../types/lineage-row';
@@ -52,10 +53,11 @@ export function buildLineageRows(tree: LineageTreeResponse, currentScope: string
 
     const rows: LineageRow[] = [];
 
-    const visit = (record: LineageRecord, depth: number, guides: boolean[], link: LineageLink | null): void => {
+    const visit = (record: LineageRecord, depth: number, guides: LineageGuide[], link: LineageLink | null): void => {
         const recordChildren = children.get(`${record.scope}:${record.id}`) ?? [];
         const consolidationChildren = recordChildren.filter(child => findLink(child)?.type === 'consolidation');
         const pipelineChildren = recordChildren.filter(child => findLink(child)?.type !== 'consolidation');
+        const consolidationChildLink = consolidationChildren.length > 0 ? findLink(consolidationChildren[0]) : null;
 
         rows.push({
             record,
@@ -66,13 +68,18 @@ export function buildLineageRows(tree: LineageTreeResponse, currentScope: string
             guides,
             link,
             pipelineChildLink: pipelineChildren.length > 0 ? findLink(pipelineChildren[0]) : null,
+            consolidationChildLink,
             hasPipelineChild: pipelineChildren.length > 0,
             hasConsolidationChildren: consolidationChildren.length > 0,
             isCurrent: record.scope === currentScope && record.id === currentId
         });
 
         consolidationChildren.forEach((child, index) => {
-            visit(child, depth + 1, [...guides, index < consolidationChildren.length - 1], findLink(child));
+            visit(child, depth + 1, [...guides, {
+                continues: index < consolidationChildren.length - 1,
+                masterKey: `${record.scope}:${record.id}`,
+                link: consolidationChildLink
+            }], findLink(child));
         });
 
         pipelineChildren.forEach(child => visit(child, depth, guides, findLink(child)));

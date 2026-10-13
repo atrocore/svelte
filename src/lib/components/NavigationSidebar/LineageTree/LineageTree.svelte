@@ -22,6 +22,7 @@
     let endpoints: LineageEndpoint[] = [];
     let selectedEndpointKey: string = '';
     let rows: LineageRow[] = [];
+    let hoveredConnectorKey: string | null = null;
 
     const kindIcons: Record<LineageRow['kind'], string | null> = {
         master: 'ph-crown',
@@ -85,11 +86,24 @@
 
     {#each rows as row (`${row.record.scope}:${row.record.id}`)}
         <div class="lineage-row" class:current={row.isCurrent} class:disabled={row.record.disabled}>
-            {#each row.guides as continues, level}
+            {#each row.guides as guide, level}
                 {@const isBranch = level === row.depth - 1 && row.link?.type === 'consolidation'}
-                <span class="lineage-guide" class:continues class:branch={isBranch}>
-                    {#if isBranch && getLinkUrl(row.link)}
-                        <a class="lineage-connector horizontal" href={getLinkUrl(row.link)} title={getLinkTitle(row.link)}></a>
+                {@const connectorKey = `consolidation:${guide.masterKey}`}
+                <span class="lineage-guide" class:continues={guide.continues} class:branch={isBranch}>
+                    {#if (guide.continues || isBranch) && getLinkUrl(guide.link)}
+                        <!-- svelte-ignore a11y-missing-content -->
+                        <a class="lineage-connector vertical" class:to-center={!guide.continues}
+                           class:hover={hoveredConnectorKey === connectorKey}
+                           href={getLinkUrl(guide.link)} title={getLinkTitle(guide.link)} target="_blank"
+                           on:mouseenter={() => hoveredConnectorKey = connectorKey}
+                           on:mouseleave={() => hoveredConnectorKey = null}></a>
+                    {/if}
+                    {#if isBranch && getLinkUrl(guide.link)}
+                        <!-- svelte-ignore a11y-missing-content -->
+                        <a class="lineage-connector horizontal" class:hover={hoveredConnectorKey === connectorKey}
+                           href={getLinkUrl(guide.link)} title={getLinkTitle(guide.link)} target="_blank"
+                           on:mouseenter={() => hoveredConnectorKey = connectorKey}
+                           on:mouseleave={() => hoveredConnectorKey = null}></a>
                     {/if}
                 </span>
             {/each}
@@ -103,8 +117,29 @@
                         <i class="ph {kindIcons[row.kind]}"></i>
                     {/if}
                 </span>
+                {#if row.link?.type === 'dataPipeline' && getLinkUrl(row.link)}
+                    {@const connectorKey = `dataPipeline:${row.record.toScope}:${row.record.toId}`}
+                    <!-- svelte-ignore a11y-missing-content -->
+                    <a class="lineage-connector vertical above" class:hover={hoveredConnectorKey === connectorKey}
+                       href={getLinkUrl(row.link)} title={getLinkTitle(row.link)} target="_blank"
+                       on:mouseenter={() => hoveredConnectorKey = connectorKey}
+                       on:mouseleave={() => hoveredConnectorKey = null}></a>
+                {/if}
                 {#if row.hasPipelineChild && getLinkUrl(row.pipelineChildLink)}
-                    <a class="lineage-connector vertical" href={getLinkUrl(row.pipelineChildLink)} title={getLinkTitle(row.pipelineChildLink)}></a>
+                    {@const connectorKey = `dataPipeline:${row.record.scope}:${row.record.id}`}
+                    <!-- svelte-ignore a11y-missing-content -->
+                    <a class="lineage-connector vertical below" class:hover={hoveredConnectorKey === connectorKey}
+                       href={getLinkUrl(row.pipelineChildLink)} title={getLinkTitle(row.pipelineChildLink)} target="_blank"
+                       on:mouseenter={() => hoveredConnectorKey = connectorKey}
+                       on:mouseleave={() => hoveredConnectorKey = null}></a>
+                {/if}
+                {#if row.hasConsolidationChildren && getLinkUrl(row.consolidationChildLink)}
+                    {@const connectorKey = `consolidation:${row.record.scope}:${row.record.id}`}
+                    <!-- svelte-ignore a11y-missing-content -->
+                    <a class="lineage-connector vertical below" class:hover={hoveredConnectorKey === connectorKey}
+                       href={getLinkUrl(row.consolidationChildLink)} title={getLinkTitle(row.consolidationChildLink)} target="_blank"
+                       on:mouseenter={() => hoveredConnectorKey = connectorKey}
+                       on:mouseleave={() => hoveredConnectorKey = null}></a>
                 {/if}
             </span>
 
@@ -122,6 +157,7 @@
     .lineage-tree {
         margin-left: -2px;
         --lineage-cell-width: 28px;
+        --lineage-connector-width: 4px;
         --lineage-icon-size: 20px;
         --lineage-row-gap: 12px;
         --lineage-icon-center: calc(50% - var(--lineage-row-gap) / 2);
@@ -164,7 +200,7 @@
         content: '';
         position: absolute;
         left: 50%;
-        right: 0;
+        right: calc((var(--lineage-icon-size) - var(--lineage-cell-width)) / 2);
         top: var(--lineage-icon-center);
         border-top: 1px solid var(--lineage-line-color);
     }
@@ -222,26 +258,46 @@
         position: absolute;
         z-index: 2;
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: calc(var(--lineage-connector-width) / 2);
     }
 
     .lineage-connector.horizontal {
-        left: 50%;
-        right: 0;
-        top: calc(var(--lineage-icon-center) - 4px);
-        height: 8px;
+        left: calc(50% + var(--lineage-connector-width) / 2);
+        right: calc((var(--lineage-icon-size) - var(--lineage-cell-width)) / 2);
+        top: calc(var(--lineage-icon-center) - var(--lineage-connector-width) / 2);
+        height: var(--lineage-connector-width);
+        border-radius: 0 calc(var(--lineage-connector-width) / 2) calc(var(--lineage-connector-width) / 2) 0;
     }
 
     .lineage-connector.vertical {
-        left: calc(50% - 4px);
-        width: 8px;
-        top: var(--lineage-icon-bottom);
+        left: calc(50% - var(--lineage-connector-width) / 2);
+        width: var(--lineage-connector-width);
+        top: 0;
         bottom: 0;
+        border-radius: 0;
     }
 
-    .lineage-connector:hover {
-        background: var(--link-color, #06c);
-        opacity: .25;
+    .lineage-connector.vertical.to-center {
+        bottom: auto;
+        height: calc(var(--lineage-icon-center) + var(--lineage-connector-width) / 2);
+        border-radius: 0 0 0 calc(var(--lineage-connector-width) / 2);
+    }
+
+    .lineage-connector.vertical.above {
+        bottom: auto;
+        height: var(--lineage-icon-top);
+        border-radius: 0 0 calc(var(--lineage-connector-width) / 2) calc(var(--lineage-connector-width) / 2);
+    }
+
+    .lineage-connector.vertical.below {
+        top: var(--lineage-icon-bottom);
+        bottom: 0;
+        border-radius: calc(var(--lineage-connector-width) / 2) calc(var(--lineage-connector-width) / 2) 0 0;
+    }
+
+    .lineage-connector:hover,
+    .lineage-connector.hover {
+        background: var(--lineage-line-color);
     }
 
     .lineage-text {
