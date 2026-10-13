@@ -9,6 +9,7 @@
 -->
 
 <script lang="ts">
+    import { tick } from 'svelte';
     import { Language } from '$lib/core/language';
     import { selectize } from '$lib/dom/selectize';
     import type { LineageEndpoint } from './types/lineage-endpoint';
@@ -23,6 +24,7 @@
     let selectedEndpointKey: string = '';
     let rows: LineageRow[] = [];
     let hoveredConnectorKey: string | null = null;
+    let treeElement: HTMLElement;
 
     const kindIcons: Record<LineageRow['kind'], string | null> = {
         master: 'ph-crown',
@@ -49,6 +51,9 @@
         endpoints = tree.endpoints;
         selectedEndpointKey = `${tree.endpoint.scope}:${tree.endpoint.id}`;
         rows = buildLineageRows(tree, entityName, id);
+
+        await tick();
+        treeElement?.querySelector('.lineage-row.current')?.scrollIntoView({ block: 'nearest' });
     }
 
     function onEndpointChange(value: string): void {
@@ -79,7 +84,7 @@
     }
 </script>
 
-<div class="lineage-tree">
+<div class="lineage-tree" bind:this={treeElement}>
     {#if endpoints.length > 0}
         <div class="lineage-endpoint">
             <select use:selectize={{ options: endpointOptions, value: selectedEndpointKey, disabled: endpoints.length === 1, onChange: onEndpointChange }}></select>
