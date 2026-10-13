@@ -9,6 +9,7 @@
  */
 
 import { ApiClient } from '$lib/core/api-client';
+import { Metadata } from '$lib/core/metadata';
 import type { LineageEndpoint } from '../types/lineage-endpoint';
 import type { LineageLink } from '../types/lineage-link';
 import type { LineageRecord } from '../types/lineage-record';
@@ -44,6 +45,11 @@ export function buildLineageRows(tree: LineageTreeResponse, currentScope: string
     const findLink = (record: LineageRecord): LineageLink | null =>
         tree.links.find(link => link.from === record.scope && link.to === record.toScope) ?? null;
 
+    const scopes: Record<string, any> = Metadata.get(['scopes']) ?? {};
+    const masterScopes = new Set(Object.values(scopes)
+        .filter(defs => defs.role === 'contributor' && defs.primaryEntityId)
+        .map(defs => defs.primaryEntityId));
+
     const rows: LineageRow[] = [];
 
     const visit = (record: LineageRecord, depth: number, guides: boolean[], link: LineageLink | null): void => {
@@ -53,7 +59,9 @@ export function buildLineageRows(tree: LineageTreeResponse, currentScope: string
 
         rows.push({
             record,
-            kind: consolidationChildren.length > 0 ? 'master' : (link?.type === 'consolidation' ? 'contributor' : 'pipeline'),
+            kind: masterScopes.has(record.scope)
+                ? 'master'
+                : (scopes[record.scope]?.role === 'contributor' && scopes[record.scope]?.primaryEntityId ? 'contributor' : 'pipeline'),
             depth,
             guides,
             link,
