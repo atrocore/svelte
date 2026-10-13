@@ -14,6 +14,7 @@ type SelectizeParams = {
     options: SelectizeOption[];
     value: string | null;
     clearable?: boolean;
+    disabled?: boolean;
     onChange: (value: string) => void;
 }
 

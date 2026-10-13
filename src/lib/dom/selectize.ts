@@ -80,6 +80,12 @@ export function selectize(node: HTMLSelectElementWithSelectize, params: Selectiz
             }
         });
         creating = false;
+
+        if (current.disabled) {
+            node.selectize?.disable();
+        } else {
+            node.selectize?.enable();
+        }
     };
 
     create();
@@ -98,6 +104,12 @@ export function selectize(node: HTMLSelectElementWithSelectize, params: Selectiz
             const value = getValue();
             if (value !== null && node.selectize?.getValue() !== value) {
                 node.selectize?.setValue(value, true);
+            }
+
+            if (current.disabled) {
+                node.selectize?.disable();
+            } else {
+                node.selectize?.enable();
             }
         },
         destroy: () => node.selectize?.destroy()
