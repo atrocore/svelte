@@ -9,8 +9,7 @@
 -->
 
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
-    import { selectize } from "$lib/dom/selectize";
+    import { createEventDispatcher, onMount, tick } from "svelte";
     import { Metadata } from '$lib/core/metadata';
     import { ApiClient } from '$lib/core/api-client';
     import { Language } from "$lib/core/language"
@@ -21,7 +20,7 @@
     import type ActiveQualityCheck from "$lib/components/EntityContextPanel/DataQualityPanel/types/active-quality-check";
     import type { CheckResult, PanelRule, RuleDefs } from "$lib/components/EntityContextPanel/DataQualityPanel/types/rule";
     import ContentFilter from "$lib/components/filters/FieldStateFilter/FieldStateFilter.svelte";
-    import { buildPanelRules, getStatusStyle, getValueStyle } from "$lib/components/EntityContextPanel/DataQualityPanel/utils/data-quality-panel";
+    import { buildPanelRules, getRelevantChecks, getStatusStyle, getValueStyle } from "$lib/components/EntityContextPanel/DataQualityPanel/utils/data-quality-panel";
 
     const dispatch = createEventDispatcher();
 
@@ -30,8 +29,13 @@
     export let fetchModel: () => void
 
 
-    let qualityChecksList: Array<Item> = Object.entries(Metadata.get(['scopes', scope, 'activeQualityChecks']) as Record<string, ActiveQualityCheck> || {})
-        .map(([checkId, check]) => ({ value: checkId, text: check.name }));
+    let qualityCheckSelect: HTMLSelectElement & { selectize?: any };
+    // every active check of the entity
+    let allChecks: Array<Item> = [];
+    // the checks the record has a result of - the only ones to choose from
+    let qualityChecksList: Array<Item> = [];
+    // the options of the select are being replaced, so its change is not a choice of the user
+    let updatingSelect: boolean = false;
     let ruleDefsList: Array<RuleDefs> = Metadata.get(['scopes', scope, 'qualityCheckRules']) || [];
     let activeItem: string | null = null
     let loading: boolean = false
@@ -62,14 +66,38 @@
         }
 
         allData = detail.data || {}
+        updateQualityChecksList()
         showActiveItem()
         loading = false
+    }
+
+    // A check is offered only when the record has a result of it, so the list follows the results. The chosen check
+    // is kept while it is offered, otherwise the first one is chosen.
+    function updateQualityChecksList() {
+        qualityChecksList = getRelevantChecks(allChecks, allData || {})
+
+        if (!qualityChecksList.some((item: Item) => item.value === activeItem)) {
+            activeItem = qualityChecksList[0]?.value ?? null
+        }
+
+        const selectize = qualityCheckSelect?.selectize
+        if (!selectize) {
+            return
+        }
+
+        // clearing the options clears the chosen one as well, firing a change that is not the choice of the user
+        updatingSelect = true
+        selectize.clearOptions()
+        selectize.addOption(qualityChecksList)
+        selectize.refreshOptions(false)
+        selectize.setValue(activeItem ?? '', true)
+        updatingSelect = false
     }
 
     function showActiveItem() {
         const result: CheckResult | null = activeItem ? (allData?.[activeItem] || null) : null
         value = result ? result.value : null
-        notApplicable = !!result && result.value === null
+        notApplicable = !!result && result.calculatedAt !== null && result.value === null
         rules = activeItem ? buildPanelRules(activeItem, ruleDefsList, result) : []
     }
 
@@ -123,7 +151,8 @@
         const checkId = (evt as CustomEvent).detail.checkId
         const item = qualityChecksList.find(item => item.value === checkId)
         if (item) {
-            selectActiveItem(item.value)
+            activeItem = item.value
+            qualityCheckSelect.selectize.setValue(activeItem)
             dispatch('show')
         }
     }
@@ -144,7 +173,16 @@
     }
 
     onMount(() => {
-        if (qualityChecksList.length === 0) {
+        const checks: Record<string, ActiveQualityCheck> = Metadata.get(['scopes', scope, 'activeQualityChecks']) || {};
+
+        for (const [checkId, check] of Object.entries(checks)) {
+            allChecks.push({
+                value: checkId,
+                text: check.name,
+            });
+        }
+
+        if (allChecks.length === 0) {
             return
         }
 
@@ -153,13 +191,28 @@
         window.addEventListener('record:show-qc-details', onShowDetails)
         window.addEventListener('record:check-highlighted', onCheckHighlighted)
 
-        activeItem = qualityChecksList[0].value;
-
         // the record may have been loaded before the panel got mounted
         loading = true
         window.dispatchEvent(new CustomEvent('record:quality-checks-data-request', {
             detail: {entityName: scope, entityId: id}
         }))
+
+        tick().then(() => {
+            // the results may have come already, so the select starts with the checks offered by then
+            window.$(qualityCheckSelect).selectize({
+                valueField: 'value',
+                labelField: 'text',
+                searchField: ['text'],
+                options: qualityChecksList,
+                items: activeItem ? [activeItem] : [],
+                onChange: function (value: string) {
+                    if (updatingSelect) {
+                        return
+                    }
+                    selectActiveItem(value)
+                }
+            });
+        })
 
         return () => {
             window.removeEventListener('record:quality-checks-data-loaded', onQualityChecksDataLoaded)
@@ -172,11 +225,11 @@
 </script>
 
 <div>
-    <div style="margin-bottom: 10px">
-        <select name="qualityChecks" use:selectize={{ options: qualityChecksList, value: activeItem, onChange: selectActiveItem }}></select>
+    <div style="margin-bottom: 10px" class:hidden={!!allData && !activeItem}>
+        <select name="qualityChecks" bind:this={qualityCheckSelect}></select>
     </div>
 
-    {#if allData}
+    {#if allData && activeItem}
          <span style="{getValueStyle(value, notApplicable)}" on:click={recalculateCheck}
                class="colored-enum label" title="{Language.translate('recalculate','labels','QualityCheck')}"
                aria-expanded="false">{notApplicable ? 'N/A' : (value === null ? '...' : (value + '%'))}</span>
@@ -186,7 +239,7 @@
         <div style="text-align: center;margin-top: 10px">
             <img style="width: 40px; " class="preloader" src="client/img/atro-loader.svg" alt="loader">
         </div>
-    {:else if allData}
+    {:else if allData && activeItem}
         <div style="margin-top: 10px;">
             <div style="margin-bottom: 10px; overflow: hidden; padding-left: 1px; padding-right: 1px;">
                 <ContentFilter allFilters="{['passed','failed','skipped']}" scope="{scope}"
@@ -246,6 +299,8 @@
                 </div>
             {/each}
         </div>
+    {:else if allData}
+        <p>{Language.translate('No Data')}</p>
     {/if}
 
 </div>
