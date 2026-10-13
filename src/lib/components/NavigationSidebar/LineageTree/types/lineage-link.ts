@@ -13,4 +13,5 @@ export type LineageLink = {
     from: string;
     to: string;
     id: string | null;
+    number: number | null;
 };

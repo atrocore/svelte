@@ -73,7 +73,9 @@
             return '';
         }
 
-        return Language.translate(link.type === 'consolidation' ? 'Consolidation' : 'DataPipeline', 'scopeNames');
+        const title = Language.translate(link.type === 'consolidation' ? 'Consolidation' : 'DataPipeline', 'scopeNames');
+
+        return link.number !== null ? `${title} ${link.number}` : title;
     }
 </script>
 
