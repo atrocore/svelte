@@ -19,6 +19,7 @@ import type { LeftSidebarContext } from '$lib/types/page/page-context';
 import type { PageMode } from '$lib/types/page/page-mode';
 import type { SidebarTab, SidebarTabContent } from '$lib/types/ui/sidebar-tab';
 import RecordTree from './RecordTree/RecordTree.svelte';
+import LineageTree from './LineageTree/LineageTree.svelte';
 import type { SelectedNode } from './types/selected-node';
 
 export const SELF_TAB = '_self';
@@ -26,6 +27,7 @@ export const BOOKMARK_TAB = '_bookmark';
 export const LAST_VIEWED_TAB = '_lastViewed';
 export const ADMIN_TAB = '_admin';
 export const ITEMS_TAB = '_items';
+export const DATA_LINEAGE_TAB = '_dataLineage';
 
 export type TabContext = {
     scope: string;
@@ -173,6 +175,16 @@ const TABS: Record<string, TabDefinition> = {
         label: () => Language.get('Global', 'labels', 'Items') as string,
         icon: () => getSystemIconUrl('copy'),
         content: pageScope => pageScope === CLUSTER_SCOPE ? CLUSTER_ITEMS : SELECTION_ITEMS
+    },
+
+    [DATA_LINEAGE_TAB]: {
+        label: () => Language.get('Global', 'labels', 'dataLineage') as string,
+        icon: () => getSystemIconUrl('tree-structure'),
+        content: {
+            component: LineageTree,
+            props: (tab, ctx) => ({ scope: ctx.scope, model: ctx.model }),
+            isVisible: (tab, ctx) => ctx.mode === 'detail' && !!ctx.model?.get('id')
+        }
     }
 };
 
