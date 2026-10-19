@@ -73,7 +73,7 @@
     }
 
     .admin-page .page-header {
-        margin-bottom: 20px;
+        margin: 0 -20px 20px;
     }
 
     .admin-page .page-header :global(h3) {
@@ -160,6 +160,10 @@
     }
 
     @media screen and (max-width: 767px) {
+        .admin-page .page-header {
+            margin-left: -10px;
+        }
+
         .admin-content :global(details summary) {
             margin-left: -10px;
             margin-right: -10px;

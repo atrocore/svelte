@@ -47,15 +47,15 @@
 </script>
 
 <div class="page-header">
-    <BaseHeader {breadcrumbs} scope="Admin" id="fuzzySearch"/>
-
-    <button
-            on:click={save}
-            disabled={!loaded || saving}
-            style="margin: 10px 7px 0 5px"
-            class="primary action"
-            type="button"
-    >{Language.translate('Save')}</button>
+    <BaseHeader {breadcrumbs} scope="Admin" id="fuzzySearch">
+        <button
+                on:click={save}
+                disabled={!loaded || saving}
+                style="margin-top: 10px"
+                class="primary action"
+                type="button"
+        >{Language.translate('Save')}</button>
+    </BaseHeader>
 </div>
 
 {#if loaded}
