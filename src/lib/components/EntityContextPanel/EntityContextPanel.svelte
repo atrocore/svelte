@@ -19,6 +19,7 @@
     import ClusterPanel from "$lib/components/EntityContextPanel/ClusterPanel/ClusterPanel.svelte";
     import VersionPanel from "$lib/components/EntityContextPanel/VersionPanel/VersionPanel.svelte";
     import ConsolidationPanel from "$lib/components/EntityContextPanel/ConsolidationPanel/ConsolidationPanel.svelte";
+    import DataPipelinePanel from "$lib/components/EntityContextPanel/DataPipelinePanel/DataPipelinePanel.svelte";
 
     export let scope: string;
     export let mode: string;
@@ -51,6 +52,18 @@
     export let onConsolidationPreviewDiscarded: (() => void) | null = null;
     export let onResetConsolidationScript: (() => void) | null = null;
     export let onConsolidationScriptSaved: ((script: string) => void) | null = null;
+    export let showDataPipeline: boolean = false;
+    export let dataPipelineSourceEntity: string = '';
+    export let dataPipelineTargetEntity: string = '';
+    export let dataPipelineSourceRecordId: string = '';
+    export let dataPipelinePreviewActive: boolean = false;
+    export let dataPipelineScriptChanged: boolean = false;
+    export let loadDataPipelineEditor: ((element: HTMLElement, dataPipeline: Record<string, any>) => void) | null = null;
+    export let getDataPipelineScript: (() => string | null) | null = null;
+    export let onDataPipelinePreviewLoaded: ((targetRecord: Record<string, any>) => void) | null = null;
+    export let onDataPipelinePreviewDiscarded: (() => void) | null = null;
+    export let onResetDataPipelineScript: (() => void) | null = null;
+    export let onDataPipelineScriptSaved: ((script: string) => void) | null = null;
     export let useStorage: boolean = true;
     export let uniqueKey: string | null = 'default';
 
@@ -245,6 +258,17 @@
             ];
         }
 
+        if (showDataPipeline) {
+            items = [
+                ...items,
+                {
+                    "name": "data-pipeline",
+                    "label": Language.translate('DataPipeline', 'scopeNames'),
+                    iconClass: 'ph ph-database'
+                }
+            ];
+        }
+
         let itemName = getStoredData('right-side-view-active-item', scopeKey);
 
         if (itemName && items.map(i => i.name).includes(itemName)) {
@@ -342,6 +366,23 @@
                                     onResetScript={onResetConsolidationScript}
                                     onScriptSaved={onConsolidationScriptSaved}
                                     on:title-change={(e) => updateItemTitle('consolidation', e.detail)} />
+            </div>
+        {/if}
+
+        {#if showDataPipeline}
+            <div class="data-pipeline" class:hidden={activeItem?.name !== 'data-pipeline'}>
+                <DataPipelinePanel sourceEntity={dataPipelineSourceEntity}
+                                   targetEntity={dataPipelineTargetEntity}
+                                   sourceRecordId={dataPipelineSourceRecordId}
+                                   previewActive={dataPipelinePreviewActive}
+                                   scriptChanged={dataPipelineScriptChanged}
+                                   loadDataPipelineEditor={loadDataPipelineEditor}
+                                   getScript={getDataPipelineScript}
+                                   onPreviewLoaded={onDataPipelinePreviewLoaded}
+                                   onPreviewDiscarded={onDataPipelinePreviewDiscarded}
+                                   onResetScript={onResetDataPipelineScript}
+                                   onScriptSaved={onDataPipelineScriptSaved}
+                                   on:title-change={(e) => updateItemTitle('data-pipeline', e.detail)} />
             </div>
         {/if}
     </div>
@@ -459,12 +500,14 @@
     .activities :global(.panel-default),
     .cluster :global(.panel-default),
     .consolidation :global(.panel-default),
+    .data-pipeline :global(.panel-default),
     .insights :global(.panel-default) {
         background-color: inherit;
     }
 
     .cluster :global(.panel-default),
     .consolidation :global(.panel-default),
+    .data-pipeline :global(.panel-default),
     .insights :global(.panel-default) {
         margin-bottom: 10px;
     }
@@ -479,13 +522,15 @@
         display: none;
     }
 
-    .consolidation :global(.panel-heading) {
+    .consolidation :global(.panel-heading),
+    .data-pipeline :global(.panel-heading) {
         display: none;
     }
 
     .activities :global(.panel-body),
     .cluster :global(.panel-body),
     .consolidation :global(.panel-body),
+    .data-pipeline :global(.panel-body),
     .insights :global(.panel-body) {
         padding-top: 0;
         padding-left: 0;
