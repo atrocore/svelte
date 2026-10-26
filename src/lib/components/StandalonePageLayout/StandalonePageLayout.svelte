@@ -13,6 +13,8 @@
     import { Config } from "$lib/core/config";
     import { ApiClient } from "$lib/core/api-client";
 
+    export let showFooter: boolean = true;
+
     let authorName: string | null = null;
     let authorLink: string | null = null;
 
@@ -33,18 +35,20 @@
         {/if}
     </div>
 
-    <footer class="container">
-        <div class="credit small">
-            <ul class="footer-links">
-                <li><a target="_blank" href="https://github.com/atrocore/atrocore/issues/new">Report a Bug</a></li>
-                <li><a target="_blank" href="https://community.atrocore.com">Community</a></li>
-                <li><a target="_blank" href="https://help.atrocore.com">Help Center</a></li>
-                <li><a target="_blank" href="https://support.atrocore.com">Support</a></li>
-                <li><a target="_blank" href="https://atrocore.com/contact">Contact Us</a></li>
-            </ul>
-            <span class="copyright">&copy; <a href="https://atrocore.com" title="AtroCore is based on EspoCRM" target="_blank">AtroCore is based on EspoCRM</a> | <span>AtroCore: {Config.get('coreVersion') || ''}</span></span>
-        </div>
-    </footer>
+    {#if showFooter}
+        <footer class="container">
+            <div class="credit small">
+                <ul class="footer-links">
+                    <li><a target="_blank" href="https://github.com/atrocore/atrocore/issues/new">Report a Bug</a></li>
+                    <li><a target="_blank" href="https://community.atrocore.com">Community</a></li>
+                    <li><a target="_blank" href="https://help.atrocore.com">Help Center</a></li>
+                    <li><a target="_blank" href="https://support.atrocore.com">Support</a></li>
+                    <li><a target="_blank" href="https://atrocore.com/contact">Contact Us</a></li>
+                </ul>
+                <span class="copyright">&copy; <a href="https://atrocore.com" title="AtroCore is based on EspoCRM" target="_blank">AtroCore is based on EspoCRM</a> | <span>AtroCore: {Config.get('coreVersion') || ''}</span></span>
+            </div>
+        </footer>
+    {/if}
 </div>
 
 <style>
