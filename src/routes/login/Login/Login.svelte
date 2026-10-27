@@ -20,7 +20,7 @@
     let forgotPasswordUserName = '';
 </script>
 
-<StandalonePageLayout>
+<StandalonePageLayout showFooter={false}>
     <LogoCard logoVariant={view === 'forgot-password' ? 'short' : 'full'}>
         <div class="login-body">
             {#if view === 'forgot-password'}
