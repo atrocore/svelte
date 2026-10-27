@@ -37,6 +37,7 @@ import LayoutComponent from "./routes/admin/layouts/LayoutComponent/LayoutCompon
 import RebuildDatabaseModal from "$lib/components/RebuildDatabaseModal/RebuildDatabaseModal.svelte";
 import ApiRequestComponent from "./routes/admin/api-request/ApiRequest/ApiRequestComponent.svelte";
 import FuzzySearchComponent from "./routes/admin/fuzzy-search/FuzzySearch/FuzzySearchComponent.svelte";
+import ComplianceSettingsComponent from "./routes/admin/compliance-settings/ComplianceSettings/ComplianceSettingsComponent.svelte";
 import { default as ScriptField } from "$lib/components/fields/Script/Script.svelte";
 import { default as BoolField } from "$lib/components/fields/Bool/Bool.svelte";
 import { default as TextField } from "$lib/components/fields/Text/Text.svelte";
@@ -129,6 +130,7 @@ export {
     NavigationSidebar,
     ApiRequestComponent,
     FuzzySearchComponent,
+    ComplianceSettingsComponent,
     Navigation,
     Favorites,
     BaseHeader,
