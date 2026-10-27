@@ -62,7 +62,10 @@
             <div class="row">
                 <div class="col-xs-12 cell form-group">
                     <label class="control-label" for="complianceMultipleDocsPerLanguage">
-                        {Language.translate('complianceMultipleDocsPerLanguage', 'fields', 'Settings')}
+                        <span
+                                class="label-text"
+                                title={Language.translate('complianceMultipleDocsPerLanguage', 'tooltips', 'Settings')}
+                        >{Language.translate('complianceMultipleDocsPerLanguage', 'fields', 'Settings')}</span>
                     </label>
                     <div class="field">
                         <Bool
@@ -71,9 +74,6 @@
                                 bind:value={complianceMultipleDocsPerLanguage}
                         />
                     </div>
-                    <p class="help-block">
-                        {Language.translate('complianceMultipleDocsPerLanguage', 'tooltips', 'Settings')}
-                    </p>
                 </div>
             </div>
         </div>
