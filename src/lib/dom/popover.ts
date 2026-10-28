@@ -14,7 +14,7 @@ type PopoverElement = HTMLElement & { _floating?: Floating };
 
 export const Popover = {
     initWithinNode: (node: HTMLElement) => {
-        node.querySelectorAll('.popover').forEach(el => {
+        node.querySelectorAll('.popover:not(.note-popover)').forEach(el => {
             const popoverEl = el as PopoverElement;
             if (popoverEl._floating) {
                 return;
