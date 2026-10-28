@@ -55,9 +55,9 @@
             id: item.entityId,
             name: item.recordName ?? item.entityId,
             entityName: item.entityName,
-            consolidated: item._meta?.cluster?.consolidated ?? false,
+            consolidated: item._meta?.state?.consolidated ?? false,
             consolidatedAutomatically: item.consolidatedAutomatically,
-            isGoldenRecord: item._meta?.cluster?.golden ?? false,
+            isGoldenRecord: item._meta?.state?.golden ?? false,
         };
     }
 
