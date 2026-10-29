@@ -56,7 +56,7 @@
             name: item.recordName ?? item.entityId,
             entityName: item.entityName,
             consolidated: item._meta?.state?.consolidated ?? false,
-            consolidatedAutomatically: item.consolidatedAutomatically,
+            confirmedAutomatically: item.confirmedAutomatically,
             isGoldenRecord: item._meta?.state?.golden ?? false,
         };
     }
@@ -67,7 +67,7 @@
             entityName: 'Cluster',
             link: 'clusterItems',
             id: clusterId,
-            select: 'entityName,entityId,entity,consolidatedAutomatically',
+            select: 'entityName,entityId,entity,confirmedAutomatically',
             collectionOnly: true,
             sortBy: 'id',
             asc: false,
@@ -115,7 +115,7 @@
         stagingTotal = null;
 
         try {
-            cluster = await ApiClient.get(`/Cluster/${clusterId}`, { select: 'id,number,state,createdAt,masterEntity' });
+            cluster = await ApiClient.get(`/Cluster/${clusterId}`, { select: 'id,number,status,createdAt,masterEntity' });
             dispatch('title-change', `<a href="#Cluster/view/${cluster.id}" target="_blank" class="sidebar-title-link">${Language.translate('Cluster', 'scopeNames')} ${cluster.number}</a>`);
 
             const masterEntity: string = cluster.masterEntity;
@@ -187,10 +187,10 @@
         stagingLoadingMore = false;
     }
 
-    function getStateColor(state: string): string {
-        const options: string[] = Metadata.get(['entityDefs', 'Cluster', 'fields', 'state', 'options']) ?? [];
-        const colors: string[] = Metadata.get(['entityDefs', 'Cluster', 'fields', 'state', 'optionColors']) ?? [];
-        const idx = options.indexOf(state);
+    function getStatusColor(status: string): string {
+        const options: string[] = Metadata.get(['entityDefs', 'Cluster', 'fields', 'status', 'options']) ?? [];
+        const colors: string[] = Metadata.get(['entityDefs', 'Cluster', 'fields', 'status', 'optionColors']) ?? [];
+        const idx = options.indexOf(status);
         return idx !== -1 && colors[idx] ? `#${colors[idx]}` : '#eeeeee';
     }
 
@@ -240,7 +240,7 @@
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
-                                {#if record.consolidatedAutomatically}
+                                {#if record.confirmedAutomatically}
                                     <i class="ph ph-sparkle auto-icon"></i>
                                 {/if}
                             </a>
@@ -280,7 +280,7 @@
                             <a href="#{record.entityName}/view/{record.id}" target="_blank"
                                style="border-left: 3px solid {getBorderColor(record)}">
                                 {record.name}
-                                {#if record.consolidatedAutomatically}
+                                {#if record.confirmedAutomatically}
                                     <i class="ph ph-sparkle auto-icon"></i>
                                 {/if}
                             </a>
