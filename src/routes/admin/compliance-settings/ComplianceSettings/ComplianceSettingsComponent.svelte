@@ -17,6 +17,7 @@
     import Bool from '$lib/components/fields/Bool/Bool.svelte';
 
     let complianceMultipleDocsPerLanguage: boolean = false;
+    let field: Bool;
     let saving: boolean = false;
     let loaded: boolean = false;
 
@@ -29,7 +30,9 @@
     async function save() {
         saving = true;
         try {
-            await ApiClient.patch('settings', {complianceMultipleDocsPerLanguage});
+            const data = field.fetch();
+            await ApiClient.patch('settings', data);
+            complianceMultipleDocsPerLanguage = !!data.complianceMultipleDocsPerLanguage;
             Notifier.notify(Language.translate('Saved'), 'success');
         } catch (e) {
             Notifier.notify(Language.translate('Error occurred'), 'danger');
@@ -69,9 +72,10 @@
                     </label>
                     <div class="field">
                         <Bool
+                                bind:this={field}
                                 name="complianceMultipleDocsPerLanguage"
                                 mode="edit"
-                                bind:value={complianceMultipleDocsPerLanguage}
+                                value={complianceMultipleDocsPerLanguage}
                         />
                     </div>
                 </div>
