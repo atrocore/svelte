@@ -11,6 +11,8 @@ export type ModalButton = {
 
 export type ModalPosition = 'center' | 'top' | 'left' | 'right';
 
+export type ModalSize = 'small' | 'medium' | 'large';
+
 export type ModalButtonsPosition = 'top' | 'bottom';
 
 export type ModalButtonsAlign = 'left' | 'right';

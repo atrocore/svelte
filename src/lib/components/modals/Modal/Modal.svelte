@@ -14,7 +14,7 @@
 
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import type { ModalButton, ModalPosition, ModalButtonsPosition, ModalButtonsAlign } from './types/modal-button';
+    import type { ModalButton, ModalPosition, ModalButtonsPosition, ModalButtonsAlign, ModalSize } from './types/modal-button';
 
     export let header: string = '';
     export let buttons: ModalButton[] = [];
@@ -24,6 +24,7 @@
     export let onClose: () => void = () => {};
     export let fullHeight: boolean = false;
     export let fullWidth: boolean = false;
+    export let size: ModalSize = 'medium';
     export let position: ModalPosition = 'center';
     export let closeOnEscape: boolean = false;
     export let closeOnBackdrop: boolean = false;
@@ -83,7 +84,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
     bind:this={dialogEl}
-    class="dialog position-{position}"
+    class="dialog size-{size} position-{position}"
     class:full-width={fullWidth}
     class:full-height={fullHeight || position === 'left' || position === 'right'}
     class:buttons-in-header={buttonsPosition === 'top'}
@@ -132,8 +133,9 @@
     .dialog {
         display: flex;
         flex-direction: column;
-        width: 700px;
+        width: var(--modal-width);
         max-width: calc(100vw - 40px);
+        min-height: min(var(--modal-min-height, 0px), calc(100vh - 40px));
         max-height: calc(100vh - 40px);
         margin: auto;
         padding: 0;
@@ -142,14 +144,30 @@
         background-color: #fff;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         overflow: hidden;
+        outline: 0;
     }
 
     .dialog::backdrop {
         background: rgba(0, 0, 0, 0.5);
     }
 
+    .dialog.size-small {
+        --modal-width: 500px;
+        --modal-min-height: 200px;
+    }
+
+    .dialog.size-medium {
+        --modal-width: 800px;
+        --modal-min-height: 300px;
+    }
+
+    .dialog.size-large {
+        --modal-width: 1100px;
+        --modal-min-height: 400px;
+    }
+
     .dialog.full-width {
-        width: calc(100vw - 40px);
+        --modal-width: calc(100vw - 40px);
     }
 
     .dialog.full-height {
@@ -157,6 +175,8 @@
     }
 
     .dialog.position-top {
+        min-height: min(var(--modal-min-height, 0px), calc(100vh - 68px));
+        max-height: calc(100vh - 68px);
         margin-top: 48px;
         margin-bottom: auto;
     }
@@ -191,8 +211,8 @@
     }
 
     header.default {
-        background: var(--nav-menu-background);
-        color: var(--nav-font-color);
+        background: #fff;
+        color: var(--primary-font-color);
     }
 
     header h2 {
