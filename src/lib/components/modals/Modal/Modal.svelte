@@ -206,8 +206,8 @@
     }
 
     header.default {
-        background: var(--nav-menu-background);
-        color: var(--nav-font-color);
+        background: #fff;
+        color: var(--primary-font-color);
     }
 
     header h2 {
