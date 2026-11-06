@@ -71,6 +71,7 @@ import SelectionItemList from "$lib/components/SelectionItemList/SelectionItemLi
 import ClusterItemList from "$lib/components/ClusterItemList/ClusterItemList.svelte";
 import RowActions from "$lib/components/RowActions/RowActions.svelte";
 import DynamicExportModal from "$lib/components/modals/DynamicExportModal/DynamicExportModal.svelte";
+import SubtypeSelectModal from "$lib/components/modals/SubtypeSelectModal/SubtypeSelectModal.svelte";
 import InlineEditMultiToolbar from "$lib/components/InlineEditMultiToolbar/InlineEditMultiToolbar.svelte";
 import PaginationToolbar from "$lib/components/toolbars/PaginationToolbar/PaginationToolbar.svelte";
 import ShowMoreButton from "$lib/components/ShowMoreButton/ShowMoreButton.svelte";
@@ -154,6 +155,7 @@ export {
     ClusterItemList,
     RowActions,
     DynamicExportModal,
+    SubtypeSelectModal,
     InlineEditMultiToolbar,
     PaginationToolbar,
     ShowMoreButton
