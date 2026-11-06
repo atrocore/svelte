@@ -135,6 +135,7 @@
         flex-direction: column;
         width: var(--modal-width);
         max-width: calc(100vw - 40px);
+        min-height: min(var(--modal-min-height, 0px), calc(100vh - 40px));
         max-height: calc(100vh - 40px);
         margin: auto;
         padding: 0;
@@ -152,14 +153,17 @@
 
     .dialog.size-small {
         --modal-width: 500px;
+        --modal-min-height: 200px;
     }
 
     .dialog.size-medium {
         --modal-width: 800px;
+        --modal-min-height: 300px;
     }
 
     .dialog.size-large {
         --modal-width: 1100px;
+        --modal-min-height: 400px;
     }
 
     .dialog.full-width {
@@ -171,6 +175,7 @@
     }
 
     .dialog.position-top {
+        min-height: min(var(--modal-min-height, 0px), calc(100vh - 68px));
         max-height: calc(100vh - 68px);
         margin-top: 48px;
         margin-bottom: auto;
