@@ -46,7 +46,7 @@
 </script>
 
 <Modal
-    header={Language.translate('selectType', 'labels', 'Global')}
+    header={`${Language.translate(scope, 'scopeNames')}: ${Language.translate('selectType', 'labels', 'Global')}`}
     {onClose}
     closeOnEscape={true}
     closeOnBackdrop={true}
