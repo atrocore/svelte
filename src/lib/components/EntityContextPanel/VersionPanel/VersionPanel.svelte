@@ -31,7 +31,8 @@
         if (!scope || !entityId) return;
         loading = true;
         try {
-            versions = (await ApiClient.get('/versionList', {entityName: scope, entityId})) ?? [];
+            // the audit group tells who created a version on behalf of whom, and gives the name of the System user
+            versions = (await ApiClient.get('/versionList', {entityName: scope, entityId}, {'With-Meta-Groups': 'audit'})) ?? [];
         } catch {
             Notifier.notify('Error occurred', 'error');
         }
