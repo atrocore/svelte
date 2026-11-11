@@ -61,6 +61,7 @@
     let hideRowAction: boolean = false;
 
     let hasQbRules: boolean = false;
+    let hasLockedRules: boolean = false;
     let syncingFromStore: boolean = false;
 
     let isQbValid: boolean = false;
@@ -187,6 +188,11 @@
         if (filters.length === 0) {
             return;
         }
+
+        // the rules that the user cannot change come first. Their fields must be filters to be shown here, a locked
+        // rule without a filter is still applied to the list
+        hasLockedRules = searchManager.hasLockedRules();
+        rules = adaptLockedRulesToFilters(searchManager.mergeLockedRules(rules, filters.map((f: any) => f.id)));
 
         $queryBuilder.on('afterCreateRuleInput.queryBuilder', function (e: any, rule: any) {
             if (rule.data?.disabled) {
@@ -358,7 +364,7 @@
         const rulesObj = $queryBuilder[0].queryBuilder.getRules({allow_invalid: true});
 
         if (rulesObj && rulesObj.rules) {
-            hasQbRules = rulesObj.rules.length > 0;
+            hasQbRules = hasUserRules(rulesObj);
             isQbValid = rulesObj.valid;
 
             if (!hasQbRules) {
@@ -401,7 +407,7 @@
 
             const rulesObj = $queryBuilder[0].queryBuilder.getRules({allow_invalid: true});
             if (rulesObj) {
-                hasQbRules = rulesObj.rules && rulesObj.rules.length > 0;
+                hasQbRules = hasUserRules(rulesObj);
                 isQbValid = rulesObj.valid;
 
                 if (!hasQbRules) {
@@ -468,8 +474,11 @@
         $queryBuilder.on('afterAddRule.queryBuilder', async (e: any, rule: any) => {
             await tick();
             if (rule.$el) {
-                if (isTreeNodeRule(rule)) {
+                if (isTreeNodeRule(rule) || isLockedRule(rule)) {
                     rule.$el.addClass('tree-node-rule');
+                    if (isLockedRule(rule)) {
+                        rule.$el.addClass('locked-rule');
+                    }
                     rule.$el.find('.rule-header').removeClass('drag-handle');
                 }
                 rule.$el.find('.rule-filter-container select:not(.selectized)').selectize({
@@ -648,11 +657,12 @@
         }
         advancedFilterChecked = false;
         handleAdvancedFilterChecked(false)
+        const lockedOnly = searchManager.mergeLockedRules([]);
         updateSearchManager({
-            queryBuilder: [],
+            queryBuilder: lockedOnly,
             advanced: []
         });
-        window.$(queryBuilderElement).queryBuilder('setRules', []);
+        window.$(queryBuilderElement).queryBuilder('setRules', lockedOnly);
         updateCollection();
         queryBuilderRulesChanged = false;
         clearScopeTreeRules();
@@ -1021,6 +1031,10 @@
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
+        if (searchManager.hasLockedRules()) {
+            advancedFilterChecked = true;
+        }
+
         generalFilterStore.advancedFilterChecked.set(advancedFilterChecked);
 
         updateSearchManager({
@@ -1060,7 +1074,7 @@
 
         if (editingSavedSearch !== null) {
             saveSaveSearch({
-                data: window.$(queryBuilderElement).queryBuilder('getRules')
+                data: searchManager.stripLockedRules(window.$(queryBuilderElement).queryBuilder('getRules')) ?? []
             }, editingSavedSearch.id);
             return;
         }
@@ -1071,7 +1085,7 @@
                 saveSaveSearch({
                     entityType: scope,
                     name: params.name,
-                    data: searchManager.getQueryBuilder(),
+                    data: searchManager.stripLockedRules(searchManager.getQueryBuilder()) ?? [],
                     isPublic: params.isPublic
                 });
                 view.close();
@@ -1146,6 +1160,61 @@
         return !!rule.data?._treeNodeKey;
     }
 
+    /** A rule that the user cannot change or remove, see the locked where of the search manager. */
+    function isLockedRule(rule: any): boolean {
+        return !!rule?.data?._locked;
+    }
+
+    /**
+     * The operator of a locked rule is the one of the where that the caller sends (for example array_any_of), the filter of a
+     * field offers its own operators: a multi enum field has "in" for the same meaning. The rule is shown with the operator
+     * of the filter, so that the query builder recognises it. The applied locked where is not changed.
+     */
+    function adaptLockedRulesToFilters(rules: any): any {
+        const equivalents: Record<string, [string, string]> = {
+            array_any_of: ['in', 'arrayAnyOf'],
+            array_none_of: ['not_in', 'arrayNoneOf']
+        };
+
+        const adapt = (rule: any) => {
+            if (!rule) {
+                return;
+            }
+
+            if (Array.isArray(rule.rules)) {
+                rule.rules.forEach(adapt);
+                return;
+            }
+
+            if (!isLockedRule(rule)) {
+                return;
+            }
+
+            const filter = filters.find((f: any) => f.id === rule.id);
+            const operator = typeof rule.operator === 'object' ? rule.operator?.type : rule.operator;
+            if (!filter || !operator || (filter.operators || []).includes(operator)) {
+                return;
+            }
+
+            const equivalent = equivalents[operator];
+            if (equivalent && (filter.operators || []).includes(equivalent[0])) {
+                rule.operator = equivalent[0];
+                rule.data = {...(rule.data || {}), operatorType: equivalent[1]};
+            }
+        };
+
+        if (rules && Array.isArray(rules.rules)) {
+            adapt(rules);
+        }
+
+        return rules;
+    }
+
+    /** Whether the rules hold a rule of the user, that is a rule that is not locked. */
+    function hasUserRules(rules: any): boolean {
+        return !!searchManager.stripLockedRules(rules);
+    }
+
     function makeDeletedFilter(id: string): any {
         deletedFilterIds.add(id);
         return {
@@ -1179,9 +1248,12 @@
         let found = false;
         $queryBuilder.find('.rule-container').each(function (_: any, el: HTMLElement) {
             const rule = qb.getModel(el);
-            if (rule && isTreeNodeRule(rule)) {
+            if (rule && (isTreeNodeRule(rule) || isLockedRule(rule))) {
                 found = true;
                 window.$(el).addClass('tree-node-rule');
+                if (isLockedRule(rule)) {
+                    window.$(el).addClass('locked-rule');
+                }
                 window.$(el).find('.rule-header').removeClass('drag-handle');
             }
         });
@@ -1281,11 +1353,17 @@
     }
 
     function refreshAdvancedFilterDisabled() {
-        let rules = searchManager.getQueryBuilder();
+        let rules = searchManager.stripLockedRules(searchManager.getQueryBuilder());
         advancedFilterDisabled = true;
 
-        if (typeof rules === 'object' && rules.condition) {
+        if (rules && typeof rules === 'object' && rules.condition) {
             advancedFilterDisabled = isRuleEmpty(rules);
+        }
+
+        // the filter always holds the locked rules, so it is never empty: it stays enabled and applied from the start
+        const locked = searchManager.hasLockedRules();
+        if (locked) {
+            advancedFilterDisabled = false;
         }
 
         // Only write to shared stores when this QB is the active one (element connected to DOM).
@@ -1295,6 +1373,11 @@
         }
 
         generalFilterStore.advancedFilterDisabled.set(advancedFilterDisabled);
+
+        if (locked) {
+            advancedFilterChecked = true;
+            generalFilterStore.advancedFilterChecked.set(true);
+        }
 
         if (advancedFilterDisabled) {
             generalFilterStore.advancedFilterChecked.set(false);
@@ -1365,7 +1448,8 @@
     }
 
     function handleFilterToggle(e: MouseEvent): void {
-        if (advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)) {
+        // the filter holds locked rules: it is always applied and cannot be switched off
+        if (hasLockedRules || advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)) {
             return;
         }
 
@@ -1411,7 +1495,7 @@
                     advanced: []
                 });
                 handleAdvancedFilterChecked(false);
-                if (rules.rules.length === 0) {
+                if (!hasUserRules(rules)) {
                     updateCollection();
                 }
 
@@ -1435,7 +1519,7 @@
 
     function handleEmptyRules(): void {
         if (!advancedFilterChecked) {
-            searchManager.update({queryBuilder: []});
+            searchManager.update({queryBuilder: searchManager.mergeLockedRules([])});
         }
     }
 
@@ -1573,7 +1657,7 @@
                    bind:opened={queryBuilderOpened}>
             <span class="icons-wrapper" slot="icons">
                 {#if !editingSavedSearch}
-                <span class="toggle" class:disabled={advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)}
+                <span class="toggle" class:disabled={hasLockedRules || advancedFilterDisabled || (hasTreeNodeRules && hasQbRules)}
                       class:active={advancedFilterChecked}
                       on:click|stopPropagation|preventDefault={handleFilterToggle}
                 >
@@ -1586,7 +1670,7 @@
                 {/if}
             </span>
 
-            <div class="query-builder" bind:this={queryBuilderElement}></div>
+            <div class="query-builder" class:has-locked-rules={hasLockedRules} bind:this={queryBuilderElement}></div>
             {#if hasQbRules}
                 <div class="filter-action">
                     <div style="display:flex; align-items:center; gap: 10px;">
@@ -1664,6 +1748,20 @@
     :global(.query-builder .rule-container.tree-node-rule .drag-handle) {
         pointer-events: none;
         cursor: not-allowed;
+    }
+
+    :global(.query-builder .rule-container.locked-rule .rule-delete) {
+        display: none;
+    }
+
+    :global(.query-builder .rule-container.locked-rule) {
+        background: rgba(128, 128, 128, .1);
+    }
+
+    /* the locked rules are combined with the rules of the user by AND: the condition of the root group is fixed */
+    :global(.query-builder.has-locked-rules > .rules-group-container > .rules-group-header .group-conditions) {
+        pointer-events: none;
+        opacity: .6;
     }
 
     :global(.query-builder .rule-container.tree-node-rule .rule-toggle) {
