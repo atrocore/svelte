@@ -15,7 +15,12 @@
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
     import { Language } from "$lib/core/language";
     import { ApiError } from "$lib/core/api-client";
-    import { approveAuthorizationRequest, denyAuthorizationRequest, validateAuthorizationRequest } from "./utils/authorize";
+    import Login from "../../login/Login/Login.svelte";
+    import {
+        approveAuthorizationRequest,
+        denyAuthorizationRequest,
+        validateAuthorizationRequest
+    } from "$lib/components/LoginForm/utils/authorize";
 
     /**
      * The query string of the authorization request.
@@ -23,6 +28,7 @@
     export let query: string;
 
     let clientName: string | null = null;
+    let isConsentRequired = true;
     let requestError: string | null = null;
     let username = '';
     let password = '';
@@ -34,13 +40,15 @@
 
     onMount(async () => {
         try {
-            clientName = (await validateAuthorizationRequest(query)).clientName;
+            const authorizationRequest = await validateAuthorizationRequest(query);
+            isConsentRequired = authorizationRequest.isConsentRequired;
+            clientName = authorizationRequest.clientName;
         } catch (e) {
             requestError = getErrorMessage(e);
         }
     });
 
-    $: if (clientName && usernameInputEl) {
+    $: if (clientName && isConsentRequired && usernameInputEl) {
         usernameInputEl.focus();
     }
 
@@ -81,59 +89,63 @@
     }
 </script>
 
-<StandalonePageLayout showFooter={false}>
-    <LogoCard logoVariant="full">
-        <div class="authorize-body">
-            {#if requestError}
-                <div class="error-message" role="alert">{requestError}</div>
-            {:else if clientName}
-                <p class="request-message">{message}</p>
+{#if clientName && !isConsentRequired}
+    <Login authorizationQuery={query} />
+{:else}
+    <StandalonePageLayout showFooter={false}>
+        <LogoCard logoVariant="full">
+            <div class="authorize-body">
+                {#if requestError}
+                    <div class="error-message" role="alert">{requestError}</div>
+                {:else if clientName}
+                    <p class="request-message">{message}</p>
 
-                <form on:submit|preventDefault={handleApprove}>
-                    <TextInput
-                            label={Language.translate('Username')}
-                            id="field-username"
-                            name="username"
-                            autocomplete="username"
-                            bind:value={username}
-                            bind:this={usernameInputEl}
-                            invalid={!!credentialsError}
-                            on:input={clearCredentialsError}
-                    />
+                    <form on:submit|preventDefault={handleApprove}>
+                        <TextInput
+                                label={Language.translate('Username')}
+                                id="field-username"
+                                name="username"
+                                autocomplete="username"
+                                bind:value={username}
+                                bind:this={usernameInputEl}
+                                invalid={!!credentialsError}
+                                on:input={clearCredentialsError}
+                        />
 
-                    <TextInput
-                            label={Language.translate('Password')}
-                            id="field-password"
-                            name="password"
-                            type="password"
-                            autocomplete="current-password"
-                            bind:value={password}
-                            invalid={!!credentialsError}
-                            on:input={clearCredentialsError}
-                    />
+                        <TextInput
+                                label={Language.translate('Password')}
+                                id="field-password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                bind:value={password}
+                                invalid={!!credentialsError}
+                                on:input={clearCredentialsError}
+                        />
 
-                    <div class="buttons">
-                        <button type="button" class="deny-button" disabled={submitting} on:click={handleDeny}>
-                            {Language.translate('Deny', 'labels', 'OauthClient')}
-                        </button>
-                        <button type="submit" class="primary allow-button" disabled={submitting}>
-                            {#if submitting}
-                                <i class="ph ph-circle-notch ph-spin"></i>
-                            {/if}
-                            <span>{Language.translate('Allow', 'labels', 'OauthClient')}</span>
-                        </button>
-                    </div>
+                        <div class="buttons">
+                            <button type="button" class="deny-button" disabled={submitting} on:click={handleDeny}>
+                                {Language.translate('Deny', 'labels', 'OauthClient')}
+                            </button>
+                            <button type="submit" class="primary allow-button" disabled={submitting}>
+                                {#if submitting}
+                                    <i class="ph ph-circle-notch ph-spin"></i>
+                                {/if}
+                                <span>{Language.translate('Allow', 'labels', 'OauthClient')}</span>
+                            </button>
+                        </div>
 
-                    {#if credentialsError}
-                        <div class="error-message" role="alert">{credentialsError}</div>
-                    {/if}
-                </form>
-            {:else}
-                <div class="loading"><i class="ph ph-circle-notch ph-spin"></i></div>
-            {/if}
-        </div>
-    </LogoCard>
-</StandalonePageLayout>
+                        {#if credentialsError}
+                            <div class="error-message" role="alert">{credentialsError}</div>
+                        {/if}
+                    </form>
+                {:else}
+                    <div class="loading"><i class="ph ph-circle-notch ph-spin"></i></div>
+                {/if}
+            </div>
+        </LogoCard>
+    </StandalonePageLayout>
+{/if}
 
 <style>
     .authorize-body {

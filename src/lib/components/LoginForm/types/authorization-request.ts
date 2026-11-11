@@ -10,6 +10,7 @@
 
 export type AuthorizationRequest = {
     clientName: string;
+    isConsentRequired: boolean;
 };
 
 export type AuthorizationResult = {

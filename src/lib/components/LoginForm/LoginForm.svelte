@@ -13,6 +13,7 @@
     import {Config} from "$lib/core/config";
     import {Language} from "$lib/core/language";
     import {login} from "./utils/login";
+    import {approveAuthorizationRequest} from "./utils/authorize";
     import {getOidcLoginUrl} from "./utils/sso";
     import {ApiError} from "$lib/core/api-client";
     import {Notifier} from "$lib/dom/notifier";
@@ -23,6 +24,11 @@
     };
     export let onForgotPassword: (username: string) => void = () => {
     };
+    /**
+     * The query string of an OAuth authorization request: signing in approves it and leads to the redirect URI of the
+     * client, e.g. the user interface itself.
+     */
+    export let authorizationQuery: string | null = null;
 
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
@@ -76,6 +82,16 @@
         credentialsError = null;
     }
 
+    function storeRememberedUsername(): void {
+        if (rememberUsername) {
+            localStorage.setItem('rememberUserName', 'true');
+            localStorage.setItem('lastAuthUserName', username);
+        } else {
+            localStorage.removeItem('rememberUserName');
+            localStorage.removeItem('lastAuthUserName');
+        }
+    }
+
     async function handleSubmit() {
         const usernameEmpty = !username.trim();
         const passwordEmpty = !password.trim();
@@ -98,6 +114,13 @@
         submitting = true;
 
         try {
+            if (authorizationQuery !== null) {
+                const result = await approveAuthorizationRequest(authorizationQuery, username, password);
+                storeRememberedUsername();
+                window.location.href = result.redirectUri;
+                return;
+            }
+
             const data = await login(username, password);
 
             UserData.set(data);
@@ -110,13 +133,7 @@
                 appParams: data.appParams,
             });
 
-            if (rememberUsername) {
-                localStorage.setItem('rememberUserName', 'true');
-                localStorage.setItem('lastAuthUserName', username);
-            } else {
-                localStorage.removeItem('rememberUserName');
-                localStorage.removeItem('lastAuthUserName');
-            }
+            storeRememberedUsername();
         } catch (e) {
             submitting = false;
 
