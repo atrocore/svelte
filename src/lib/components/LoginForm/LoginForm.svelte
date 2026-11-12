@@ -12,23 +12,19 @@
     import {onMount} from "svelte";
     import {Config} from "$lib/core/config";
     import {Language} from "$lib/core/language";
-    import {login} from "./utils/login";
     import {approveAuthorizationRequest} from "./utils/authorize";
     import {getOidcLoginUrl} from "./utils/sso";
     import {ApiError} from "$lib/core/api-client";
     import {Notifier} from "$lib/dom/notifier";
-    import {UserData} from "$lib/core/user-data";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
 
-    export let onLogin: (data: any) => void = () => {
-    };
     export let onForgotPassword: (username: string) => void = () => {
     };
     /**
-     * The query string of an OAuth authorization request: signing in approves it and leads to the redirect URI of the
+     * The query string of the OAuth authorization request: signing in approves it and leads to the redirect URI of the
      * client, e.g. the user interface itself.
      */
-    export let authorizationQuery: string | null = null;
+    export let authorizationQuery: string;
 
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
@@ -114,26 +110,9 @@
         submitting = true;
 
         try {
-            if (authorizationQuery !== null) {
-                const result = await approveAuthorizationRequest(authorizationQuery, username, password);
-                storeRememberedUsername();
-                window.location.href = result.redirectUri;
-                return;
-            }
-
-            const data = await login(username, password);
-
-            UserData.set(data);
-
-            onLogin({
-                user: data.user,
-                preferences: data.preferences,
-                acl: data.acl,
-                settings: data.settings,
-                appParams: data.appParams,
-            });
-
+            const result = await approveAuthorizationRequest(authorizationQuery, username, password);
             storeRememberedUsername();
+            window.location.href = result.redirectUri;
         } catch (e) {
             submitting = false;
 
