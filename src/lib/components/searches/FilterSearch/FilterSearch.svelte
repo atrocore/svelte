@@ -82,6 +82,11 @@
     }
 
     function handleAdvancedFilterChecked(refresh = true) {
+        // the filter holds locked rules: it is always applied and cannot be switched off
+        if (searchManager.hasLockedRules()) {
+            advancedFilterChecked = true;
+        }
+
         generalFilterStore.advancedFilterChecked.set(advancedFilterChecked);
         searchManager.update({queryBuilderApplied: advancedFilterChecked});
         if (refresh) {
@@ -126,6 +131,11 @@
 
         if (typeof rules === 'object' && rules.condition) {
             value = isRuleEmpty(rules);
+        }
+
+        if (searchManager.hasLockedRules()) {
+            value = false;
+            generalFilterStore.advancedFilterChecked.set(true);
         }
 
         generalFilterStore.advancedFilterDisabled.set(value);
@@ -246,7 +256,7 @@
                     <ul class="advanced-checkbox">
                         <li class="checkbox">
                             <label>
-                                <input type="checkbox" disabled={advancedFilterDisabled || hasTreeNodeRules}
+                                <input type="checkbox" disabled={searchManager.hasLockedRules() || advancedFilterDisabled || hasTreeNodeRules}
                                        bind:checked={advancedFilterChecked}
                                        on:change={() => handleAdvancedFilterChecked()}>
                                 {Language.translate('Advanced Filter')}
