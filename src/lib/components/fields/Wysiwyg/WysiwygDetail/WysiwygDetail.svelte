@@ -11,6 +11,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { sanitizeHtml } from '../utils/sanitize';
+    import { IFRAME_ALLOW, IFRAME_ALLOWED_HOSTS } from '$lib/helpers/html';
     import { renderMarkdown } from '$lib/components/fields/Markdown/utils/render-markdown';
     import { Language } from '$lib/core/language';
     import { truncate } from '$lib/components/fields/Text/utils/truncate';
@@ -48,7 +49,20 @@
         link.rel = 'stylesheet';
         link.href = iframeStylesheet;
 
-        doc.write(link.outerHTML + sanitized);
+        // The sandbox needs allow-scripts so embedded players can run, and allow-same-origin so we can access the
+        // document. This CSP forbids any script in the wrapper document itself, so its content can never remove the
+        // sandbox; nested cross-origin players are not affected.
+        const csp = doc.createElement('meta');
+        csp.httpEquiv = 'Content-Security-Policy';
+        csp.content = [
+            "script-src 'none'",
+            "object-src 'none'",
+            "base-uri 'none'",
+            "form-action 'none'",
+            'frame-src ' + IFRAME_ALLOWED_HOSTS.map(host => `https://${host}`).join(' '),
+        ].join('; ');
+
+        doc.write(csp.outerHTML + link.outerHTML + sanitized);
         doc.close();
 
         $(iframeEl).on('load', () => {
@@ -98,7 +112,9 @@
 {:else if useIframe}
     <iframe
         bind:this={iframeEl}
-        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+        allow={IFRAME_ALLOW}
+        allowfullscreen
         frameborder="0"
     ></iframe>
 {:else}
