@@ -40,7 +40,7 @@
     let credentialsError: string | null = null;
     let usernameInputEl: TextInput;
     let passwordInputEl: TextInput;
-    let oidcLoginUrl: string | null = null;
+    let ssoRedirecting = false;
     let ssoError: string | null = null;
 
     onMount(() => {
@@ -49,10 +49,6 @@
         if (urlParams.has('ssoError')) {
             ssoError = urlParams.get('ssoError');
             history.replaceState(null, '', window.location.pathname);
-        }
-
-        if (hasOidcLogin) {
-            getOidcLoginUrl().then(url => oidcLoginUrl = url);
         }
 
         if (demo?.username) {
@@ -66,9 +62,18 @@
         }
     });
 
-    function onSsoButtonClick() {
-        if (oidcLoginUrl) {
-            window.location.href = oidcLoginUrl;
+    /**
+     * The sign-in URL is requested on the click: it starts the sign-in, which is valid for a limited time.
+     */
+    async function onSsoButtonClick(): Promise<void> {
+        ssoRedirecting = true;
+        ssoError = null;
+
+        try {
+            window.location.href = await getOidcLoginUrl(authorizationQuery);
+        } catch (e) {
+            ssoRedirecting = false;
+            ssoError = e instanceof ApiError ? e.getReason() : String(e);
         }
     }
 
@@ -129,7 +134,7 @@
 </script>
 
 {#if hasOidcLogin}
-    <button type="button" class="sso-button" disabled={!oidcLoginUrl} on:click={onSsoButtonClick}>
+    <button type="button" class="sso-button" disabled={ssoRedirecting} on:click={onSsoButtonClick}>
         <i class="ph ph-key"></i> <span>{Language.translate('ContinueWithSso')}</span>
     </button>
 

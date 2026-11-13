@@ -10,6 +10,9 @@
 
 import { ApiClient } from "$lib/core/api-client";
 
-export function getOidcLoginUrl(): Promise<string> {
-    return ApiClient.get<{ url: string }>('oidcLoginUrl').then(data => data.url);
+/**
+ * The sign-in URL of the identity provider; signing in there approves the OAuth authorization request.
+ */
+export function getOidcLoginUrl(authorizationQuery: string): Promise<string> {
+    return ApiClient.get<{ url: string }>('oidcLoginUrl', { authorizationQuery }).then(data => data.url);
 }
