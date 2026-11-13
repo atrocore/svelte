@@ -12,7 +12,7 @@ import { ApiClient } from "$lib/core/api-client";
 import type { AuthorizationRequest, AuthorizationResult } from "../types/authorization-request";
 
 /**
- * The authorization request of an OAuth client is kept in its cookie by the authorization endpoint /api/oauth/authorize.
+ * The authorization request of an OAuth client is kept in its cookie by the authorization page /oauth/authorize.
  */
 export function validateAuthorizationRequest(): Promise<AuthorizationRequest> {
     return ApiClient.get<AuthorizationRequest>('oauth/authorizationRequest');
