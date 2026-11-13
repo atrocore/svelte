@@ -14,5 +14,5 @@ import { ApiClient } from "$lib/core/api-client";
  * Opens the session of the user interface: the server sets the session cookies.
  */
 export async function signInToUserInterface(username: string, password: string): Promise<void> {
-    await ApiClient.post<boolean>('oauth/signIn', { username, password });
+    await ApiClient.post<boolean>('oauth/login', { username, password });
 }
