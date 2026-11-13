@@ -12,17 +12,19 @@
     import {onMount} from "svelte";
     import {Config} from "$lib/core/config";
     import {Language} from "$lib/core/language";
-    import {login} from "./utils/login";
+    import {approveAuthorizationRequest} from "./utils/authorize";
     import {getOidcLoginUrl} from "./utils/sso";
     import {ApiError} from "$lib/core/api-client";
     import {Notifier} from "$lib/dom/notifier";
-    import {UserData} from "$lib/core/user-data";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
 
-    export let onLogin: (data: any) => void = () => {
-    };
     export let onForgotPassword: (username: string) => void = () => {
     };
+    /**
+     * The query string of the OAuth authorization request: signing in approves it and leads to the redirect URI of the
+     * client, e.g. the user interface itself.
+     */
+    export let authorizationQuery: string;
 
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
@@ -38,7 +40,7 @@
     let credentialsError: string | null = null;
     let usernameInputEl: TextInput;
     let passwordInputEl: TextInput;
-    let oidcLoginUrl: string | null = null;
+    let ssoRedirecting = false;
     let ssoError: string | null = null;
 
     onMount(() => {
@@ -47,10 +49,6 @@
         if (urlParams.has('ssoError')) {
             ssoError = urlParams.get('ssoError');
             history.replaceState(null, '', window.location.pathname);
-        }
-
-        if (hasOidcLogin) {
-            getOidcLoginUrl().then(url => oidcLoginUrl = url);
         }
 
         if (demo?.username) {
@@ -64,9 +62,18 @@
         }
     });
 
-    function onSsoButtonClick() {
-        if (oidcLoginUrl) {
-            window.location.href = oidcLoginUrl;
+    /**
+     * The sign-in URL is requested on the click: it starts the sign-in, which is valid for a limited time.
+     */
+    async function onSsoButtonClick(): Promise<void> {
+        ssoRedirecting = true;
+        ssoError = null;
+
+        try {
+            window.location.href = await getOidcLoginUrl(authorizationQuery);
+        } catch (e) {
+            ssoRedirecting = false;
+            ssoError = e instanceof ApiError ? e.getReason() : String(e);
         }
     }
 
@@ -74,6 +81,16 @@
         usernameInvalid = false;
         passwordInvalid = false;
         credentialsError = null;
+    }
+
+    function storeRememberedUsername(): void {
+        if (rememberUsername) {
+            localStorage.setItem('rememberUserName', 'true');
+            localStorage.setItem('lastAuthUserName', username);
+        } else {
+            localStorage.removeItem('rememberUserName');
+            localStorage.removeItem('lastAuthUserName');
+        }
     }
 
     async function handleSubmit() {
@@ -98,25 +115,9 @@
         submitting = true;
 
         try {
-            const data = await login(username, password);
-
-            UserData.set(data);
-
-            onLogin({
-                user: data.user,
-                preferences: data.preferences,
-                acl: data.acl,
-                settings: data.settings,
-                appParams: data.appParams,
-            });
-
-            if (rememberUsername) {
-                localStorage.setItem('rememberUserName', 'true');
-                localStorage.setItem('lastAuthUserName', username);
-            } else {
-                localStorage.removeItem('rememberUserName');
-                localStorage.removeItem('lastAuthUserName');
-            }
+            const result = await approveAuthorizationRequest(authorizationQuery, username, password);
+            storeRememberedUsername();
+            window.location.href = result.redirectUri;
         } catch (e) {
             submitting = false;
 
@@ -133,7 +134,7 @@
 </script>
 
 {#if hasOidcLogin}
-    <button type="button" class="sso-button" disabled={!oidcLoginUrl} on:click={onSsoButtonClick}>
+    <button type="button" class="sso-button" disabled={ssoRedirecting} on:click={onSsoButtonClick}>
         <i class="ph ph-key"></i> <span>{Language.translate('ContinueWithSso')}</span>
     </button>
 
