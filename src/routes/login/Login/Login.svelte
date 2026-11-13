@@ -13,11 +13,15 @@
     import LogoCard from "$lib/components/LogoCard/LogoCard.svelte";
     import LoginForm from "$lib/components/LoginForm/LoginForm.svelte";
     import ForgotPasswordForm from "./ForgotPasswordForm/ForgotPasswordForm.svelte";
+    import {signInToUserInterface} from "$lib/components/LoginForm/utils/sign-in";
+    import type {SignIn} from "$lib/components/LoginForm/types/sign-in";
 
     /**
-     * The query string of the OAuth authorization request the sign-in approves.
+     * Signs in to the user interface, unless the form is shown for the authorization request of an OAuth client.
      */
-    export let authorizationQuery: string;
+    export let signIn: SignIn = signInToUserInterface;
+    export let onSignedIn: () => void = () => {
+    };
 
     let view: 'login' | 'forgot-password' = 'login';
     let forgotPasswordUserName = '';
@@ -29,7 +33,7 @@
             {#if view === 'forgot-password'}
                 <ForgotPasswordForm onBack={() => view = 'login'} initialUserName={forgotPasswordUserName} />
             {:else}
-                <LoginForm {authorizationQuery} onForgotPassword={(username) => { forgotPasswordUserName = username; view = 'forgot-password'; }} />
+                <LoginForm {signIn} {onSignedIn} onForgotPassword={(username) => { forgotPasswordUserName = username; view = 'forgot-password'; }} />
             {/if}
         </div>
     </LogoCard>

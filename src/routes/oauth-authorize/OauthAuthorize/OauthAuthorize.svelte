@@ -21,11 +21,7 @@
         denyAuthorizationRequest,
         validateAuthorizationRequest
     } from "$lib/components/LoginForm/utils/authorize";
-
-    /**
-     * The query string of the authorization request.
-     */
-    export let query: string;
+    import {forgetAuthorizationRequest} from "$lib/components/LoginForm/utils/sign-in-cookies";
 
     let clientName: string | null = null;
     let isConsentRequired = true;
@@ -35,15 +31,18 @@
     let credentialsError: string | null = null;
     let submitting = false;
     let usernameInputEl: TextInput;
+    let redirectUri = '';
 
     $: message = Language.translate('authorizationRequest', 'labels', 'OauthClient').replace('{clientName}', clientName ?? '');
 
     onMount(async () => {
         try {
-            const authorizationRequest = await validateAuthorizationRequest(query);
+            const authorizationRequest = await validateAuthorizationRequest();
             isConsentRequired = authorizationRequest.isConsentRequired;
             clientName = authorizationRequest.clientName;
         } catch (e) {
+            // the request cannot be completed, the application opens as usual next time
+            forgetAuthorizationRequest();
             requestError = getErrorMessage(e);
         }
     });
@@ -60,6 +59,17 @@
         return e instanceof ApiError ? e.getReason() : String(e);
     }
 
+    /**
+     * Approves the authorization request for the signed-in user, the client then gets the authorization code.
+     */
+    async function approve(username: string, password: string): Promise<void> {
+        redirectUri = (await approveAuthorizationRequest(username, password)).redirectUri;
+    }
+
+    function returnToClient(): void {
+        window.location.href = redirectUri;
+    }
+
     async function handleApprove(): Promise<void> {
         if (!username.trim() || !password) {
             credentialsError = Language.translate('usernameOrPasswordCantBeEmpty', 'messages', 'User');
@@ -70,18 +80,21 @@
         submitting = true;
 
         try {
-            window.location.href = (await approveAuthorizationRequest(query, username, password)).redirectUri;
+            await approve(username, password);
         } catch (e) {
             submitting = false;
             credentialsError = getErrorMessage(e);
+            return;
         }
+
+        returnToClient();
     }
 
     async function handleDeny(): Promise<void> {
         submitting = true;
 
         try {
-            window.location.href = (await denyAuthorizationRequest(query)).redirectUri;
+            window.location.href = (await denyAuthorizationRequest()).redirectUri;
         } catch (e) {
             submitting = false;
             requestError = getErrorMessage(e);
@@ -90,7 +103,7 @@
 </script>
 
 {#if clientName && !isConsentRequired}
-    <Login authorizationQuery={query} />
+    <Login signIn={approve} onSignedIn={returnToClient} />
 {:else}
     <StandalonePageLayout showFooter={false}>
         <LogoCard logoVariant="full">

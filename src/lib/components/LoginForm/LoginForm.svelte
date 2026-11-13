@@ -12,19 +12,17 @@
     import {onMount} from "svelte";
     import {Config} from "$lib/core/config";
     import {Language} from "$lib/core/language";
-    import {approveAuthorizationRequest} from "./utils/authorize";
     import {getOidcLoginUrl} from "./utils/sso";
+    import {takeSignInError} from "./utils/sign-in-cookies";
+    import type {SignIn} from "./types/sign-in";
     import {ApiError} from "$lib/core/api-client";
     import {Notifier} from "$lib/dom/notifier";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
 
+    export let signIn: SignIn;
+    export let onSignedIn: () => void;
     export let onForgotPassword: (username: string) => void = () => {
     };
-    /**
-     * The query string of the OAuth authorization request: signing in approves it and leads to the redirect URI of the
-     * client, e.g. the user interface itself.
-     */
-    export let authorizationQuery: string;
 
     const demo: { username?: string; password?: string } | null = Config.get('demo');
     const hasOidcLogin = !!Config.get('hasOidcLogin');
@@ -44,12 +42,7 @@
     let ssoError: string | null = null;
 
     onMount(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('ssoError')) {
-            ssoError = urlParams.get('ssoError');
-            history.replaceState(null, '', window.location.pathname);
-        }
+        ssoError = takeSignInError();
 
         if (demo?.username) {
             return;
@@ -70,7 +63,7 @@
         ssoError = null;
 
         try {
-            window.location.href = await getOidcLoginUrl(authorizationQuery);
+            window.location.href = await getOidcLoginUrl();
         } catch (e) {
             ssoRedirecting = false;
             ssoError = e instanceof ApiError ? e.getReason() : String(e);
@@ -115,21 +108,23 @@
         submitting = true;
 
         try {
-            const result = await approveAuthorizationRequest(authorizationQuery, username, password);
-            storeRememberedUsername();
-            window.location.href = result.redirectUri;
+            await signIn(username, password);
         } catch (e) {
             submitting = false;
 
-            if (e instanceof ApiError && e.status >= 500) {
-                Notifier.notify(e.toString(), {type: 'error'});
+            if (!(e instanceof ApiError) || e.status >= 500) {
+                Notifier.notify(String(e), {type: 'error'});
                 return;
             }
 
             usernameInvalid = true;
             passwordInvalid = true;
-            credentialsError = Language.translate('wrongUsernamePasword', 'messages', 'User');
+            credentialsError = e.getReason() || Language.translate('wrongUsernamePasword', 'messages', 'User');
+            return;
         }
+
+        storeRememberedUsername();
+        onSignedIn();
     }
 </script>
 

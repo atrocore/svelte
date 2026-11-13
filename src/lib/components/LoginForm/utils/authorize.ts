@@ -11,14 +11,17 @@
 import { ApiClient } from "$lib/core/api-client";
 import type { AuthorizationRequest, AuthorizationResult } from "../types/authorization-request";
 
-export function validateAuthorizationRequest(query: string): Promise<AuthorizationRequest> {
-    return ApiClient.get<AuthorizationRequest>(`oauth/authorize?${query}`);
+/**
+ * The authorization request of an OAuth client is kept in its cookie by the authorization endpoint /api/oauth/authorize.
+ */
+export function validateAuthorizationRequest(): Promise<AuthorizationRequest> {
+    return ApiClient.get<AuthorizationRequest>('oauth/authorizationRequest');
 }
 
-export function approveAuthorizationRequest(query: string, username: string, password: string): Promise<AuthorizationResult> {
-    return ApiClient.post<AuthorizationResult>('oauth/authorize', { query, approved: true, username, password });
+export function approveAuthorizationRequest(username: string, password: string): Promise<AuthorizationResult> {
+    return ApiClient.post<AuthorizationResult>('oauth/authorizationRequest', { approved: true, username, password });
 }
 
-export function denyAuthorizationRequest(query: string): Promise<AuthorizationResult> {
-    return ApiClient.post<AuthorizationResult>('oauth/authorize', { query, approved: false });
+export function denyAuthorizationRequest(): Promise<AuthorizationResult> {
+    return ApiClient.post<AuthorizationResult>('oauth/authorizationRequest', { approved: false });
 }
