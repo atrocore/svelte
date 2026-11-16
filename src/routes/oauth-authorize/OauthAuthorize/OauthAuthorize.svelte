@@ -22,6 +22,7 @@
         validateAuthorizationRequest
     } from "$lib/components/LoginForm/utils/authorize";
     import {forgetAuthorizationRequest} from "$lib/components/LoginForm/utils/sign-in-cookies";
+    import {isAllowedRedirectUri} from "$lib/components/LoginForm/utils/redirect-uri";
 
     let clientName: string | null = null;
     let isConsentRequired = true;
@@ -67,7 +68,20 @@
     }
 
     function returnToClient(): void {
-        window.location.href = redirectUri;
+        goToClient(redirectUri);
+    }
+
+    /**
+     * The user agent goes to the redirect URI of the client only when it is allowed.
+     */
+    function goToClient(uri: string): void {
+        if (!isAllowedRedirectUri(uri)) {
+            submitting = false;
+            requestError = Language.translate('invalidRedirectUri', 'exceptions', 'OauthClient').replace('%s', uri);
+            return;
+        }
+
+        window.location.href = uri;
     }
 
     async function handleApprove(): Promise<void> {
@@ -94,7 +108,7 @@
         submitting = true;
 
         try {
-            window.location.href = (await denyAuthorizationRequest()).redirectUri;
+            goToClient((await denyAuthorizationRequest()).redirectUri);
         } catch (e) {
             submitting = false;
             requestError = getErrorMessage(e);
