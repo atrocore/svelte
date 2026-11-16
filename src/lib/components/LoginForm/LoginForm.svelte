@@ -12,15 +12,15 @@
     import {onMount} from "svelte";
     import {Config} from "$lib/core/config";
     import {Language} from "$lib/core/language";
-    import {login} from "./utils/login";
     import {getOidcLoginUrl} from "./utils/sso";
+    import {takeSignInError} from "./utils/sign-in-cookies";
+    import type {SignIn} from "./types/sign-in";
     import {ApiError} from "$lib/core/api-client";
     import {Notifier} from "$lib/dom/notifier";
-    import {UserData} from "$lib/core/user-data";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
 
-    export let onLogin: (data: any) => void = () => {
-    };
+    export let signIn: SignIn;
+    export let onSignedIn: () => void;
     export let onForgotPassword: (username: string) => void = () => {
     };
 
@@ -38,20 +38,11 @@
     let credentialsError: string | null = null;
     let usernameInputEl: TextInput;
     let passwordInputEl: TextInput;
-    let oidcLoginUrl: string | null = null;
+    let ssoRedirecting = false;
     let ssoError: string | null = null;
 
     onMount(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('ssoError')) {
-            ssoError = urlParams.get('ssoError');
-            history.replaceState(null, '', window.location.pathname);
-        }
-
-        if (hasOidcLogin) {
-            getOidcLoginUrl().then(url => oidcLoginUrl = url);
-        }
+        ssoError = takeSignInError();
 
         if (demo?.username) {
             return;
@@ -64,9 +55,18 @@
         }
     });
 
-    function onSsoButtonClick() {
-        if (oidcLoginUrl) {
-            window.location.href = oidcLoginUrl;
+    /**
+     * The sign-in URL is requested on the click: it starts the sign-in, which is valid for a limited time.
+     */
+    async function onSsoButtonClick(): Promise<void> {
+        ssoRedirecting = true;
+        ssoError = null;
+
+        try {
+            window.location.href = await getOidcLoginUrl();
+        } catch (e) {
+            ssoRedirecting = false;
+            ssoError = e instanceof ApiError ? e.getReason() : String(e);
         }
     }
 
@@ -74,6 +74,16 @@
         usernameInvalid = false;
         passwordInvalid = false;
         credentialsError = null;
+    }
+
+    function storeRememberedUsername(): void {
+        if (rememberUsername) {
+            localStorage.setItem('rememberUserName', 'true');
+            localStorage.setItem('lastAuthUserName', username);
+        } else {
+            localStorage.removeItem('rememberUserName');
+            localStorage.removeItem('lastAuthUserName');
+        }
     }
 
     async function handleSubmit() {
@@ -98,42 +108,28 @@
         submitting = true;
 
         try {
-            const data = await login(username, password);
-
-            UserData.set(data);
-
-            onLogin({
-                user: data.user,
-                preferences: data.preferences,
-                acl: data.acl,
-                settings: data.settings,
-                appParams: data.appParams,
-            });
-
-            if (rememberUsername) {
-                localStorage.setItem('rememberUserName', 'true');
-                localStorage.setItem('lastAuthUserName', username);
-            } else {
-                localStorage.removeItem('rememberUserName');
-                localStorage.removeItem('lastAuthUserName');
-            }
+            await signIn(username, password);
         } catch (e) {
             submitting = false;
 
-            if (e instanceof ApiError && e.status >= 500) {
-                Notifier.notify(e.toString(), {type: 'error'});
+            if (!(e instanceof ApiError) || e.status >= 500) {
+                Notifier.notify(String(e), {type: 'error'});
                 return;
             }
 
             usernameInvalid = true;
             passwordInvalid = true;
-            credentialsError = Language.translate('wrongUsernamePasword', 'messages', 'User');
+            credentialsError = e.getReason() || Language.translate('wrongUsernamePasword', 'messages', 'User');
+            return;
         }
+
+        storeRememberedUsername();
+        onSignedIn();
     }
 </script>
 
 {#if hasOidcLogin}
-    <button type="button" class="sso-button" disabled={!oidcLoginUrl} on:click={onSsoButtonClick}>
+    <button type="button" class="sso-button" disabled={ssoRedirecting} on:click={onSsoButtonClick}>
         <i class="ph ph-key"></i> <span>{Language.translate('ContinueWithSso')}</span>
     </button>
 

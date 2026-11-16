@@ -65,6 +65,7 @@ import AnchorNavigation from "$lib/components/headers/AnchorNavigation/AnchorNav
 import DashboardHeader from "$lib/components/headers/DashboardHeader/DashboardHeader.svelte";
 import { default as Administration } from "./routes/admin/Admin/Admin.svelte";
 import { default as Login } from "./routes/login/Login/Login.svelte";
+import { default as OauthAuthorize } from "./routes/oauth-authorize/OauthAuthorize/OauthAuthorize.svelte";
 import { default as ResetPassword } from "./routes/reset-password/ResetPassword/ResetPassword.svelte";
 import { default as ChangeExpiredPassword } from "./routes/password-expired/ChangeExpiredPassword/ChangeExpiredPassword.svelte";
 import { default as ErrorPage } from "./routes/errors/ErrorPage/ErrorPage.svelte";
@@ -150,6 +151,7 @@ export {
     RebuildDatabaseModal,
     Administration,
     Login,
+    OauthAuthorize,
     ResetPassword,
     ChangeExpiredPassword,
     ErrorPage,
