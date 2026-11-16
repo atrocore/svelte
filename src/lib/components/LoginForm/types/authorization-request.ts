@@ -11,6 +11,10 @@
 export type AuthorizationRequest = {
     clientName: string;
     isConsentRequired: boolean;
+    /**
+     * The user who signed in at an external identity provider and gives the consent.
+     */
+    userName: string | null;
 };
 
 export type AuthorizationResult = {

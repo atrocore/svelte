@@ -14,6 +14,7 @@
     import LogoCard from "$lib/components/LogoCard/LogoCard.svelte";
     import TextInput from "$lib/components/TextInput/TextInput.svelte";
     import { Language } from "$lib/core/language";
+    import { Config } from "$lib/core/config";
     import { ApiError } from "$lib/core/api-client";
     import Login from "../../login/Login/Login.svelte";
     import {
@@ -21,11 +22,17 @@
         denyAuthorizationRequest,
         validateAuthorizationRequest
     } from "$lib/components/LoginForm/utils/authorize";
-    import {forgetAuthorizationRequest} from "$lib/components/LoginForm/utils/sign-in-cookies";
+    import {forgetAuthorizationRequest, takeSignInError} from "$lib/components/LoginForm/utils/sign-in-cookies";
+    import {getOidcLoginUrl} from "$lib/components/LoginForm/utils/sso";
     import {isAllowedRedirectUri} from "$lib/components/LoginForm/utils/redirect-uri";
+
+    const hasOidcLogin = !!Config.get('hasOidcLogin');
+    const hasLoginForm = !Config.get('ssoOnly');
 
     let clientName: string | null = null;
     let isConsentRequired = true;
+    let userName: string | null = null;
+    let ssoRedirecting = false;
     let requestError: string | null = null;
     let username = '';
     let password = '';
@@ -35,12 +42,15 @@
     let redirectUri = '';
 
     $: message = Language.translate('authorizationRequest', 'labels', 'OauthClient').replace('{clientName}', clientName ?? '');
+    $: signedInMessage = Language.translate('signedInAs', 'labels', 'OauthClient').replace('{userName}', userName ?? '');
 
     onMount(async () => {
         try {
             const authorizationRequest = await validateAuthorizationRequest();
             isConsentRequired = authorizationRequest.isConsentRequired;
+            userName = authorizationRequest.userName;
             clientName = authorizationRequest.clientName;
+            credentialsError = takeSignInError();
         } catch (e) {
             // the request cannot be completed, the application opens as usual next time
             forgetAuthorizationRequest();
@@ -48,7 +58,7 @@
         }
     });
 
-    $: if (clientName && isConsentRequired && usernameInputEl) {
+    $: if (clientName && isConsentRequired && !userName && usernameInputEl) {
         usernameInputEl.focus();
     }
 
@@ -85,7 +95,8 @@
     }
 
     async function handleApprove(): Promise<void> {
-        if (!username.trim() || !password) {
+        // a user signed in at the identity provider gives the consent without the password
+        if (!userName && (!username.trim() || !password)) {
             credentialsError = Language.translate('usernameOrPasswordCantBeEmpty', 'messages', 'User');
             return;
         }
@@ -102,6 +113,21 @@
         }
 
         returnToClient();
+    }
+
+    /**
+     * The sign-in at the identity provider returns to this form, where the signed-in user gives the consent.
+     */
+    async function onSsoButtonClick(): Promise<void> {
+        ssoRedirecting = true;
+        credentialsError = null;
+
+        try {
+            window.location.href = await getOidcLoginUrl();
+        } catch (e) {
+            ssoRedirecting = false;
+            credentialsError = getErrorMessage(e);
+        }
     }
 
     async function handleDeny(): Promise<void> {
@@ -128,6 +154,16 @@
                     <p class="request-message">{message}</p>
 
                     <form on:submit|preventDefault={handleApprove}>
+                        {#if userName}
+                            <p class="request-message">{signedInMessage}</p>
+                        {:else}
+                        {#if hasOidcLogin}
+                            <button type="button" class="sso-button" disabled={ssoRedirecting || submitting} on:click={onSsoButtonClick}>
+                                <i class="ph ph-key"></i> <span>{Language.translate('ContinueWithSso')}</span>
+                            </button>
+                        {/if}
+
+                        {#if hasLoginForm}
                         <TextInput
                                 label={Language.translate('Username')}
                                 id="field-username"
@@ -149,17 +185,21 @@
                                 invalid={!!credentialsError}
                                 on:input={clearCredentialsError}
                         />
+                        {/if}
+                        {/if}
 
                         <div class="buttons">
                             <button type="button" class="deny-button" disabled={submitting} on:click={handleDeny}>
                                 {Language.translate('Deny', 'labels', 'OauthClient')}
                             </button>
-                            <button type="submit" class="primary allow-button" disabled={submitting}>
-                                {#if submitting}
-                                    <i class="ph ph-circle-notch ph-spin"></i>
-                                {/if}
-                                <span>{Language.translate('Allow', 'labels', 'OauthClient')}</span>
-                            </button>
+                            {#if userName || hasLoginForm}
+                                <button type="submit" class="primary allow-button" disabled={submitting}>
+                                    {#if submitting}
+                                        <i class="ph ph-circle-notch ph-spin"></i>
+                                    {/if}
+                                    <span>{Language.translate('Allow', 'labels', 'OauthClient')}</span>
+                                </button>
+                            {/if}
                         </div>
 
                         {#if credentialsError}
@@ -182,6 +222,13 @@
     .request-message {
         margin-bottom: 20px;
         text-align: center;
+    }
+
+    .sso-button {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
     }
 
     .buttons {
