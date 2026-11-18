@@ -42,6 +42,11 @@
             };
         });
 
+    const scopeDescription = Language.has(scope, 'scopeDescriptions', 'Global')
+        ? Language.get('Global', 'scopeDescriptions', scope)
+        : null;
+    const supertypeDescription: string | null = typeof scopeDescription === 'string' && scopeDescription ? scopeDescription : null;
+
     const groups = groupSubtypeOptions(options, name => Language.translate(name, 'subtypeGroups', scope));
 </script>
 
@@ -53,6 +58,9 @@
     position="top"
     size="large"
 >
+    {#if supertypeDescription}
+        <div class="supertype-description">{supertypeDescription}</div>
+    {/if}
     <div class="subtype-groups">
         {#each groups as group (group.name)}
             {#if group.label}
@@ -85,6 +93,12 @@
 </Modal>
 
 <style>
+    .supertype-description {
+        margin-bottom: 20px;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
     .subtype-groups :global(details:not(:last-child)) {
         margin-bottom: 10px;
     }

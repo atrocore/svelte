@@ -21,19 +21,19 @@
         <li class="breadcrumbs-item" class:full-width={index === items.length - 1 && currentIsHeading}>
             {#if index !== items.length - 1}
                 {#if item.url}
-                    <a href="{item.url}" class={item.className}>
+                    <a href="{item.url}" class={item.className} class:has-tooltip={!!item.tooltip} title={item.tooltip || null}>
                         {sanitizeTitle(item.html || item.label)}
                     </a>
                 {:else}
-                    <span class={item.className}>{sanitizeTitle(item.html || item.label)}</span>
+                    <span class={item.className} class:has-tooltip={!!item.tooltip} title={item.tooltip || null}>{sanitizeTitle(item.html || item.label)}</span>
                 {/if}
             {:else}
                 {#if currentIsHeading}
-                    <h3 class={item.className}>
-                        {sanitizeTitle(item.html || item.label)}
+                    <h3 class={item.className} class:has-tooltip={!!item.tooltip}>
+                        <span title={item.tooltip || null}>{sanitizeTitle(item.html || item.label)}</span>
                     </h3>
                 {:else}
-                    <span class={item.className}>{sanitizeTitle(item.html || item.label)}</span>
+                    <span class={item.className} class:has-tooltip={!!item.tooltip} title={item.tooltip || null}>{sanitizeTitle(item.html || item.label)}</span>
                 {/if}
             {/if}
         </li>
@@ -65,6 +65,12 @@
 
     .breadcrumbs-item > a {
         color: inherit;
+    }
+
+    span.has-tooltip,
+    .has-tooltip span {
+        border-bottom: 1px dotted var(--primary-border-color);
+        cursor: help;
     }
 
     .breadcrumbs-item > h3 {
