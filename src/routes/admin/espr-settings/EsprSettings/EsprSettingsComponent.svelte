@@ -15,6 +15,7 @@
     import { Notifier } from '$lib/dom/notifier';
     import BaseHeader from '$lib/components/headers/BaseHeader/BaseHeader.svelte';
     import Bool from '$lib/components/fields/Bool/Bool.svelte';
+    import CollapsiblePanel from '$lib/components/CollapsiblePanel/CollapsiblePanel.svelte';
 
     let esprUseDeclarationOfConformityUrl: boolean = false;
     let field: Bool;
@@ -65,27 +66,49 @@
 </div>
 
 {#if loaded}
-    <div class="row" style="margin-top: 20px; margin-left: 5px;">
-        <div class="col-sm-6">
-            <h4 style="margin-bottom: 15px">{Language.translate('declarationOfConformity', 'labels', 'Admin')}</h4>
-            <div class="row">
-                <div class="col-xs-12 cell form-group">
-                    <label class="control-label" for="esprUseDeclarationOfConformityUrl">
-                        <span
-                                class="label-text"
-                                title={Language.translate('esprUseDeclarationOfConformityUrl', 'tooltips', 'Settings')}
-                        >{Language.translate('esprUseDeclarationOfConformityUrl', 'fields', 'Settings')}</span>
-                    </label>
-                    <div class="field">
-                        <Bool
-                                bind:this={field}
-                                name="esprUseDeclarationOfConformityUrl"
-                                mode="edit"
-                                value={esprUseDeclarationOfConformityUrl}
-                        />
+    <div class="record settings-content">
+        <div class="detail">
+            <div class="overview">
+                <div class="middle">
+                <CollapsiblePanel name="declarationOfConformity" title={Language.translate('declarationOfConformity', 'labels', 'Admin')}>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-xs-12 cell form-group">
+                                    <label class="control-label" for="esprUseDeclarationOfConformityUrl">
+                                        <span
+                                                class="label-text"
+                                                title={Language.translate('esprUseDeclarationOfConformityUrl', 'tooltips', 'Settings')}
+                                        >{Language.translate('esprUseDeclarationOfConformityUrl', 'fields', 'Settings')}</span>
+                                    </label>
+                                    <div class="field">
+                                        <Bool
+                                                bind:this={field}
+                                                name="esprUseDeclarationOfConformityUrl"
+                                                mode="edit"
+                                                value={esprUseDeclarationOfConformityUrl}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </CollapsiblePanel>
                 </div>
             </div>
         </div>
     </div>
 {/if}
+
+<style>
+    /* the panels use the whole width of the admin page, like the page header: the content of the page has side margins */
+    .settings-content {
+        margin: 20px -20px 0 -10px;
+    }
+
+    @media screen and (min-width: 768px) {
+        .settings-content {
+            margin-left: -20px;
+        }
+    }
+</style>
