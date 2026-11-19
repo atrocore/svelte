@@ -1671,12 +1671,13 @@
             </span>
 
             <div class="query-builder" class:has-locked-rules={hasLockedRules} bind:this={queryBuilderElement}></div>
-            {#if hasQbRules}
+            <!-- the locked rules stay in the builder when the user removes his last rule: the buttons stay to apply or reset the change -->
+            {#if hasQbRules || hasLockedRules}
                 <div class="filter-action">
                     <div style="display:flex; align-items:center; gap: 10px;">
                         {#if Acl.check('SavedSearch', 'create')  }
                             <button class="small filter-button" on:click={saveFilter}
-                                    disabled={advancedFilterDisabled || queryBuilderRulesChanged}
+                                    disabled={advancedFilterDisabled || queryBuilderRulesChanged || !hasQbRules}
                                     title={Language.translate('Save')}
                             >
                                 <i class="ph ph-floppy-disk-back"></i>
