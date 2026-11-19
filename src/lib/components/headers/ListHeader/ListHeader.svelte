@@ -17,7 +17,6 @@
     import type EntityActionButtons from "$lib/components/headers/EntityActionsGroup/types/entity-actions-buttons";
     import type EntityCallbacks from "$lib/components/headers/EntityActionsGroup/types/entity-callbacks";
     import type EntityStat from "$lib/components/headers/EntityActionsGroup/types/entity-stat";
-    import { Language } from "$lib/core/language"
 
     export let params: Params;
     export let entityActions: EntityActionButtons;
@@ -39,14 +38,14 @@
     })
 </script>
 
-<BaseHeader scope={params.scope}>
-    <h3 class="header-title">{Language.translate(params.scope, 'scopeNamesPlural')}</h3>
-    <EntityActionsGroup scope={params.scope} {entityActions} {callbacks} {isFavoriteEntity} {entityStats} {entityStatsLoading}/>
-</BaseHeader>
+<div class="list-header">
+    <BaseHeader breadcrumbs={params.breadcrumbs} scope={params.scope}>
+        <EntityActionsGroup scope={params.scope} {entityActions} {callbacks} {isFavoriteEntity} {entityStats} {entityStatsLoading}/>
+    </BaseHeader>
+</div>
 
 <style>
-    h3 {
-        font-size: 20px;
+    .list-header :global(.breadcrumbs-item.full-width) {
         margin-top: 40px;
     }
 </style>

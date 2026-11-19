@@ -13,6 +13,7 @@ type BreadcrumbsItem = {
     label: string;
     html?: string;
     className?: string;
+    tooltip?: string;
 }
 
 export default BreadcrumbsItem;
