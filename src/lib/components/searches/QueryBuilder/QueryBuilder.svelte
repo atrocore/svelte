@@ -785,8 +785,7 @@
     }
 
     function hasAttribute() {
-        return (Acl.check('Attribute', 'read') && scope === 'Product' && Metadata.get(['scopes', 'Product', 'module']) === 'Pim')
-            || Metadata.get(['scopes', scope, 'hasAttribute']);
+        return !!Metadata.get(['scopes', scope, 'hasAttribute']);
     }
 
     function addAttributeFilter(callback: (pushed: boolean, filters?: any[]) => void): void {
