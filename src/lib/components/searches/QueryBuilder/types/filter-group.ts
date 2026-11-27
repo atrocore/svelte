@@ -20,9 +20,14 @@ type FilterGroup = {
     fields: Record<string, FilterGroupField>;
 }
 
+/**
+ * A field of a group without a label is labelled as a field of the entity. Its defs, when given, are the ones of a field
+ * of the entity for its view.
+ */
 export type FilterGroupField = {
     type: string;
-    label: string;
+    label?: string;
+    defs?: Record<string, any>;
 }
 
 export default FilterGroup;

@@ -936,7 +936,8 @@
     function onGroupFilterDialogCreated(key: string, callback: (pushed: boolean, filters?: any[]) => void, dialog: any): void {
         dialog.render();
         Notifier.clearRegular();
-        dialog.dialog.$el.on('hidden.bs.modal', onGroupFilterDialogClosed.bind(null, callback));
+        // a dialog that is not a modal view of its own, e.g. a Svelte one, only triggers "close"
+        dialog.dialog?.$el.on('hidden.bs.modal', onGroupFilterDialogClosed.bind(null, callback));
         dialog.listenTo(dialog, 'cancel, close', onGroupFilterDialogClosed.bind(null, callback));
         dialog.once('add', onGroupFilterDialogAdd.bind(null, key, callback));
     }
@@ -976,13 +977,18 @@
             return;
         }
 
+        // the field of the group may have defs of its own, e.g. the options, which its view reads from the model
+        if (fieldDefs.defs) {
+            model.defs.fields[name] = fieldDefs.defs;
+        }
+
         const view = Metadata.get(['fields', fieldDefs.type, 'view']) ?? `views/fields/${camelCaseToHyphen(fieldDefs.type)}`;
         createView('qb_' + name, view, {
             name: name,
             model: model,
             defs: {
                 name: name,
-                params: {}
+                params: fieldDefs.defs ?? {}
             },
         }, onGroupFilterViewCreated.bind(null, key, name, callback));
     }
@@ -995,7 +1001,7 @@
             return;
         }
 
-        filter.label = group.fields[name].label;
+        filter.label = group.fields[name].label ?? Language.translate(name, 'fields', scope);
         filter.optgroup = Language.translate(group.label);
 
         for (const existing of filters) {
