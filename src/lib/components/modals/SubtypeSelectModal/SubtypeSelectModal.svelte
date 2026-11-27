@@ -23,11 +23,13 @@
     export let scope: string;
     export let onSelect: (subtype: string) => void;
     export let onClose: () => void;
+    // the action on the records of the subtype the choice is made for: a subtype the user cannot do it with is not offered
+    export let aclAction: 'create' | 'read' = 'create';
 
     const subtypeScopes: Record<string, string> = Metadata.get(['scopes', scope, 'subtypeScopes']) || {};
 
     const options: SubtypeOption[] = Object.entries(subtypeScopes)
-        .filter(([, subtype]) => Acl.check(subtype, 'create'))
+        .filter(([, subtype]) => Acl.check(subtype, aclAction))
         .map(([type, subtype]) => {
             const description = Language.has(subtype, 'subtypeDescriptions', 'Global')
                 ? Language.get('Global', 'subtypeDescriptions', subtype)
